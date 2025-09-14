@@ -25,12 +25,12 @@ export function StatsCard({
       onClick={onClick}
     >
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl font-bold text-academic-dark">{value}</p>
+        <div className="flex-1 min-w-0">
+          <p className="mobile-text font-medium text-muted-foreground truncate">{title}</p>
+          <p className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">{value}</p>
         </div>
-        <div className="p-3 bg-primary/10 rounded-lg">
-          <Icon className="h-6 w-6 text-primary" />
+        <div className="p-2 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
+          <Icon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-primary" />
         </div>
       </div>
     </div>

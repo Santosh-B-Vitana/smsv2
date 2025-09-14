@@ -30,8 +30,8 @@ export default function StudentDashboard() {
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Stats Cards - Mobile responsive */}
+      <div className="mobile-stats grid gap-3 sm:gap-4 lg:gap-6">
         <StatsCard
           title="My Attendance"
           value={`${studentData.attendance}%`}
@@ -58,7 +58,7 @@ export default function StudentDashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
         {/* Today's Classes */}
         <div className="dashboard-card">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">

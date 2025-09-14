@@ -26,8 +26,8 @@ export default function StaffDashboard() {
         </p>
       </div>
 
-      {/* Stats Cards - Engaging for Teachers */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Stats Cards - Mobile responsive for Teachers */}
+      <div className="mobile-stats grid gap-3 sm:gap-4 lg:gap-6">
         <StatsCard
           title="Classes Today"
           value={4}
@@ -54,7 +54,7 @@ export default function StaffDashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
         {/* Assigned Classes */}
         <div className="dashboard-card">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -82,22 +82,22 @@ export default function StaffDashboard() {
         {/* Quick Actions */}
         <div className="dashboard-card">
           <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <button className="p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/leave-management')}>
-              <Clock className="h-6 w-6 mx-auto mb-2" />
-              <p className="text-sm font-medium">Apply Leave</p>
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <button className="p-2 sm:p-3 lg:p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/leave-management')}>
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mx-auto mb-1 sm:mb-2" />
+              <p className="text-xs sm:text-sm font-medium">Apply Leave</p>
             </button>
-            <button className="p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/my-classes')}>
-              <BookOpen className="h-6 w-6 mx-auto mb-2" />
-              <p className="text-sm font-medium">My Classes</p>
+            <button className="p-2 sm:p-3 lg:p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/my-classes')}>
+              <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mx-auto mb-1 sm:mb-2" />
+              <p className="text-xs sm:text-sm font-medium">My Classes</p>
             </button>
-            <button className="p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/assignments')}>
-              <CheckCircle className="h-6 w-6 mx-auto mb-2" />
-              <p className="text-sm font-medium">Grade Assignments</p>
+            <button className="p-2 sm:p-3 lg:p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/assignments')}>
+              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mx-auto mb-1 sm:mb-2" />
+              <p className="text-xs sm:text-sm font-medium">Grade Assignments</p>
             </button>
-            <button className="p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/communication')}>
-              <MessageSquare className="h-6 w-6 mx-auto mb-2" />
-              <p className="text-sm font-medium">Send Message</p>
+            <button className="p-2 sm:p-3 lg:p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/communication')}>
+              <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mx-auto mb-1 sm:mb-2" />
+              <p className="text-xs sm:text-sm font-medium">Send Message</p>
             </button>
           </div>
         </div>

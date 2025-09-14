@@ -132,37 +132,37 @@ export function Header() {
   const isPro = (schoolInfo as any)?.plan === 'Pro' || (schoolInfo as any)?.plan === 'Enterprise';
 
   return (
-  <header className="flex h-14 lg:h-16 items-center gap-2 border-b border-border bg-background px-3 lg:px-6">
+  <header className="flex h-12 sm:h-14 lg:h-16 items-center gap-1 sm:gap-2 border-b border-border bg-background px-2 sm:px-3 lg:px-6">
       {/* Mobile sidebar trigger */}
-      <SidebarTrigger className="lg:hidden" />
-      {/* School info - responsive */}
-      <div className="flex items-center gap-2 flex-1 min-w-0">
+      <SidebarTrigger className="lg:hidden h-8 w-8 sm:h-7 sm:w-7" />
+      {/* School info - enhanced mobile responsive */}
+      <div className="flex items-center gap-1 sm:gap-2 flex-1 min-w-0">
         {schoolInfo?.logoUrl && (
           <img 
             src={schoolInfo.logoUrl} 
             alt={`${schoolInfo.name} Logo`}
-            className="w-6 h-6 lg:w-8 lg:h-8 object-contain rounded-sm"
+            className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 object-contain rounded-sm"
           />
         )}
         <div className="min-w-0 flex-1">
-          <h1 className="font-semibold text-sm lg:text-base text-foreground truncate">
-            {schoolInfo?.name || 'School Management System'}
+          <h1 className="font-semibold text-xs sm:text-sm lg:text-base text-foreground truncate">
+            {schoolInfo?.name || 'SMS'}
           </h1>
         </div>
       </div>
-      {/* Universal search bar for admin */}
+      {/* Universal search bar for admin - mobile responsive */}
       {user?.role === "admin" && (
-        <div className="relative flex-1 flex justify-center">
+        <div className="relative flex-1 flex justify-center max-w-sm lg:max-w-md">
           <input
             type="text"
             value={searchTerm}
             onChange={handleSearchChange}
-            placeholder="Search sections, students, staff members..."
-            className="border rounded-lg px-3 py-1 text-sm w-72 focus:outline-none focus:ring"
+            placeholder="Search..."
+            className="border rounded-lg px-2 sm:px-3 py-1 text-xs sm:text-sm w-full focus:outline-none focus:ring"
             autoComplete="off"
           />
           {suggestions.length > 0 && (
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-72 bg-background border rounded-lg shadow-lg z-50">
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-full bg-background border rounded-lg shadow-lg z-50">
               <ul className="divide-y divide-border">
                 {suggestions.map((s, idx) => (
                   <li
@@ -182,15 +182,15 @@ export function Header() {
       <div className="flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-48 lg:h-10 lg:w-56 rounded-lg px-2 flex items-center gap-2">
-              <Avatar className="h-8 w-8 rounded-lg">
+            <Button variant="ghost" className="relative h-8 w-8 sm:w-32 lg:h-10 lg:w-56 rounded-lg px-1 sm:px-2 flex items-center gap-1 sm:gap-2">
+              <Avatar className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg">
                 <AvatarImage src={user?.avatar || "/placeholder.svg"} alt={user?.name || 'User'} />
-                <AvatarFallback className="rounded-lg">
+                <AvatarFallback className="rounded-lg text-xs">
                   {user?.name ? getUserInitials(user.name) : 'U'}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user?.name}</span>
+              <div className="hidden sm:grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold text-xs sm:text-sm">{user?.name}</span>
                 <span className="truncate text-xs">{user?.email}</span>
               </div>
             </Button>

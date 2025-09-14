@@ -76,15 +76,20 @@
   }
 }
 
-/* Professional Typography Scale */
+/* Enhanced Mobile-First Typography Scale */
 .text-display {
-  font-size: 1.875rem; /* text-3xl */
+  font-size: 1.25rem; /* text-xl for mobile */
   font-weight: 700; /* font-bold */
   letter-spacing: -0.015em; /* tracking-tight */
 }
 @media (min-width: 640px) {
   .text-display {
-    font-size: 2.25rem; /* sm:text-4xl */
+    font-size: 1.875rem; /* sm:text-3xl */
+  }
+}
+@media (min-width: 1024px) {
+  .text-display {
+    font-size: 2.25rem; /* lg:text-4xl */
   }
 }
 
@@ -438,22 +443,70 @@
   @apply bg-amber-50 !important;
 }
 
-/* Ensure mobile-first responsive behavior */
+/* Enhanced Mobile-First Responsive Utilities */
+.mobile-stats {
+  @apply grid grid-cols-2 lg:grid-cols-4;
+}
+
+.mobile-card-spacing {
+  @apply space-y-2 sm:space-y-3 lg:space-y-4;
+}
+
+.mobile-button {
+  @apply text-xs px-2 py-1 sm:text-sm sm:px-3 sm:py-2;
+}
+
+.mobile-text {
+  @apply text-xs sm:text-sm lg:text-base;
+}
+
+.mobile-padding {
+  @apply p-2 sm:p-3 lg:p-4;
+}
+
+.mobile-gap {
+  @apply gap-2 sm:gap-3 lg:gap-4;
+}
+
+/* Enhanced mobile behavior */
 @media (max-width: 640px) {
   .container-academic {
-    @apply px-4;
+    @apply px-2;
   }
   
   .dashboard-card {
-    @apply p-4;
+    @apply p-3;
   }
   
   .academic-form {
-    padding: 1rem;
-    /* space-y-4: add margin-bottom to all children except last */
+    padding: 0.75rem;
   }
   .academic-form > *:not(:last-child) {
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .academic-table th,
+  .academic-table td {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .text-display {
+    font-size: 1.125rem; /* text-lg for very small screens */
+  }
+  
+  .text-heading {
+    font-size: 1rem; /* text-base for mobile */
+  }
+  
+  /* Mobile-specific button improvements */
+  .mobile-action-grid {
+    @apply grid grid-cols-2 gap-2;
+  }
+  
+  /* Compact mobile cards */
+  .mobile-compact-card {
+    @apply p-2 rounded-md bg-card border;
   }
 }
 

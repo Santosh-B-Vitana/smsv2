@@ -20,7 +20,7 @@ export function Layout({ children }: LayoutProps) {
             <Header />
             
             <main className="flex-1 overflow-auto bg-muted/30">
-              <div className="container mx-auto max-w-7xl px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 lg:py-6">
+              <div className="container mx-auto max-w-7xl px-2 sm:px-4 lg:px-6 xl:px-8 py-2 sm:py-4 lg:py-6">
                 {children}
               </div>
             </main>
