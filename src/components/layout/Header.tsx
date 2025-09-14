@@ -15,9 +15,12 @@ import {
   DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { useSidebar } from '@/components/ui/sidebar';
 import { LogOut, Settings, User, Sparkles, BadgeCheck, CreditCard, Bell } from 'lucide-react';
 
 export function Header() {
+  // Sidebar context for mobile menu
+  const { toggleSidebar } = useSidebar();
   // Universal search bar state
   type ClassSuggestion = { type: "Class"; name: string; id: string };
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -133,8 +136,16 @@ export function Header() {
 
   return (
   <header className="flex h-12 sm:h-14 lg:h-16 items-center gap-1 sm:gap-2 border-b border-border bg-background px-2 sm:px-3 lg:px-6">
-      {/* Mobile sidebar trigger */}
-      <SidebarTrigger className="lg:hidden h-8 w-8 sm:h-7 sm:w-7" />
+      {/* Mobile sidebar trigger replaced with hamburger menu using sidebar context */}
+      <button
+        className="lg:hidden h-8 w-8 sm:h-7 sm:w-7 flex flex-col justify-center items-center focus:outline-none"
+        aria-label="Open navigation menu"
+        onClick={toggleSidebar}
+      >
+        <span className="block w-6 h-0.5 bg-foreground mb-1 rounded transition-all"></span>
+        <span className="block w-6 h-0.5 bg-foreground mb-1 rounded transition-all"></span>
+        <span className="block w-6 h-0.5 bg-foreground rounded transition-all"></span>
+      </button>
       {/* School info - enhanced mobile responsive */}
       <div className="flex items-center gap-1 sm:gap-2 flex-1 min-w-0">
         {schoolInfo?.logoUrl && (
