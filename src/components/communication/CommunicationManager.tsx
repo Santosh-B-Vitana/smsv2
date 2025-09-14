@@ -45,6 +45,8 @@ export function CommunicationManager() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
+  const [customSearchTerm, setCustomSearchTerm] = useState("");
+  const [selectedCustomRecipients, setSelectedCustomRecipients] = useState<{id: string, name: string, email: string, type: string}[]>([]);
   const { toast } = useToast();
 
   // Form states
@@ -144,11 +146,15 @@ export function CommunicationManager() {
     }
 
     try {
+      const recipients = recipientType === 'custom' 
+        ? selectedCustomRecipients.map(r => r.email)
+        : selectedRecipients;
+
       const newMessage: Message = {
         id: `MSG${String(messages.length + 1).padStart(3, '0')}`,
         subject: messageSubject,
         content: messageContent,
-        recipients: selectedRecipients,
+        recipients,
         recipientType,
         sender: 'admin@school.edu',
         sentAt: new Date().toISOString(),
@@ -163,6 +169,8 @@ export function CommunicationManager() {
       setMessageSubject("");
       setMessageContent("");
       setSelectedRecipients([]);
+      setSelectedCustomRecipients([]);
+      setCustomSearchTerm("");
       setScheduledDate("");
       setScheduledTime("");
 
@@ -185,19 +193,94 @@ export function CommunicationManager() {
         return students.map(s => ({ 
           id: s.id, 
           name: s.name, 
-          email: `${s.name.toLowerCase().replace(' ', '.')}@student.school.edu` 
+          email: `${s.name.toLowerCase().replace(' ', '.')}@student.school.edu`,
+          type: 'student'
         }));
       case 'staff':
-        return staff.map(s => ({ id: s.id, name: s.name, email: s.email }));
+        return staff.map(s => ({ id: s.id, name: s.name, email: s.email, type: 'staff' }));
       case 'parents':
         return students.map(s => ({ 
           id: s.id, 
           name: `${s.guardianName} (Parent of ${s.name})`, 
-          email: `${s.guardianName.toLowerCase().replace(' ', '.')}@parent.email.com` 
+          email: `${s.guardianName.toLowerCase().replace(' ', '.')}@parent.email.com`,
+          type: 'parent'
         }));
       default:
         return [];
     }
+  };
+
+  const getAllRecipients = () => {
+    const allStaff = staff.map(s => ({ 
+      id: s.id, 
+      name: s.name, 
+      email: s.email,
+      type: 'staff',
+      designation: s.designation
+    }));
+    
+    const allParents = students.map(s => ({ 
+      id: `parent-${s.id}`, 
+      name: `${s.guardianName} (Parent of ${s.name})`, 
+      email: `${s.guardianName.toLowerCase().replace(' ', '.')}@parent.email.com`,
+      type: 'parent',
+      child: s.name,
+      class: s.class
+    }));
+
+    return [...allStaff, ...allParents];
+  };
+
+  const getClassRecipients = () => {
+    const classes = [...new Set(students.map(s => `${s.class}-${s.section}`))];
+    return classes.map(classSection => {
+      const [className, section] = classSection.split('-');
+      const classStudents = students.filter(s => s.class === className && s.section === section);
+      return {
+        id: `class-${classSection}`,
+        name: `Class ${className} ${section} (${classStudents.length} students)`,
+        email: `class-${classSection}@school.edu`,
+        type: 'class',
+        studentCount: classStudents.length,
+        students: classStudents
+      };
+    });
+  };
+
+  const filteredCustomRecipients = getAllRecipients().filter(recipient =>
+    recipient.name.toLowerCase().includes(customSearchTerm.toLowerCase()) ||
+    recipient.email.toLowerCase().includes(customSearchTerm.toLowerCase()) ||
+    ('class' in recipient && recipient.class?.toLowerCase().includes(customSearchTerm.toLowerCase())) ||
+    ('designation' in recipient && recipient.designation?.toLowerCase().includes(customSearchTerm.toLowerCase()))
+  );
+
+  const filteredClassRecipients = getClassRecipients().filter(classItem =>
+    classItem.name.toLowerCase().includes(customSearchTerm.toLowerCase())
+  );
+
+  const addCustomRecipient = (recipient: any) => {
+    if (recipient.type === 'class') {
+      // Add all parents of students in the class
+      const classParents = recipient.students.map((student: any) => ({
+        id: `parent-${student.id}`,
+        name: `${student.guardianName} (Parent of ${student.name})`,
+        email: `${student.guardianName.toLowerCase().replace(' ', '.')}@parent.email.com`,
+        type: 'parent'
+      }));
+      setSelectedCustomRecipients(prev => {
+        const existing = prev.filter(r => !classParents.some((cp: any) => cp.id === r.id));
+        return [...existing, ...classParents];
+      });
+    } else {
+      setSelectedCustomRecipients(prev => {
+        if (prev.some(r => r.id === recipient.id)) return prev;
+        return [...prev, recipient];
+      });
+    }
+  };
+
+  const removeCustomRecipient = (recipientId: string) => {
+    setSelectedCustomRecipients(prev => prev.filter(r => r.id !== recipientId));
   };
 
   const filteredMessages = messages.filter(message =>
@@ -320,7 +403,9 @@ export function CommunicationManager() {
                         <SelectValue placeholder="Select recipient type" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="students">All Students</SelectItem>
                         <SelectItem value="parents">All Parents</SelectItem>
+                        <SelectItem value="staff">All Staff</SelectItem>
                         <SelectItem value="custom">Custom Selection</SelectItem>
                       </SelectContent>
                     </Select>
@@ -378,39 +463,125 @@ export function CommunicationManager() {
                 {recipientType === 'custom' && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label>Select Recipients</Label>
+                      <Label>Custom Recipients Selection</Label>
                       <Badge variant="outline">
-                        {selectedRecipients.length} selected
+                        {selectedCustomRecipients.length} selected
                       </Badge>
                     </div>
-                    
-                    <div className="border rounded-lg p-4 max-h-96 overflow-y-auto">
-                      {getRecipientsList().map((recipient) => (
-                        <div key={recipient.id} className="flex items-center space-x-2 py-2">
-                          <input
-                            type="checkbox"
-                            id={recipient.id}
-                            checked={selectedRecipients.includes(recipient.email)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedRecipients(prev => [...prev, recipient.email]);
-                              } else {
-                                setSelectedRecipients(prev => 
-                                  prev.filter(email => email !== recipient.email)
-                                );
-                              }
-                            }}
-                            className="rounded"
-                          />
-                          <Label htmlFor={recipient.id} className="flex-1 cursor-pointer">
-                            <div>
-                              <p className="font-medium">{recipient.name}</p>
-                              <p className="text-sm text-muted-foreground">{recipient.email}</p>
-                            </div>
-                          </Label>
-                        </div>
-                      ))}
+
+                    {/* Universal Search Bar */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search students, parents, staff, or classes..."
+                        value={customSearchTerm}
+                        onChange={(e) => setCustomSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
                     </div>
+
+                    {/* Selected Recipients */}
+                    {selectedCustomRecipients.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Selected Recipients:</Label>
+                        <div className="border rounded-lg p-3 max-h-32 overflow-y-auto bg-muted/50">
+                          <div className="flex flex-wrap gap-2">
+                            {selectedCustomRecipients.map((recipient) => (
+                              <Badge key={recipient.id} variant="secondary" className="flex items-center gap-1">
+                                <span className="text-xs">{recipient.type}</span>
+                                {recipient.name}
+                                <button
+                                  onClick={() => removeCustomRecipient(recipient.id)}
+                                  className="ml-1 hover:text-destructive"
+                                >
+                                  ×
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <Tabs defaultValue="individuals" className="space-y-4">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="individuals">Individuals</TabsTrigger>
+                        <TabsTrigger value="classes">Classes</TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="individuals" className="space-y-2">
+                        <div className="border rounded-lg max-h-96 overflow-y-auto">
+                          {filteredCustomRecipients.length === 0 ? (
+                            <div className="p-4 text-center text-muted-foreground">
+                              No recipients found matching your search.
+                            </div>
+                          ) : (
+                            filteredCustomRecipients.map((recipient) => (
+                              <div key={recipient.id} className="flex items-center justify-between p-3 border-b last:border-b-0 hover:bg-muted/50">
+                                <div className="flex items-center space-x-3">
+                                  <Badge variant="outline" className="text-xs">
+                                    {recipient.type}
+                                  </Badge>
+                                  <div>
+                                    <p className="font-medium text-sm">{recipient.name}</p>
+                                    <p className="text-xs text-muted-foreground">{recipient.email}</p>
+                                    {'class' in recipient && recipient.class && (
+                                      <p className="text-xs text-muted-foreground">Class: {recipient.class}</p>
+                                    )}
+                                    {'designation' in recipient && recipient.designation && (
+                                      <p className="text-xs text-muted-foreground">Role: {recipient.designation}</p>
+                                    )}
+                                  </div>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => addCustomRecipient(recipient)}
+                                  disabled={selectedCustomRecipients.some(r => r.id === recipient.id)}
+                                >
+                                  <Plus className="h-3 w-3 mr-1" />
+                                  Add
+                                </Button>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="classes" className="space-y-2">
+                        <div className="border rounded-lg max-h-96 overflow-y-auto">
+                          {filteredClassRecipients.length === 0 ? (
+                            <div className="p-4 text-center text-muted-foreground">
+                              No classes found matching your search.
+                            </div>
+                          ) : (
+                            filteredClassRecipients.map((classItem) => (
+                              <div key={classItem.id} className="flex items-center justify-between p-3 border-b last:border-b-0 hover:bg-muted/50">
+                                <div className="flex items-center space-x-3">
+                                  <Badge variant="outline" className="text-xs">
+                                    class
+                                  </Badge>
+                                  <div>
+                                    <p className="font-medium text-sm">{classItem.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Will send to parents of {classItem.studentCount} students
+                                    </p>
+                                  </div>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => addCustomRecipient(classItem)}
+                                >
+                                  <Plus className="h-3 w-3 mr-1" />
+                                  Add All
+                                </Button>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </TabsContent>
+                    </Tabs>
                   </div>
                 )}
               </div>
