@@ -148,11 +148,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           icon: GraduationCap,
         },
         {
-          title: "Assignments",
-          url: "/assignments",
-          icon: FileText,
-        },
-        {
           title: "Attendance",
           url: "/attendance",
           icon: UserCheck,
@@ -161,6 +156,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           title: "Communication",
           url: "/communication", 
           icon: MessageSquare,
+        },
+        {
+          title: "Leave Management",
+          url: "/leave-management",
+          icon: Calendar,
         }
       ]
     }

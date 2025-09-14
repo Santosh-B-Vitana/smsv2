@@ -31,6 +31,77 @@ const mockSyllabi: Syllabus[] = [
   }
 ];
 // Mock API service for School Management System
+// Class Management
+export interface SchoolClass {
+  id: string;
+  standard: string;
+  section: string;
+  academicYear: string;
+  totalStudents: number;
+  classTeacher: string;
+  students?: Array<{
+    id: string;
+    name: string;
+    rollNo: string;
+    photoUrl?: string;
+  }>;
+}
+
+const CLASS_STORAGE_KEY = 'mockClasses';
+function getInitialClasses(): SchoolClass[] {
+  try {
+    const raw = localStorage.getItem(CLASS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  // If localStorage is empty, use defaults
+  return [
+    {
+      id: 'CLS001',
+      standard: 'Class 1',
+      section: 'A',
+      academicYear: '2024-2025',
+      totalStudents: 30,
+      classTeacher: 'Ms. Sarah Johnson',
+      students: [
+        { id: 'STU001', name: 'Aarav Sharma', rollNo: '1', photoUrl: '' },
+        { id: 'STU002', name: 'Priya Singh', rollNo: '2', photoUrl: '' },
+        { id: 'STU003', name: 'Rahul Verma', rollNo: '3', photoUrl: '' },
+        { id: 'STU004', name: 'Sneha Patel', rollNo: '4', photoUrl: '' },
+        { id: 'STU005', name: 'Rohan Gupta', rollNo: '5', photoUrl: '' }
+      ]
+    },
+    {
+      id: 'CLS002',
+      standard: 'Class 1',
+      section: 'B',
+      academicYear: '2024-2025',
+      totalStudents: 28,
+      classTeacher: 'Mr. David Smith',
+      students: [
+        { id: 'STU006', name: 'Isha Mehra', rollNo: '1', photoUrl: '' },
+        { id: 'STU007', name: 'Kabir Jain', rollNo: '2', photoUrl: '' },
+        { id: 'STU008', name: 'Meera Nair', rollNo: '3', photoUrl: '' },
+        { id: 'STU009', name: 'Devansh Rao', rollNo: '4', photoUrl: '' },
+        { id: 'STU010', name: 'Simran Kaur', rollNo: '5', photoUrl: '' }
+      ]
+    }
+  ];
+}
+
+// Only initialize mockClasses once per session, avoid hot reload resets
+declare global {
+  interface Window {
+    __mockClasses?: SchoolClass[];
+  }
+}
+let mockClasses: SchoolClass[] = window.__mockClasses || getInitialClasses();
+window.__mockClasses = mockClasses;
+function persistClasses() {
+  try { localStorage.setItem(CLASS_STORAGE_KEY, JSON.stringify(mockClasses)); } catch {}
+}
 // This structure makes it easy to replace with real backend endpoints later
 
 interface SchoolInfo {
@@ -42,6 +113,25 @@ interface SchoolInfo {
   email: string;
   status: 'active' | 'inactive';
   plan?: string;
+  principalName?: string;
+  establishmentDate?: string;
+  boardAffiliation?: string;
+  totalStudents?: number;
+  totalStaff?: number;
+  websiteUrl?: string;
+  description?: string;
+}
+
+// User management interface
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'super_admin' | 'admin' | 'staff' | 'parent';
+  status: 'active' | 'inactive';
+  schoolId?: string;
+  createdAt: string;
+  lastLogin?: string;
 }
 
 interface Student {
@@ -356,7 +446,14 @@ const mockSchools: SchoolInfo[] = [
     phone: "+91 98765 43210",
     email: "info@vitanaSchools.edu",
     status: "active",
-    plan: "Pro"
+    plan: "Pro",
+    principalName: "Dr. Sarah Johnson",
+    establishmentDate: "1985-04-15",
+    boardAffiliation: "CBSE",
+    totalStudents: 1200,
+    totalStaff: 85,
+    websiteUrl: "https://vitanaschools.edu",
+    description: "A premier educational institution focused on holistic development"
   },
   {
     id: "SCH002",
@@ -365,7 +462,47 @@ const mockSchools: SchoolInfo[] = [
     address: "456 Knowledge Ave, Delhi, 110001",
     phone: "+91 91234 56789",
     email: "contact@dps.edu.in",
-    status: "inactive"
+    status: "inactive",
+    principalName: "Mr. Rajesh Kumar",
+    establishmentDate: "1992-08-20",
+    boardAffiliation: "CBSE",
+    totalStudents: 980,
+    totalStaff: 72,
+    websiteUrl: "https://dps.edu.in",
+    description: "Excellence in education with focus on character building"
+  }
+];
+
+// Mock users data
+const mockUsers: User[] = [
+  {
+    id: "USR001",
+    name: "Admin User",
+    email: "admin@vitanaschools.edu",
+    role: "super_admin",
+    status: "active",
+    createdAt: "2024-01-01T00:00:00Z",
+    lastLogin: "2024-02-15T09:30:00Z"
+  },
+  {
+    id: "USR002", 
+    name: "John Smith",
+    email: "john.smith@vitanaschools.edu",
+    role: "admin",
+    status: "active",
+    schoolId: "SCH001",
+    createdAt: "2024-01-15T00:00:00Z",
+    lastLogin: "2024-02-14T14:20:00Z"
+  },
+  {
+    id: "USR003",
+    name: "Mary Wilson",
+    email: "mary.wilson@vitanaschools.edu", 
+    role: "staff",
+    status: "active",
+    schoolId: "SCH001",
+    createdAt: "2024-02-01T00:00:00Z",
+    lastLogin: "2024-02-13T11:45:00Z"
   }
 ];
 
@@ -648,6 +785,42 @@ function persistStaffAttendance() {
 }
 
 export const mockApi = {
+  // Class Management APIs
+  getClasses: async (): Promise<SchoolClass[]> => {
+    await delay(300);
+    return mockClasses;
+  },
+  getClass: async (id: string): Promise<SchoolClass | null> => {
+    await delay(300);
+    return mockClasses.find(cls => cls.id === id) || null;
+  },
+  createClass: async (cls: Omit<SchoolClass, 'id'>): Promise<SchoolClass> => {
+    await delay(300);
+    const newClass: SchoolClass = {
+      ...cls,
+      id: `CLS${String(mockClasses.length + 1).padStart(3, '0')}`,
+      students: []
+    };
+    mockClasses.push(newClass);
+    persistClasses();
+    return newClass;
+  },
+  updateClass: async (id: string, updates: Partial<SchoolClass>): Promise<SchoolClass | null> => {
+    await delay(300);
+    const idx = mockClasses.findIndex(cls => cls.id === id);
+    if (idx === -1) return null;
+    mockClasses[idx] = { ...mockClasses[idx], ...updates };
+    persistClasses();
+    return mockClasses[idx];
+  },
+  deleteClass: async (id: string): Promise<boolean> => {
+    await delay(300);
+    const idx = mockClasses.findIndex(cls => cls.id === id);
+    if (idx === -1) return false;
+    mockClasses.splice(idx, 1);
+    persistClasses();
+    return true;
+  },
   // Get subjects for a class and section
   getSubjectsForClassSection: async (className: string, section: string): Promise<string[]> => {
     await delay(300);
@@ -682,6 +855,18 @@ export const mockApi = {
     };
     mockSchools.push(newSchool);
     return newSchool;
+  },
+  
+  uploadSchoolLogo: async (logoFile: File): Promise<string> => {
+    await delay(300);
+    // Convert file to data URL for mock storage
+    const dataUrl: string = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(logoFile);
+    });
+    return dataUrl;
   },
   updateSchool: async (id: string, updates: Partial<SchoolInfo>): Promise<SchoolInfo | null> => {
     await delay(300);
@@ -1213,6 +1398,39 @@ export const mockApi = {
     };
   },
 
+  // User Management APIs
+  getUsers: async (): Promise<User[]> => {
+    await delay(300);
+    return mockUsers;
+  },
+
+  addUser: async (user: Omit<User, 'id' | 'createdAt'>): Promise<User> => {
+    await delay(300);
+    const newUser: User = {
+      ...user,
+      id: `USR${String(mockUsers.length + 1).padStart(3, '0')}`,
+      createdAt: new Date().toISOString()
+    };
+    mockUsers.push(newUser);
+    return newUser;
+  },
+
+  updateUser: async (id: string, updates: Partial<User>): Promise<User | null> => {
+    await delay(300);
+    const idx = mockUsers.findIndex(u => u.id === id);
+    if (idx === -1) return null;
+    mockUsers[idx] = { ...mockUsers[idx], ...updates };
+    return mockUsers[idx];
+  },
+
+  deleteUser: async (id: string): Promise<boolean> => {
+    await delay(300);
+    const idx = mockUsers.findIndex(u => u.id === id);
+    if (idx === -1) return false;
+    mockUsers.splice(idx, 1);
+    return true;
+  },
+
 };
 
 // Export types for use in components
@@ -1232,6 +1450,7 @@ export type {
   ExamResult,
   TimetableSlot,
   Admission,
-  Communication
-  , Syllabus
+  Communication,
+  Syllabus,
+  User
 };

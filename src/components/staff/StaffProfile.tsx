@@ -321,6 +321,38 @@ export default function StaffProfile() {
           )}
         </CardContent>
       </Card>
+
+      {/* Classes Assigned Section */}
+      <Card className="mb-6 shadow border border-gray-100">
+        <CardHeader>
+          <div className="flex items-center gap-2"><Briefcase className="h-5 w-5 text-blue-600" /><CardTitle>Classes Assigned</CardTitle></div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[
+              { subject: "Mathematics", class: "10-A", period: "1st Period", room: "Room 101" },
+              { subject: "Mathematics", class: "10-B", period: "2nd Period", room: "Room 102" },
+              { subject: "Algebra", class: "9-A", period: "3rd Period", room: "Room 103" },
+              { subject: "Mathematics", class: "8-C", period: "5th Period", room: "Room 104" }
+            ].map((assignment, index) => (
+              <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold">{assignment.subject}</h3>
+                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                      Class {assignment.class}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span>{assignment.period}</span>
+                    <span>{assignment.room}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
       {/* Dialogs for Add/Edit actions (placeholders, can be replaced with forms) */}
       {showPayrollDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">

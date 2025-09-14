@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
+import { mockApi } from "../services/mockApi";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -68,28 +73,38 @@ export default function ClassProfile() {
   const navigate = useNavigate();
   const [classInfo, setClassInfo] = useState<ClassInfo | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Mock class data
-  const mockClassData: ClassInfo = {
-    id: classId || "cls_10a",
-    standard: "Class 10",
-    section: "A",
-    academicYear: "2024-2025",
-    classTeacher: "Mrs. Priya Singh",
-    totalStudents: 30,
-    students: [
-      { id: "STU001", name: "Aarav Gupta", rollNo: "001", photoUrl: undefined },
-      { id: "STU002", name: "Rohan Mehra", rollNo: "002", photoUrl: undefined },
-      { id: "STU003", name: "Ananya Sharma", rollNo: "003", photoUrl: undefined },
-    ]
-  };
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    standard: "",
+    section: "",
+    academicYear: "",
+    classTeacher: ""
+  });
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setClassInfo(mockClassData);
+    setLoading(true);
+    (async () => {
+      try {
+        const cls = await mockApi.getClass(classId);
+        if (cls) {
+          setClassInfo({
+            ...cls,
+            students: Array.isArray((cls as any).students) ? (cls as any).students : []
+          });
+          setEditForm({
+            standard: cls.standard,
+            section: cls.section,
+            academicYear: cls.academicYear,
+            classTeacher: cls.classTeacher || ""
+          });
+        } else {
+          setClassInfo(null);
+        }
+      } catch (err) {
+        setClassInfo(null);
+      }
       setLoading(false);
-    }, 500);
+    })();
   }, [classId]);
 
   if (loading) {
@@ -106,7 +121,7 @@ export default function ClassProfile() {
   if (!classInfo) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <div className="text-red-500 mb-4">Class not found</div>
+        <div className="text-red-500 mb-4">Class not found for ID: <span className="font-mono bg-gray-100 px-2 py-1 rounded">{String(classId)}</span></div>
         <Button onClick={() => navigate("/academics")} variant="outline">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Academics
@@ -136,6 +151,94 @@ export default function ClassProfile() {
               Class Profile • {classInfo.academicYear}
             </p>
           </div>
+        </div>
+        <div className="flex gap-2">
+          <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Settings className="h-4 w-4 mr-2" />
+                Edit Class
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Class Details</DialogTitle>
+              </DialogHeader>
+              <form
+                className="space-y-4"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  try {
+                    // Fetch all classes to check for duplicates
+                    const allClasses = await mockApi.getClasses();
+                    const duplicate = allClasses.find(cls =>
+                      cls.id !== classId &&
+                      cls.standard === editForm.standard &&
+                      cls.section === editForm.section &&
+                      cls.academicYear === editForm.academicYear
+                    );
+                    if (duplicate) {
+                      toast.error("Another class with this standard, section, and academic year already exists.");
+                      return;
+                    }
+                    await mockApi.updateClass(classId, {
+                      standard: editForm.standard,
+                      section: editForm.section,
+                      academicYear: editForm.academicYear,
+                      classTeacher: editForm.classTeacher
+                    });
+                    toast.success("Class updated successfully");
+                    // Reload class info
+                    const updated = await mockApi.getClass(classId);
+                    setClassInfo({
+                      ...updated,
+                      students: Array.isArray((updated as any).students) ? (updated as any).students : []
+                    });
+                    setEditDialogOpen(false);
+                  } catch {
+                    toast.error("Failed to update class");
+                  }
+                }}
+              >
+                <div>
+                  <Label htmlFor="standard">Standard</Label>
+                  <Input
+                    id="standard"
+                    value={editForm.standard}
+                    onChange={e => setEditForm(f => ({ ...f, standard: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="section">Section</Label>
+                  <Input
+                    id="section"
+                    value={editForm.section}
+                    onChange={e => setEditForm(f => ({ ...f, section: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="academicYear">Academic Year</Label>
+                  <Input
+                    id="academicYear"
+                    value={editForm.academicYear}
+                    onChange={e => setEditForm(f => ({ ...f, academicYear: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="classTeacher">Class Teacher</Label>
+                  <Input
+                    id="classTeacher"
+                    value={editForm.classTeacher}
+                    onChange={e => setEditForm(f => ({ ...f, classTeacher: e.target.value }))}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" className="flex-1">Update</Button>
+                  <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -189,10 +292,9 @@ export default function ClassProfile() {
       {/* Tabs */}
       <Tabs defaultValue="attendance" className="space-y-4">
         <div className="overflow-x-auto">
-          <TabsList className="grid w-full grid-cols-6 min-w-[600px]">
+          <TabsList className="grid w-full grid-cols-5 min-w-[500px]">
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
             <TabsTrigger value="subjects">Subjects</TabsTrigger>
-            <TabsTrigger value="timetable">Timetable</TabsTrigger>
             <TabsTrigger value="students">Students</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -217,62 +319,6 @@ export default function ClassProfile() {
           <SubjectsTab classId={classInfo.id} />
         </TabsContent>
 
-        <TabsContent value="timetable">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Class Timetable
-              </CardTitle>
-              <div className="text-muted-foreground text-sm mt-1">
-                Academic Year: {classInfo.academicYear}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-24">Period</TableHead>
-                      <TableHead className="w-24">Time</TableHead>
-                      {days.map(day => (
-                        <TableHead key={day} className="text-center min-w-32">{day}</TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {periods.map(period => {
-                      const timeSlot = timeSlots.find(slot => slot.period === period);
-                      return (
-                        <TableRow key={period}>
-                          <TableCell className="font-medium">{period}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {timeSlot ? `${timeSlot.start}-${timeSlot.end}` : "-"}
-                          </TableCell>
-                          {days.map(day => {
-                            const entry = getTimetableEntry(day, period);
-                            return (
-                              <TableCell key={`${day}-${period}`} className="text-center">
-                                {entry ? (
-                                  <div className="space-y-1">
-                                    <div className="font-medium text-sm">{entry.subject}</div>
-                                    <div className="text-xs text-muted-foreground">{entry.teacher}</div>
-                                  </div>
-                                ) : (
-                                  <span className="text-xs text-muted-foreground">-</span>
-                                )}
-                              </TableCell>
-                            );
-                          })}
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="students">
           <Card>

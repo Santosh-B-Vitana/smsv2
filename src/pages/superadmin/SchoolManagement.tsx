@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
-import { Plus, Edit, Trash2, Eye, RotateCcw } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { Plus, Edit, Trash2, Eye, RotateCcw, Upload } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { mockApi, SchoolInfo } from "@/services/mockApi";
 
 export default function SchoolManagement() {
@@ -15,6 +17,9 @@ export default function SchoolManagement() {
   const [editSchool, setEditSchool] = useState<SchoolInfo | null>(null);
   const [addDialog, setAddDialog] = useState(false);
   const [newSchool, setNewSchool] = useState<Partial<SchoolInfo>>({});
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchSchools();
@@ -26,18 +31,48 @@ export default function SchoolManagement() {
     setSchools(data);
   };
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onload = () => setLogoPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleAddSchool = async () => {
-    if (newSchool.name && newSchool.logoUrl) {
-      await mockApi.addSchool({
-        name: newSchool.name,
-        logoUrl: newSchool.logoUrl,
-        address: newSchool.address || '',
-        phone: newSchool.phone || '',
-        email: newSchool.email || ''
-      });
-      setAddDialog(false);
-      setNewSchool({});
-      fetchSchools();
+    if (newSchool.name && (logoFile || newSchool.logoUrl)) {
+      try {
+        let logoUrl = newSchool.logoUrl || '';
+        
+        if (logoFile) {
+          logoUrl = await mockApi.uploadSchoolLogo(logoFile);
+        }
+
+        await mockApi.addSchool({
+          name: newSchool.name,
+          logoUrl,
+          address: newSchool.address || '',
+          phone: newSchool.phone || '',
+          email: newSchool.email || '',
+          principalName: newSchool.principalName || '',
+          establishmentDate: newSchool.establishmentDate || '',
+          boardAffiliation: newSchool.boardAffiliation || '',
+          totalStudents: newSchool.totalStudents || 0,
+          totalStaff: newSchool.totalStaff || 0,
+          websiteUrl: newSchool.websiteUrl || '',
+          description: newSchool.description || ''
+        });
+        
+        setAddDialog(false);
+        setNewSchool({});
+        setLogoFile(null);
+        setLogoPreview("");
+        fetchSchools();
+      } catch (error) {
+        console.error('Error adding school:', error);
+      }
     }
   };
 
@@ -56,8 +91,20 @@ export default function SchoolManagement() {
   };
 
   const handleDeactivate = async (school: SchoolInfo) => {
-    await mockApi.updateSchool(school.id, { status: school.status === 'active' ? 'inactive' : 'active' });
-    fetchSchools();
+    try {
+      const newStatus = school.status === 'active' ? 'inactive' : 'active';
+      await mockApi.updateSchool(school.id, { status: newStatus });
+      
+      // Update local state immediately for better UX
+      setSchools(prev => prev.map(s => 
+        s.id === school.id ? { ...s, status: newStatus } : s
+      ));
+      
+      // Refresh data to ensure consistency
+      await fetchSchools();
+    } catch (error) {
+      console.error('Failed to update school status:', error);
+    }
   };
 
   const filteredSchools = schools.filter(s =>
@@ -65,64 +112,111 @@ export default function SchoolManagement() {
   );
 
   return (
-    <div className="max-w-5xl mx-auto py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">School Management</h1>
-        <Button onClick={() => setAddDialog(true)}>
+    <div className="container-academic py-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-display">School Management</h1>
+          <p className="text-muted-foreground mt-2">Manage and oversee all registered schools</p>
+        </div>
+        <Button onClick={() => setAddDialog(true)} className="w-full sm:w-auto hover-lift">
           <Plus className="h-4 w-4 mr-2" /> Add School
         </Button>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Schools</CardTitle>
+      
+      <Card className="dashboard-card hover-glow">
+        <CardHeader className="border-b">
+          <CardTitle className="text-heading">Registered Schools</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="mb-4 flex gap-2">
+        <CardContent className="p-0">
+          <div className="p-6 border-b bg-muted/30">
             <Input
-              placeholder="Search schools..."
+              placeholder="Search schools by name..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="max-w-xs"
+              className="max-w-sm"
             />
           </div>
+          
           <div className="overflow-x-auto">
-            <Table>
+            <Table className="academic-table">
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Logo</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                <TableRow className="border-b">
+                  <TableHead className="font-semibold">School Name</TableHead>
+                  <TableHead className="font-semibold">Logo</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredSchools.map(school => (
-                  <TableRow key={school.id}>
-                    <TableCell>{school.name}</TableCell>
-                    <TableCell>
-                      {school.logoUrl && (
-                        <img src={school.logoUrl} alt={school.name} className="h-8 w-8 rounded" />
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={school.status === 'active' ? 'default' : 'secondary'}>
-                        {school.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="flex gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => setSelectedSchool(school)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setEditSchool(school)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => handleDeactivate(school)}
-                        className={school.status === 'active' ? 'text-destructive' : 'text-green-600'}>
-                        {school.status === 'active' ? <Trash2 className="h-4 w-4" /> : <RotateCcw className="h-4 w-4" />}
-                      </Button>
+                {filteredSchools.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      {search ? 'No schools found matching your search.' : 'No schools registered yet.'}
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredSchools.map(school => (
+                    <TableRow key={school.id} className="hover:bg-muted/50 transition-colors">
+                      <TableCell className="font-medium">{school.name}</TableCell>
+                      <TableCell>
+                        {school.logoUrl ? (
+                          <img 
+                            src={school.logoUrl} 
+                            alt={`${school.name} logo`} 
+                            className="h-10 w-10 rounded-lg object-cover border"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                            <span className="text-xs text-muted-foreground">No Logo</span>
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={school.status === 'active' ? 'default' : 'secondary'}
+                          className={school.status === 'active' ? 'status-active' : 'status-inactive'}
+                        >
+                          {school.status === 'active' ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => setSelectedSchool(school)}
+                            className="hover:bg-blue-50 hover:text-blue-600"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => setEditSchool(school)}
+                            className="hover:bg-amber-50 hover:text-amber-600"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => handleDeactivate(school)}
+                            className={
+                              school.status === 'active' 
+                                ? 'hover:bg-red-50 hover:text-red-600' 
+                                : 'hover:bg-green-50 hover:text-green-600'
+                            }
+                          >
+                            {school.status === 'active' ? 
+                              <Trash2 className="h-4 w-4" /> : 
+                              <RotateCcw className="h-4 w-4" />
+                            }
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
@@ -131,17 +225,129 @@ export default function SchoolManagement() {
 
       {/* Add School Dialog */}
       <Dialog open={addDialog} onOpenChange={setAddDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add School</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2">
-            <Input placeholder="School Name" value={newSchool.name || ''} onChange={e => setNewSchool(ns => ({ ...ns, name: e.target.value }))} />
-            <Input placeholder="Logo URL" value={newSchool.logoUrl || ''} onChange={e => setNewSchool(ns => ({ ...ns, logoUrl: e.target.value }))} />
-            <Input placeholder="Address" value={newSchool.address || ''} onChange={e => setNewSchool(ns => ({ ...ns, address: e.target.value }))} />
-            <Input placeholder="Phone" value={newSchool.phone || ''} onChange={e => setNewSchool(ns => ({ ...ns, phone: e.target.value }))} />
-            <Input placeholder="Email" value={newSchool.email || ''} onChange={e => setNewSchool(ns => ({ ...ns, email: e.target.value }))} />
-            <Button onClick={handleAddSchool} className="w-full mt-2">Add School</Button>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input 
+                placeholder="School Name *" 
+                value={newSchool.name || ''} 
+                onChange={e => setNewSchool(ns => ({ ...ns, name: e.target.value }))} 
+              />
+              <Input 
+                placeholder="Principal Name" 
+                value={newSchool.principalName || ''} 
+                onChange={e => setNewSchool(ns => ({ ...ns, principalName: e.target.value }))} 
+              />
+            </div>
+            
+            <div className="space-y-3">
+              <label className="text-sm font-medium">School Logo</label>
+              <div className="flex items-center gap-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2"
+                >
+                  <Upload className="h-4 w-4" />
+                  Upload Logo
+                </Button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleLogoUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+                {logoPreview && (
+                  <img src={logoPreview} alt="Logo preview" className="h-12 w-12 rounded-lg object-cover border" />
+                )}
+              </div>
+              <Input 
+                placeholder="Or paste logo URL" 
+                value={newSchool.logoUrl || ''} 
+                onChange={e => setNewSchool(ns => ({ ...ns, logoUrl: e.target.value }))} 
+              />
+            </div>
+            
+            <Textarea 
+              placeholder="School Address" 
+              value={newSchool.address || ''} 
+              onChange={e => setNewSchool(ns => ({ ...ns, address: e.target.value }))} 
+            />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input 
+                placeholder="Phone Number" 
+                value={newSchool.phone || ''} 
+                onChange={e => setNewSchool(ns => ({ ...ns, phone: e.target.value }))} 
+              />
+              <Input 
+                type="email"
+                placeholder="Email Address" 
+                value={newSchool.email || ''} 
+                onChange={e => setNewSchool(ns => ({ ...ns, email: e.target.value }))} 
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input 
+                type="date"
+                placeholder="Establishment Date" 
+                value={newSchool.establishmentDate || ''} 
+                onChange={e => setNewSchool(ns => ({ ...ns, establishmentDate: e.target.value }))} 
+              />
+              <Select onValueChange={value => setNewSchool(ns => ({ ...ns, boardAffiliation: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Board Affiliation" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CBSE">CBSE</SelectItem>
+                  <SelectItem value="ICSE">ICSE</SelectItem>
+                  <SelectItem value="State Board">State Board</SelectItem>
+                  <SelectItem value="IB">International Baccalaureate</SelectItem>
+                  <SelectItem value="IGCSE">IGCSE</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input 
+                type="number"
+                placeholder="Total Students" 
+                value={newSchool.totalStudents || ''} 
+                onChange={e => setNewSchool(ns => ({ ...ns, totalStudents: parseInt(e.target.value) || 0 }))} 
+              />
+              <Input 
+                type="number"
+                placeholder="Total Staff" 
+                value={newSchool.totalStaff || ''} 
+                onChange={e => setNewSchool(ns => ({ ...ns, totalStaff: parseInt(e.target.value) || 0 }))} 
+              />
+            </div>
+            
+            <Input 
+              placeholder="Website URL" 
+              value={newSchool.websiteUrl || ''} 
+              onChange={e => setNewSchool(ns => ({ ...ns, websiteUrl: e.target.value }))} 
+            />
+            
+            <Textarea 
+              placeholder="School Description" 
+              value={newSchool.description || ''} 
+              onChange={e => setNewSchool(ns => ({ ...ns, description: e.target.value }))} 
+            />
+            
+            <Button 
+              onClick={handleAddSchool} 
+              className="w-full mt-4"
+              disabled={!newSchool.name || (!logoFile && !newSchool.logoUrl)}
+            >
+              Add School
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { mockApi } from "../../services/mockApi";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,25 +20,16 @@ interface Class {
 }
 
 export default function ClassManager() {
-  const [classes, setClasses] = useState<Class[]>([
-    {
-      id: "1",
-      standard: "Class 1",
-      section: "A",
-      academicYear: "2024-2025",
-      totalStudents: 30,
-      classTeacher: "Ms. Sarah Johnson"
-    },
-    {
-      id: "2",
-      standard: "Class 1", 
-      section: "B",
-      academicYear: "2024-2025",
-      totalStudents: 28,
-      classTeacher: "Mr. David Smith"
-    }
-  ]);
-  
+  const [classes, setClasses] = useState<Class[]>([]);
+  // Always load classes from API on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const loaded = await mockApi.getClasses();
+        setClasses(loaded);
+      } catch {}
+    })();
+  }, []);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [formData, setFormData] = useState({
@@ -56,27 +48,66 @@ export default function ClassManager() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (editingClass) {
-      setClasses(prev => prev.map(cls => 
-        cls.id === editingClass.id 
-          ? { ...cls, ...formData, totalStudents: editingClass.totalStudents }
-          : cls
-      ));
-      toast.success("Class updated successfully");
+      // Check for duplicate before editing
+      const duplicate = classes.find(cls =>
+        cls.id !== editingClass.id &&
+        cls.standard === formData.standard &&
+        cls.section === formData.section &&
+        cls.academicYear === formData.academicYear
+      );
+      if (duplicate) {
+        toast.error("Another class with this standard, section, and academic year already exists.");
+        return;
+      }
+      (async () => {
+        try {
+          await mockApi.updateClass(editingClass.id, {
+            standard: formData.standard,
+            section: formData.section,
+            academicYear: formData.academicYear,
+            classTeacher: formData.classTeacher
+          });
+          const updated = await mockApi.getClasses();
+          setClasses(updated);
+          toast.success("Class updated successfully");
+          setDialogOpen(false);
+          setEditingClass(null);
+          setFormData({ standard: "", section: "", academicYear: "2024-2025", classTeacher: "" });
+        } catch {
+          toast.error("Failed to update class");
+        }
+      })();
     } else {
-      const newClass: Class = {
-        id: Date.now().toString(),
-        ...formData,
-        totalStudents: 0
-      };
-      setClasses(prev => [...prev, newClass]);
-      toast.success("Class created successfully");
+      // Check for duplicate before creating
+      (async () => {
+        try {
+          const existing = classes.find(cls =>
+            cls.standard === formData.standard &&
+            cls.section === formData.section &&
+            cls.academicYear === formData.academicYear
+          );
+          if (existing) {
+            toast.error("Class already exists. You can edit it instead.");
+            return;
+          }
+          const created = await mockApi.createClass({
+            ...formData,
+            totalStudents: 0,
+            classTeacher: formData.classTeacher || ""
+          });
+          toast.success("Class created successfully");
+          // Reload class list from API
+          const updated = await mockApi.getClasses();
+          setClasses(updated);
+          setDialogOpen(false);
+          setEditingClass(null);
+          setFormData({ standard: "", section: "", academicYear: "2024-2025", classTeacher: "" });
+        } catch (err) {
+          toast.error("Failed to create class");
+        }
+      })();
     }
-    
-    setDialogOpen(false);
-    setEditingClass(null);
-    setFormData({ standard: "", section: "", academicYear: "2024-2025", classTeacher: "" });
   };
 
   const handleEdit = (cls: Class) => {
@@ -91,8 +122,16 @@ export default function ClassManager() {
   };
 
   const handleDelete = (id: string) => {
-    setClasses(prev => prev.filter(cls => cls.id !== id));
-    toast.success("Class deleted successfully");
+    (async () => {
+      try {
+        await mockApi.deleteClass(id);
+        const updated = await mockApi.getClasses();
+        setClasses(updated);
+        toast.success("Class deleted successfully");
+      } catch {
+        toast.error("Failed to delete class");
+      }
+    })();
   };
 
   return (
@@ -212,7 +251,14 @@ export default function ClassManager() {
                     <Button
                       size="sm"
                       variant="default"
-                      onClick={() => window.location.href = `/class/${cls.id}`}
+                      onClick={() => {
+                        // Defensive: ensure id is in CLSxxx format
+                        let classId = cls.id;
+                        if (!/^CLS\d{3}$/.test(classId)) {
+                          classId = `CLS${String(classId).padStart(3, '0')}`;
+                        }
+                        window.location.href = `/class/${classId}`;
+                      }}
                     >
                       Manage Class
                     </Button>

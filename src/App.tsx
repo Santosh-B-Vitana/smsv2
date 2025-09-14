@@ -41,6 +41,7 @@ import Analytics from "@/pages/Analytics";
 import Settings from "@/pages/Settings";
 import ClassManager from "@/pages/academics/ClassManager";
 import ClassProfile from "@/pages/ClassProfile";
+import StaffClassProfile from "@/pages/StaffClassProfile";
 import StudentFeeDetails from "./pages/StudentFeeDetails";
 import MyClassDetail from "./pages/MyClassDetail";
 import ParentFees from "./pages/ParentFees";
@@ -53,6 +54,7 @@ import StaffAttendanceTeacher from "./pages/StaffAttendanceTeacher";
 
 import NotFound from "./pages/NotFound";
 import ChildProfile from "./pages/ChildProfile"; // Updated import
+import LeaveManagement from "./pages/LeaveManagement";
 
 import SchoolManagement from "@/pages/superadmin/SchoolManagement";
 
@@ -115,9 +117,11 @@ function App() {
                   <Route path="/id-cards" element={<Layout><IdCards /></Layout>} />
                   <Route path="/analytics" element={<Layout><Analytics /></Layout>} />
                   <Route path="/settings" element={<Layout><Settings /></Layout>} />
-                  <Route path="/child-profile" element={<Layout><ChildProfile /></Layout>} />
-                   <Route path="/academics/classes/manage" element={<Layout><ClassManager /></Layout>} />
+                   <Route path="/child-profile" element={<Layout><ChildProfile /></Layout>} />
+                   <Route path="/leave-management" element={<Layout><LeaveManagement /></Layout>} />
+                    <Route path="/academics/classes/manage" element={<Layout><ClassManager /></Layout>} />
                     <Route path="/class/:classId" element={<Layout><ClassProfile /></Layout>} />
+                    <Route path="/staff-class/:classId" element={<Layout><StaffClassProfile /></Layout>} />
                     <Route path="/student-fee-details/:studentId" element={<StudentFeeDetails />} />
                     <Route path="/my-class-detail/:classId" element={<Layout><MyClassDetail /></Layout>} />
                      <Route path="/parent-fees" element={<Layout><ParentFees /></Layout>} />

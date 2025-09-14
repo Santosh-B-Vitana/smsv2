@@ -2,10 +2,13 @@
 import { useEffect, useState } from "react";
 import { Calendar, Users, BookOpen, CheckCircle, Clock, MessageSquare } from "lucide-react";
 import { StatsCard } from "../../components/dashboard/StatsCard";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function StaffDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [todaySchedule, setTodaySchedule] = useState([
     { time: "08:00 - 08:45", subject: "Mathematics", class: "10-A" },
     { time: "09:00 - 09:45", subject: "Mathematics", class: "10-B" },
@@ -52,26 +55,25 @@ export default function StaffDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Today's Schedule */}
+        {/* Assigned Classes */}
         <div className="dashboard-card">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Today's Schedule
+            <BookOpen className="h-5 w-5" />
+            My Assigned Classes
           </h3>
           <div className="space-y-3">
-            {todaySchedule.map((schedule, index) => (
+            {[
+              { subject: "Mathematics", class: "10-A", section: "A" },
+              { subject: "Mathematics", class: "10-B", section: "B" },
+              { subject: "Algebra", class: "9-A", section: "A" },
+              { subject: "Geometry", class: "9-B", section: "B" }
+            ].map((assignment, index) => (
               <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                 <div>
-                  <p className="font-medium text-sm">{schedule.subject}</p>
-                  <p className="text-xs text-muted-foreground">Class {schedule.class}</p>
+                  <p className="font-medium text-sm">{assignment.subject}</p>
+                  <p className="text-xs text-muted-foreground">Class {assignment.class} - Section {assignment.section}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium">{schedule.time}</p>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    45 min
-                  </div>
-                </div>
+                <Badge variant="secondary">Active</Badge>
               </div>
             ))}
           </div>
@@ -81,19 +83,19 @@ export default function StaffDashboard() {
         <div className="dashboard-card">
           <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
           <div className="grid grid-cols-2 gap-3">
-            <button className="p-4 rounded-lg border hover:bg-muted/50 transition-colors">
-              <Users className="h-6 w-6 mx-auto mb-2" />
-              <p className="text-sm font-medium">Take Attendance</p>
+            <button className="p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/leave-management')}>
+              <Clock className="h-6 w-6 mx-auto mb-2" />
+              <p className="text-sm font-medium">Apply Leave</p>
             </button>
-            <button className="p-4 rounded-lg border hover:bg-muted/50 transition-colors">
+            <button className="p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/my-classes')}>
               <BookOpen className="h-6 w-6 mx-auto mb-2" />
-              <p className="text-sm font-medium">View Timetable</p>
+              <p className="text-sm font-medium">My Classes</p>
             </button>
-            <button className="p-4 rounded-lg border hover:bg-muted/50 transition-colors">
+            <button className="p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/assignments')}>
               <CheckCircle className="h-6 w-6 mx-auto mb-2" />
               <p className="text-sm font-medium">Grade Assignments</p>
             </button>
-            <button className="p-4 rounded-lg border hover:bg-muted/50 transition-colors">
+            <button className="p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/communication')}>
               <MessageSquare className="h-6 w-6 mx-auto mb-2" />
               <p className="text-sm font-medium">Send Message</p>
             </button>

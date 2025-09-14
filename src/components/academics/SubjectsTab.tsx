@@ -51,6 +51,10 @@ export function SubjectsTab({ classId }: SubjectsTabProps) {
     credits: 4
   });
 
+  // Edit subject dialog state
+  const [editDialog, setEditDialog] = useState<{ open: boolean; subject: Subject | null }>({ open: false, subject: null });
+  const [editSubject, setEditSubject] = useState<Subject | null>(null);
+
   const coreSubjects = subjects.filter(s => s.type === 'core');
   const optionalSubjects = subjects.filter(s => s.type === 'optional');
 
@@ -102,7 +106,14 @@ export function SubjectsTab({ classId }: SubjectsTabProps) {
                 <TableCell>{subject.maxMarks}</TableCell>
                 <TableCell>{subject.credits}</TableCell>
                 <TableCell>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      setEditDialog({ open: true, subject });
+                      setEditSubject(subject);
+                    }}
+                  >
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
                   </Button>
@@ -193,6 +204,83 @@ export function SubjectsTab({ classId }: SubjectsTabProps) {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Edit Subject Dialog */}
+      <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog({ open, subject: open ? editDialog.subject : null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Subject</DialogTitle>
+          </DialogHeader>
+          {editSubject && (
+            <div className="space-y-4">
+              <div>
+                <Label>Subject Name</Label>
+                <Input
+                  value={editSubject.name}
+                  onChange={(e) => setEditSubject({ ...editSubject, name: e.target.value })}
+                  placeholder="Enter subject name"
+                />
+              </div>
+              <div>
+                <Label>Subject Code</Label>
+                <Input
+                  value={editSubject.code}
+                  onChange={(e) => setEditSubject({ ...editSubject, code: e.target.value })}
+                  placeholder="Enter subject code"
+                />
+              </div>
+              <div>
+                <Label>Subject Type</Label>
+                <Select value={editSubject.type} onValueChange={(value) => setEditSubject({ ...editSubject, type: value as 'core' | 'optional' })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="core">Core Subject</SelectItem>
+                    <SelectItem value="optional">Optional Subject</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Teacher</Label>
+                <Input
+                  value={editSubject.teacher}
+                  onChange={(e) => setEditSubject({ ...editSubject, teacher: e.target.value })}
+                  placeholder="Enter teacher name"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Max Marks</Label>
+                  <Input
+                    type="number"
+                    value={editSubject.maxMarks}
+                    onChange={(e) => setEditSubject({ ...editSubject, maxMarks: parseInt(e.target.value) || 100 })}
+                  />
+                </div>
+                <div>
+                  <Label>Credits</Label>
+                  <Input
+                    type="number"
+                    value={editSubject.credits}
+                    onChange={(e) => setEditSubject({ ...editSubject, credits: parseInt(e.target.value) || 4 })}
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={() => {
+                  if (editSubject) {
+                    setSubjects(subjects.map(s => s.id === editSubject.id ? editSubject : s));
+                    setEditDialog({ open: false, subject: null });
+                    toast.success("Subject updated successfully");
+                  }
+                }}>Save Changes</Button>
+                <Button variant="outline" onClick={() => setEditDialog({ open: false, subject: null })}>Cancel</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <SubjectTable subjects={coreSubjects} title="Core Subjects" />
       <SubjectTable subjects={optionalSubjects} title="Optional Subjects" />

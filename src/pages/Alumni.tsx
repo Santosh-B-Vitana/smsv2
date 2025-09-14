@@ -45,7 +45,6 @@ export default function Alumni() {
   const [searchTerm, setSearchTerm] = useState("");
   const [yearFilter, setYearFilter] = useState("all");
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showMeetDialog, setShowMeetDialog] = useState(false);
   const { toast } = useToast();
 
   // Form states
@@ -62,19 +61,59 @@ export default function Alumni() {
     isStarAlumni: false
   });
 
-  const [meetData, setMeetData] = useState({
-    title: '',
-    date: '',
-    venue: '',
-    description: ''
-  });
-
   useEffect(() => {
     const fetchData = async () => {
       try {
         const alumniData = await mockApi.getAlumni();
         const meetsData = await mockApi.getAlumniMeets();
-        setAlumni(alumniData);
+        
+        // Add mock passed out students to alumni automatically
+        const passedOutStudents = [
+          {
+            id: 'ALU001',
+            name: 'Rajesh Kumar',
+            graduationYear: '2023',
+            class: '12-A',
+            currentOccupation: 'Software Engineer',
+            company: 'Tech Corp',
+            location: 'Mumbai, India',
+            email: 'rajesh@email.com',
+            phone: '+91-9876543210',
+            achievements: 'Graduated with 95% marks, now working at top tech company',
+            isStarAlumni: true,
+            createdAt: '2023-06-01'
+          },
+          {
+            id: 'ALU002',
+            name: 'Priya Sharma',
+            graduationYear: '2023',
+            class: '12-B',
+            currentOccupation: 'Doctor',
+            company: 'City Hospital',
+            location: 'Delhi, India',
+            email: 'priya@email.com',
+            phone: '+91-9876543211',
+            achievements: 'Medical College topper, now practicing medicine',
+            isStarAlumni: true,
+            createdAt: '2023-06-01'
+          },
+          {
+            id: 'ALU003',
+            name: 'Amit Patel',
+            graduationYear: '2022',
+            class: '12-A',
+            currentOccupation: 'Engineer',
+            company: 'Construction Ltd',
+            location: 'Ahmedabad, India',
+            email: 'amit@email.com',
+            phone: '+91-9876543212',
+            achievements: 'Civil Engineering graduate, working on major infrastructure projects',
+            isStarAlumni: false,
+            createdAt: '2022-06-01'
+          }
+        ];
+        
+        setAlumni([...alumniData, ...passedOutStudents]);
         setAlumniMeets(meetsData);
       } catch (error) {
         console.error("Failed to fetch alumni data:", error);
@@ -121,30 +160,6 @@ export default function Alumni() {
     }
   };
 
-  const handleAddMeet = async () => {
-    try {
-      const newMeet = await mockApi.addAlumniMeet(meetData);
-      setAlumniMeets(prev => [...prev, newMeet]);
-      setMeetData({
-        title: '',
-        date: '',
-        venue: '',
-        description: ''
-      });
-      setShowMeetDialog(false);
-      toast({
-        title: "Success",
-        description: "Alumni meet scheduled successfully"
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to schedule alumni meet",
-        variant: "destructive"
-      });
-    }
-  };
-
   const filteredAlumni = alumni.filter(alum => {
     const matchesSearch = alum.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          alum.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -181,7 +196,7 @@ export default function Alumni() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -210,18 +225,6 @@ export default function Alumni() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Scheduled Meets</p>
-                <p className="text-2xl font-bold">{alumniMeets.filter(m => m.status === 'planned').length}</p>
-              </div>
-              <Calendar className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
                 <p className="text-sm font-medium text-muted-foreground">This Year</p>
                 <p className="text-2xl font-bold">
                   {alumni.filter(a => a.graduationYear === new Date().getFullYear().toString()).length}
@@ -239,7 +242,7 @@ export default function Alumni() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Add Alumni
+              Manual Add
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
@@ -345,62 +348,6 @@ export default function Alumni() {
             </div>
           </DialogContent>
         </Dialog>
-
-        <Dialog open={showMeetDialog} onOpenChange={setShowMeetDialog}>
-          <DialogTrigger asChild>
-            <Button variant="outline">
-              <Calendar className="h-4 w-4 mr-2" />
-              Schedule Alumni Meet
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Schedule Alumni Meet</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="meetTitle">Event Title</Label>
-                <Input
-                  id="meetTitle"
-                  value={meetData.title}
-                  onChange={(e) => setMeetData(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Annual Alumni Meet 2024"
-                />
-              </div>
-              <div>
-                <Label htmlFor="meetDate">Date</Label>
-                <Input
-                  id="meetDate"
-                  type="datetime-local"
-                  value={meetData.date}
-                  onChange={(e) => setMeetData(prev => ({ ...prev, date: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="meetVenue">Venue</Label>
-                <Input
-                  id="meetVenue"
-                  value={meetData.venue}
-                  onChange={(e) => setMeetData(prev => ({ ...prev, venue: e.target.value }))}
-                  placeholder="School Auditorium"
-                />
-              </div>
-              <div>
-                <Label htmlFor="meetDescription">Description</Label>
-                <Textarea
-                  id="meetDescription"
-                  value={meetData.description}
-                  onChange={(e) => setMeetData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Event details and agenda"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2 justify-end mt-4">
-              <Button variant="outline" onClick={() => setShowMeetDialog(false)}>Cancel</Button>
-              <Button onClick={handleAddMeet}>Schedule Meet</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Search and Filter */}
@@ -488,45 +435,6 @@ export default function Alumni() {
               ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
-
-      {/* Alumni Meets */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Alumni Meets</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4">
-            {alumniMeets.map((meet) => (
-              <div key={meet.id} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">{meet.title}</h3>
-                  <Badge variant={
-                    meet.status === 'planned' ? 'default' :
-                    meet.status === 'completed' ? 'secondary' : 'destructive'
-                  }>
-                    {meet.status}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mb-2">{meet.description}</p>
-                <div className="flex gap-4 text-sm">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {new Date(meet.date).toLocaleString()}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {meet.venue}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-3 w-3" />
-                    {meet.attendees.length} attendees
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </CardContent>
       </Card>
     </div>

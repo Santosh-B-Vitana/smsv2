@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Users, BookOpen, Calendar, Award, MessageSquare, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { mockApi } from "../../services/mockApi";
 
 interface ClassInfo {
   id: string;
@@ -23,43 +24,22 @@ interface Student {
   lastGrade: string;
 }
 
-const mockClasses: ClassInfo[] = [
-  {
-    id: "class1",
-    name: "Mathematics 10-A",
-    grade: "10",
-    subject: "Mathematics",
-    totalStudents: 35,
-    presentToday: 32,
-    nextClass: "Today 10:00 AM"
-  },
-  {
-    id: "class2", 
-    name: "Mathematics 10-B",
-    grade: "10",
-    subject: "Mathematics", 
-    totalStudents: 33,
-    presentToday: 30,
-    nextClass: "Today 2:00 PM"
-  }
-];
 
-const mockStudents: Student[] = [
-  { id: "1", name: "Alice Johnson", rollNo: "001", attendance: 95, lastGrade: "A+" },
-  { id: "2", name: "Bob Smith", rollNo: "002", attendance: 88, lastGrade: "B+" },
-  { id: "3", name: "Carol Davis", rollNo: "003", attendance: 92, lastGrade: "A" }
-];
 
 export function MyClassesManager() {
   const navigate = useNavigate();
 
-  // Mock API to get staff assigned classes
-  const getStaffAssignedClasses = () => {
-    // In real implementation, this would be filtered based on logged-in staff ID
-    return mockClasses;
-  };
 
-  const staffClasses = getStaffAssignedClasses();
+  const [staffClasses, setStaffClasses] = useState<any[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const classes = await mockApi.getClasses();
+        setStaffClasses(classes);
+      } catch {}
+    })();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -71,7 +51,7 @@ export function MyClassesManager() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5" />
-                {classInfo.name}
+                {classInfo.standard} {classInfo.section}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -81,20 +61,23 @@ export function MyClassesManager() {
                   <span className="font-medium">{classInfo.totalStudents}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Present Today:</span>
-                  <span className="font-medium text-green-600">{classInfo.presentToday}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Next Class:</span>
-                  <span className="font-medium">{classInfo.nextClass}</span>
+                  <span className="text-sm text-muted-foreground">Class Teacher:</span>
+                  <span className="font-medium">{classInfo.classTeacher}</span>
                 </div>
               </div>
               <Button 
                 className="w-full mt-4" 
                 size="sm"
-                onClick={() => navigate(`/my-classes/${classInfo.id}`)}
+                onClick={() => {
+                  // Defensive: ensure id is in CLSxxx format
+                  let classId = classInfo.id;
+                  if (!/^CLS\d{3}$/.test(classId)) {
+                    classId = `CLS${String(classId).padStart(3, '0')}`;
+                  }
+                  navigate(`/staff-class/${classId}`);
+                }}
               >
-                View Details
+                Manage Class
               </Button>
             </CardContent>
           </Card>

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { PermissionsManager } from "@/components/permissions/PermissionsManager";
 
 import SchoolManagement from "../superadmin/SchoolManagement";
+import UserManagement from "../superadmin/UserManagement";
 
 export default function SuperAdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -151,54 +152,9 @@ export default function SuperAdminDashboard() {
           <SchoolManagement />
         </TabsContent>
 
-        {/*
         <TabsContent value="users" className="space-y-4 sm:space-y-6">
-          <Card className="border-border">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>Manage system users across all schools</CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6 pt-0">
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <Button size="sm">Add User</Button>
-                  <Button variant="outline" size="sm">Bulk Import</Button>
-                  <Button variant="outline" size="sm">Export Users</Button>
-                </div>
-                <div className="border rounded-lg">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>School</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell className="font-medium">John Admin</TableCell>
-                        <TableCell>john@vitanaSchools.edu</TableCell>
-                        <TableCell>School Admin</TableCell>
-                        <TableCell>Vitana Schools International</TableCell>
-                        <TableCell><Badge variant="default">Active</Badge></TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="font-medium">Sarah Staff</TableCell>
-                        <TableCell>sarah@cambridge.edu</TableCell>
-                        <TableCell>Teacher</TableCell>
-                        <TableCell>Cambridge Public School</TableCell>
-                        <TableCell><Badge variant="default">Active</Badge></TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <UserManagement />
         </TabsContent>
-        */}
       </Tabs>
     </div>
   );

@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Filter, Eye } from "lucide-react";
+import { Plus, Search, Filter, Eye, Users, BadgeCheck, Car } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card as UICard, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Badge as UIBadge } from "@/components/ui/badge";
 import { mockApi, Staff } from "../../services/mockApi";
 import { StaffForm } from "./StaffForm";
 import { useToast } from "@/hooks/use-toast";
@@ -91,7 +91,7 @@ export function StaffList({ staff, refreshStaff }: { staff: Staff[]; refreshStaf
         </Button>
       </div>
 
-      <Card>
+  <UICard>
         <CardHeader>
           <CardTitle>Staff Directory</CardTitle>
           <div className="flex gap-4">
@@ -142,21 +142,21 @@ export function StaffList({ staff, refreshStaff }: { staff: Staff[]; refreshStaf
                     <TableCell>{member.department}</TableCell>
                     <TableCell>{member.phone}</TableCell>
                     <TableCell>
-                      <Badge variant={member.status === 'active' ? 'default' : 'secondary'}>
+                      <UIBadge variant={member.status === 'active' ? 'default' : 'secondary'}>
                         {member.status}
-                      </Badge>
+                      </UIBadge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/staff/${member.id}`)}
-                          className="flex items-center gap-2"
-                        >
-                          <Eye className="h-4 w-4 mr-1" /> Manage
-                        </Button>
-                      </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/staff/${member.id}`)}
+                            className="flex items-center gap-2"
+                          >
+                            <Eye className="h-4 w-4 mr-1" /> Manage
+                          </Button>
+                        </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -164,7 +164,7 @@ export function StaffList({ staff, refreshStaff }: { staff: Staff[]; refreshStaf
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+  </UICard>
 
       {showForm && (
         <StaffForm

@@ -1,18 +1,33 @@
 import { useEffect, useState } from "react";
 import { User, Calendar, Award, MessageSquare, BadgeIndianRupee } from "lucide-react";
 import { StatsCard } from "../../components/dashboard/StatsCard";
+import { ParentChildSelector } from "../../components/parent/ParentChildSelector";
 import { useAuth } from "../../contexts/AuthContext";
 
 export default function ParentDashboard() {
   const { user } = useAuth();
-  const [childInfo, setChildInfo] = useState({
-    name: "Alice Johnson",
-    class: "10-A",
-    rollNo: "001",
-    attendance: 94.5,
-    pendingFees: 25000,
-    lastExamGrade: "A+"
-  });
+  const [selectedChildId, setSelectedChildId] = useState<string>("child1");
+  
+  const childrenData = {
+    child1: {
+      name: "Alice Johnson",
+      class: "10-A", 
+      rollNo: "001",
+      attendance: 94.5,
+      pendingFees: 25000,
+      lastExamGrade: "A+"
+    },
+    child2: {
+      name: "Bob Johnson",
+      class: "8-B",
+      rollNo: "045", 
+      attendance: 88.2,
+      pendingFees: 15000,
+      lastExamGrade: "B+"
+    }
+  };
+
+  const childInfo = childrenData[selectedChildId as keyof typeof childrenData];
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -24,19 +39,11 @@ export default function ParentDashboard() {
         </p>
       </div>
 
-      {/* Child Info Card */}
-      <div className="dashboard-card">
-        <h3 className="text-lg font-semibold mb-4">Child Information</h3>
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-            <User className="h-8 w-8 text-primary" />
-          </div>
-          <div>
-            <h4 className="text-xl font-semibold">{childInfo.name}</h4>
-            <p className="text-muted-foreground">Class {childInfo.class} • Roll No: {childInfo.rollNo}</p>
-          </div>
-        </div>
-      </div>
+      {/* Child Selector */}
+      <ParentChildSelector 
+        selectedChildId={selectedChildId}
+        onChildSelect={setSelectedChildId}
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

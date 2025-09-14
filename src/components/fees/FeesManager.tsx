@@ -244,15 +244,14 @@ export function FeesManager() {
     });
   };
 
-  const generateOutstandingFees = () => {
-    const outstandingStudents = feeRecords.filter(record => record.pendingAmount > 0);
-    
+  const refreshData = () => {
+    // Simulate refreshing the data tiles
     toast({
-      title: "Outstanding Fees Generated",
-      description: `Generated payment requests for ${outstandingStudents.length} students with pending fees`,
+      title: "Data Refreshed",
+      description: "Fee information has been refreshed successfully",
     });
 
-    // Outstanding fees generated for parent portals
+    // In a real app, this would refetch data from the backend
   };
 
   const processPayment = (studentId: string, amount: number, method: string) => {
@@ -283,9 +282,9 @@ export function FeesManager() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Fee Management System</h2>
         <div className="flex gap-2">
-          <Button onClick={generateOutstandingFees}>
+          <Button onClick={refreshData}>
             <AlertCircle className="h-4 w-4 mr-2" />
-            Generate Outstanding Fees
+            Refresh
           </Button>
         </div>
       </div>

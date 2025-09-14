@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { mockApi } from '../../services/mockApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSchool } from '@/contexts/SchoolContext';
 import { Button } from '@/components/ui/button';
@@ -18,21 +19,33 @@ import { LogOut, Settings, User, Sparkles, BadgeCheck, CreditCard, Bell } from '
 
 export function Header() {
   // Universal search bar state
+  type ClassSuggestion = { type: "Class"; name: string; id: string };
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [suggestions, setSuggestions] = React.useState<string[]>([]);
-  // Only modules that exist in src/pages (filtered from actual files)
+  const [suggestions, setSuggestions] = React.useState<(string | ClassSuggestion)[]>([]);
+  const [classItems, setClassItems] = React.useState<{ id: string; name: string }[]>([]);
+  const students = ["Aarav Sharma", "Priya Singh", "Rahul Verma", "Sneha Patel", "Rohan Gupta"];
+  const staff = ["Dr. Rajesh Sharma", "Anil Kumar", "Priya Singh", "Ms. Sarah", "Mr. John", "Ms. Lisa"];
+  // Combine all for search with professional labels
   const moduleFiles = [
     "Admissions.tsx", "Alumni.tsx", "Analytics.tsx", "Announcements.tsx", "Assignments.tsx", "Attendance.tsx", "ChildProfile.tsx", "ClassDetail.tsx", "ClassProfile.tsx", "Communication.tsx", "Dashboard.tsx", "Documents.tsx", "Examinations.tsx", "Fees.tsx", "Grades.tsx", "Health.tsx", "IdCards.tsx", "Index.tsx", "Library.tsx", "Login.tsx", "MyClassDetail.tsx", "MyClasses.tsx", "Notifications.tsx", "ParentChildFeeDetails.tsx", "ParentFees.tsx", "ParentNotifications.tsx", "Reports.tsx", "Settings.tsx", "Staff.tsx", "StaffAttendance.tsx", "StaffAttendanceTeacher.tsx", "StaffEdit.tsx", "StaffProfile.tsx", "StudentAttendance.tsx", "StudentDetail.tsx", "StudentEdit.tsx", "StudentFeeDetails.tsx", "StudentProfile.tsx", "Students.tsx", "SuperAdminLogin.tsx", "Timetable.tsx", "Transport.tsx"
   ];
   const modules = moduleFiles.map(f => f.replace(/\.tsx$/, ""));
-  const students = ["Aarav Sharma", "Priya Singh", "Rahul Verma", "Sneha Patel", "Rohan Gupta"];
-  const staff = ["Dr. Rajesh Sharma", "Anil Kumar", "Priya Singh", "Ms. Sarah", "Mr. John", "Ms. Lisa"];
-  // Combine all for search with professional labels
   const allItems = [
     ...modules.map(m => ({ type: "Section", name: m })),
     ...students.map(s => ({ type: "Student", name: s })),
-    ...staff.map(st => ({ type: "Staff Member", name: st }))
+    ...staff.map(st => ({ type: "Staff Member", name: st })),
+    ...classItems.map(cls => ({ type: "Class", name: `${cls.name} (${cls.id})`, id: cls.id }))
   ];
+
+  // Fetch classes on mount
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const classes = await mockApi.getClasses();
+        setClassItems(classes.map(cls => ({ id: cls.id, name: `${cls.standard} ${cls.section}` })));
+      } catch {}
+    })();
+  }, []);
   React.useEffect(() => {
     if (!searchTerm.trim()) {
       setSuggestions([]);
@@ -43,30 +56,52 @@ export function Header() {
       allItems
         .filter(item => item.name.toLowerCase().includes(term))
         .slice(0, 6)
-        .map(item => `${item.type}: ${item.name}`)
+        .map(item => {
+          if (typeof item === "object" && item.type === "Class") {
+            // Defensive: item may not have id, fallback to empty string
+            return { type: "Class", name: item.name, id: (item as any).id || "" };
+          }
+          return `${item.type}: ${item.name}`;
+        })
     );
-  }, [searchTerm]);
+  }, [searchTerm, allItems]);
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
-  const handleSuggestionClick = (suggestion: string) => {
+  const handleSuggestionClick = (suggestion: any) => {
     setSearchTerm("");
     setSuggestions([]);
+    // If suggestion is a class object, route to its profile
+    if (typeof suggestion === "object" && suggestion.type === "Class") {
+      // Defensive: ensure id is in CLSxxx format
+      let classId = suggestion.id;
+      if (!/^CLS\d{3}$/.test(classId)) {
+        // Try to find the correct classId from classItems
+        const found = classItems.find(cls => cls.id === classId || cls.id.endsWith(classId));
+        classId = found ? found.id : "CLS001";
+      }
+      window.location.href = `/class/${classId}`;
+      return;
+    }
     // Parse suggestion string: "Type: Name"
     const [type, ...nameParts] = suggestion.split(": ");
     const name = nameParts.join(": ");
     let path = "/";
-    if (type === "Module") {
-      // Route to module page (assume /ModuleName, lowercased)
-      path += name.replace(/\s+/g, "").toLowerCase();
+    if (type === "Section") {
+      if (name === "ClassProfile") {
+        path = "/class/CLS001"; // fallback to first class if needed
+      } else if (name === "MyClassDetail") {
+        path = "/my-class-detail/CLS001";
+      } else if (name === "MyClasses") {
+        path = "/my-classes";
+      } else {
+        path += name.replace(/\s+/g, "").toLowerCase();
+      }
     } else if (type === "Student") {
-      // Route to student profile (assume /students/:name, lowercased and hyphenated)
       path += "students/" + name.replace(/\s+/g, "-").toLowerCase();
-    } else if (type === "Staff") {
-      // Route to staff profile (assume /staff/:name, lowercased and hyphenated)
+    } else if (type === "Staff Member") {
       path += "staff/" + name.replace(/\s+/g, "-").toLowerCase();
     }
-    // Use window.location for navigation
     window.location.href = path;
   };
   const { user, logout } = useAuth();
@@ -135,7 +170,7 @@ export function Header() {
                     className="px-3 py-2 cursor-pointer hover:bg-accent text-sm"
                     onClick={() => handleSuggestionClick(s)}
                   >
-                    {s}
+                    {s && typeof s === "object" && s.type === "Class" ? `Class: ${s.name}` : String(s)}
                   </li>
                 ))}
               </ul>
@@ -189,10 +224,12 @@ export function Header() {
                   <span>Billing</span>
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem onClick={() => setNotificationsOpen(true)} className="cursor-pointer">
-                <Bell className="mr-2 h-4 w-4 text-pink-500 animate-bounce" />
-                <span>Notifications</span>
-              </DropdownMenuItem>
+              {user?.role !== 'parent' && (
+                <DropdownMenuItem onClick={() => setNotificationsOpen(true)} className="cursor-pointer">
+                  <Bell className="mr-2 h-4 w-4 text-pink-500 animate-bounce" />
+                  <span>Notifications</span>
+                </DropdownMenuItem>
+              )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer" onClick={() => setProfileOpen(true)}>

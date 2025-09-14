@@ -18,7 +18,7 @@ interface AcademicYear {
 }
 
 export default function AcademicYearManager() {
-  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([
+  const defaultYears: AcademicYear[] = [
     {
       id: "1",
       name: "2024-2025",
@@ -33,7 +33,27 @@ export default function AcademicYearManager() {
       endDate: "2024-03-31",
       status: "completed"
     }
-  ]);
+  ];
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem("academicYears");
+    if (stored) {
+      try {
+        setAcademicYears(JSON.parse(stored));
+      } catch {
+        setAcademicYears(defaultYears);
+      }
+    } else {
+      setAcademicYears(defaultYears);
+    }
+  }, []);
+
+  // Persist to localStorage whenever academicYears changes
+  useEffect(() => {
+    localStorage.setItem("academicYears", JSON.stringify(academicYears));
+  }, [academicYears]);
   
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingYear, setEditingYear] = useState<AcademicYear | null>(null);
@@ -43,13 +63,22 @@ export default function AcademicYearManager() {
     endDate: ""
   });
 
+  const getYearStatus = (startDate: string, endDate: string) => {
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (now >= start && now <= end) return 'active';
+    if (now < start) return 'upcoming';
+    return 'completed';
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+    const status = getYearStatus(formData.startDate, formData.endDate);
     if (editingYear) {
       setAcademicYears(prev => prev.map(year => 
         year.id === editingYear.id 
-          ? { ...year, ...formData }
+          ? { ...year, ...formData, status }
           : year
       ));
       toast.success("Academic year updated successfully");
@@ -57,12 +86,11 @@ export default function AcademicYearManager() {
       const newYear: AcademicYear = {
         id: Date.now().toString(),
         ...formData,
-        status: 'upcoming'
+        status
       };
       setAcademicYears(prev => [...prev, newYear]);
       toast.success("Academic year created successfully");
     }
-    
     setDialogOpen(false);
     setEditingYear(null);
     setFormData({ name: "", startDate: "", endDate: "" });

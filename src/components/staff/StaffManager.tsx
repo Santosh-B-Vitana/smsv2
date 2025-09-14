@@ -108,29 +108,7 @@ export function StaffManager() {
           <h1 className="text-2xl font-bold text-foreground">Staff Management</h1>
           <p className="text-muted-foreground">Manage school staff and faculty</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Staff
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
-                {selectedStaff ? 'Edit Staff Member' : 'Add New Staff Member'}
-              </DialogTitle>
-            </DialogHeader>
-            <StaffForm
-              staff={selectedStaff}
-              onClose={() => {
-                setIsAddDialogOpen(false);
-                setSelectedStaff(null);
-              }}
-              onSuccess={handleStaffSuccess}
-            />
-          </DialogContent>
-        </Dialog>
+        {/* Removed top Add Staff button as requested */}
       </div>
 
       {/* Stats Cards */}

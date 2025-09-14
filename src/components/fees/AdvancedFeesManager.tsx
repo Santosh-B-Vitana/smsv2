@@ -49,69 +49,13 @@ interface InstallmentPlan {
 }
 
 export function AdvancedFeesManager() {
+  const { toast } = useToast();
+
   // State for Edit/View dialogs
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedStructure, setSelectedStructure] = useState<FeeStructure | null>(null);
 
-  // Edit form state
-  const [editStructure, setEditStructure] = useState<any>(null);
-
-  const handleEditClick = (structure: FeeStructure) => {
-    setSelectedStructure(structure);
-    setEditStructure({
-      ...structure,
-      academicYear: structure.name.split('Academic Year ')[1] || '',
-      customFeeName: '',
-      customFeeAmount: 0,
-      installmentAmounts: structure.installments.amounts,
-      installmentDueDates: structure.installments.dueDates,
-      installmentCount: structure.installments.count
-    });
-    setEditDialogOpen(true);
-  };
-
-  const handleViewClick = (structure: FeeStructure) => {
-    setSelectedStructure(structure);
-    setViewDialogOpen(true);
-  };
-
-  const handleEditSave = () => {
-    if (!selectedStructure) return;
-    const updated: FeeStructure = {
-      ...selectedStructure,
-      name: `${editStructure.class} - Academic Year ${editStructure.academicYear}`,
-      class: editStructure.class,
-      components: {
-        tuitionFee: editStructure.tuitionFee,
-        admissionFee: editStructure.admissionFee,
-        examFee: editStructure.examFee,
-        libraryFee: editStructure.libraryFee,
-        labFee: editStructure.labFee,
-        sportsFee: editStructure.sportsFee,
-        miscellaneous: editStructure.miscellaneous
-      },
-      totalAmount:
-        editStructure.tuitionFee +
-        editStructure.admissionFee +
-        editStructure.examFee +
-        editStructure.libraryFee +
-        editStructure.labFee +
-        editStructure.sportsFee +
-        editStructure.miscellaneous +
-        (editStructure.customFeeAmount || 0),
-      installments: {
-        count: editStructure.installmentCount,
-        amounts: editStructure.installmentAmounts,
-        dueDates: editStructure.installmentDueDates
-      }
-    };
-    setFeeStructures(prev => prev.map(fs => fs.id === updated.id ? updated : fs));
-    setEditDialogOpen(false);
-    setSelectedStructure(null);
-    setEditStructure(null);
-    toast({ title: "Fee Structure Updated", description: "Fee structure updated successfully." });
-  };
   const [feeStructures, setFeeStructures] = useState<FeeStructure[]>([
     {
       id: "FS001",
@@ -137,39 +81,57 @@ export function AdvancedFeesManager() {
 
   // State for Add Fee Structure Dialog
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [feeComponents, setFeeComponents] = useState<{name: string, amount: number}[]>([]);
   const [newStructure, setNewStructure] = useState({
     name: "",
     class: "",
     academicYear: "",
-    tuitionFee: 0,
-    admissionFee: 0,
-    examFee: 0,
-    libraryFee: 0,
-    labFee: 0,
-    sportsFee: 0,
-    miscellaneous: 0,
-    customFeeName: "",
-    customFeeAmount: 0,
     installmentCount: 1,
     installmentAmounts: [0],
     installmentDueDates: [""]
   });
 
+  const feeTypeOptions = [
+    "Tuition Fee",
+    "Admission Fee", 
+    "Exam Fee",
+    "Library Fee",
+    "Lab Fee",
+    "Sports Fee",
+    "Transport Fee",
+    "Hostel Fee",
+    "Development Fee",
+    "Activity Fee",
+    "Computer Fee",
+    "Other"
+  ];
+
   const handleAddStructure = () => {
-    const totalAmount = newStructure.tuitionFee + newStructure.admissionFee + newStructure.examFee + newStructure.libraryFee + newStructure.labFee + newStructure.sportsFee + newStructure.miscellaneous + (newStructure.customFeeAmount || 0);
+    if (!newStructure.class || !newStructure.academicYear || feeComponents.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please fill all required fields and add at least one fee component.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const totalAmount = feeComponents.reduce((sum, comp) => sum + comp.amount, 0);
+    const components = {
+      tuitionFee: feeComponents.find(c => c.name === 'Tuition Fee')?.amount || 0,
+      admissionFee: feeComponents.find(c => c.name === 'Admission Fee')?.amount || 0,
+      examFee: feeComponents.find(c => c.name === 'Exam Fee')?.amount || 0,
+      libraryFee: feeComponents.find(c => c.name === 'Library Fee')?.amount || 0,
+      labFee: feeComponents.find(c => c.name === 'Lab Fee')?.amount || 0,
+      sportsFee: feeComponents.find(c => c.name === 'Sports Fee')?.amount || 0,
+      miscellaneous: feeComponents.filter(c => !['Tuition Fee', 'Admission Fee', 'Exam Fee', 'Library Fee', 'Lab Fee', 'Sports Fee'].includes(c.name)).reduce((sum, c) => sum + c.amount, 0)
+    };
+    
     const structure: FeeStructure = {
       id: `FS${Date.now()}`,
       name: `${newStructure.class} - Academic Year ${newStructure.academicYear}`,
       class: newStructure.class,
-      components: {
-        tuitionFee: newStructure.tuitionFee,
-        admissionFee: newStructure.admissionFee,
-        examFee: newStructure.examFee,
-        libraryFee: newStructure.libraryFee,
-        labFee: newStructure.labFee,
-        sportsFee: newStructure.sportsFee,
-        miscellaneous: newStructure.miscellaneous
-      },
+      components,
       totalAmount,
       installments: {
         count: newStructure.installmentCount,
@@ -183,20 +145,28 @@ export function AdvancedFeesManager() {
       name: "",
       class: "",
       academicYear: "",
-      tuitionFee: 0,
-      admissionFee: 0,
-      examFee: 0,
-      libraryFee: 0,
-      labFee: 0,
-      sportsFee: 0,
-      miscellaneous: 0,
-      customFeeName: "",
-      customFeeAmount: 0,
       installmentCount: 1,
       installmentAmounts: [0],
       installmentDueDates: [""]
     });
+    setFeeComponents([]);
     toast({ title: "Fee Structure Added", description: "New fee structure added successfully." });
+  };
+
+  const addFeeComponent = (feeType: string) => {
+    if (!feeComponents.find(comp => comp.name === feeType)) {
+      setFeeComponents(prev => [...prev, { name: feeType, amount: 0 }]);
+    }
+  };
+
+  const removeFeeComponent = (feeType: string) => {
+    setFeeComponents(prev => prev.filter(comp => comp.name !== feeType));
+  };
+
+  const updateFeeAmount = (feeType: string, amount: number) => {
+    setFeeComponents(prev => 
+      prev.map(comp => comp.name === feeType ? { ...comp, amount } : comp)
+    );
   };
 
   // Handle installment count change
@@ -236,7 +206,6 @@ export function AdvancedFeesManager() {
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [receiptData, setReceiptData] = useState<any>(null);
-  const { toast } = useToast();
 
   const generateReceipt = (payment: any) => {
     const receipt = {
@@ -287,27 +256,6 @@ export function AdvancedFeesManager() {
       title: "Payment Successful",
       description: "Fee payment processed successfully"
     });
-  };
-
-  const calculateLateFees = () => {
-    const today = new Date();
-    
-    setInstallmentPlans(prev => prev.map(plan => ({
-      ...plan,
-      installments: plan.installments.map(inst => {
-        const dueDate = new Date(inst.dueDate);
-        const daysPastDue = Math.max(0, Math.ceil((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)));
-        
-        if (inst.status === 'pending' && daysPastDue > 0) {
-          return {
-            ...inst,
-            status: 'overdue' as const,
-            lateFee: daysPastDue * 50 // ₹50 per day late fee
-          };
-        }
-        return inst;
-      })
-    })));
   };
 
   // Search and filter states
@@ -393,252 +341,120 @@ export function AdvancedFeesManager() {
                         <TableCell>{structure.installments.count}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => handleEditClick(structure)}>Edit</Button>
-                            <Button variant="outline" size="sm" onClick={() => handleViewClick(structure)}>View</Button>
-            {/* Edit Fee Structure Dialog */}
-            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-              <DialogContent className="max-w-xl">
-                <DialogHeader>
-                  <DialogTitle>Edit Fee Structure</DialogTitle>
-                </DialogHeader>
-                {editStructure && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Academic Year</Label>
-                      <Input value={editStructure.academicYear} onChange={e => setEditStructure((ns: any) => ({ ...ns, academicYear: e.target.value }))} placeholder="2024-25" />
-                    </div>
-                    <div>
-                      <Label>Class</Label>
-                      <Input value={editStructure.class} onChange={e => setEditStructure((ns: any) => ({ ...ns, class: e.target.value }))} placeholder="10" />
-                    </div>
-                    <div>
-                      <Label>Tuition Fee</Label>
-                      <Input type="number" value={editStructure.tuitionFee} onChange={e => setEditStructure((ns: any) => ({ ...ns, tuitionFee: Number(e.target.value) }))} />
-                    </div>
-                    <div>
-                      <Label>Admission Fee</Label>
-                      <Input type="number" value={editStructure.admissionFee} onChange={e => setEditStructure((ns: any) => ({ ...ns, admissionFee: Number(e.target.value) }))} />
-                    </div>
-                    <div>
-                      <Label>Exam Fee</Label>
-                      <Input type="number" value={editStructure.examFee} onChange={e => setEditStructure((ns: any) => ({ ...ns, examFee: Number(e.target.value) }))} />
-                    </div>
-                    <div>
-                      <Label>Library Fee</Label>
-                      <Input type="number" value={editStructure.libraryFee} onChange={e => setEditStructure((ns: any) => ({ ...ns, libraryFee: Number(e.target.value) }))} />
-                    </div>
-                    <div>
-                      <Label>Lab Fee</Label>
-                      <Input type="number" value={editStructure.labFee} onChange={e => setEditStructure((ns: any) => ({ ...ns, labFee: Number(e.target.value) }))} />
-                    </div>
-                    <div>
-                      <Label>Sports Fee</Label>
-                      <Input type="number" value={editStructure.sportsFee} onChange={e => setEditStructure((ns: any) => ({ ...ns, sportsFee: Number(e.target.value) }))} />
-                    </div>
-                    <div>
-                      <Label>Miscellaneous</Label>
-                      <Input type="number" value={editStructure.miscellaneous} onChange={e => setEditStructure((ns: any) => ({ ...ns, miscellaneous: Number(e.target.value) }))} />
-                    </div>
-                    <div>
-                      <Label>Other Fee Name</Label>
-                      <Input value={editStructure.customFeeName} onChange={e => setEditStructure((ns: any) => ({ ...ns, customFeeName: e.target.value }))} placeholder="Transport, Hostel, etc." />
-                    </div>
-                    <div>
-                      <Label>Other Fee Amount</Label>
-                      <Input type="number" value={editStructure.customFeeAmount} onChange={e => setEditStructure((ns: any) => ({ ...ns, customFeeAmount: Number(e.target.value) }))} />
-                    </div>
-                    <div>
-                      <Label>Installment Count</Label>
-                      <Input type="number" min={1} max={12} value={editStructure.installmentCount} onChange={e => {
-                        const count = Number(e.target.value);
-                        setEditStructure((ns: any) => ({
-                          ...ns,
-                          installmentCount: count,
-                          installmentAmounts: Array(count).fill(0),
-                          installmentDueDates: Array(count).fill("")
-                        }));
-                      }} />
-                    </div>
-                  </div>
-                )}
-                <div className="mt-4">
-                  <Label>Installment Details</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {editStructure && Array.from({ length: editStructure.installmentCount }).map((_, idx) => (
-                      <div key={idx} className="flex gap-2 items-center">
-                        <Input
-                          type="number"
-                          value={editStructure.installmentAmounts[idx] || 0}
-                          onChange={e => {
-                            const val = Number(e.target.value);
-                            setEditStructure((ns: any) => {
-                              const amounts = [...ns.installmentAmounts];
-                              amounts[idx] = val;
-                              return { ...ns, installmentAmounts: amounts };
-                            });
-                          }}
-                          placeholder={`Installment ${idx + 1} Amount`}
-                        />
-                        <Input
-                          type="date"
-                          value={editStructure.installmentDueDates[idx] || ""}
-                          onChange={e => {
-                            const val = e.target.value;
-                            setEditStructure((ns: any) => {
-                              const dates = [...ns.installmentDueDates];
-                              dates[idx] = val;
-                              return { ...ns, installmentDueDates: dates };
-                            });
-                          }}
-                          placeholder={`Installment ${idx + 1} Due Date`}
-                        />
-                      </div>
+                            <Button variant="outline" size="sm" onClick={() => setViewDialogOpen(true)}>Edit</Button>
+                            <Button variant="outline" size="sm" onClick={() => setViewDialogOpen(true)}>View</Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </div>
-                </div>
-                <div className="mt-6 flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-                  <Button onClick={handleEditSave}>Save Changes</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            {/* View Fee Structure Dialog */}
-            <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-              <DialogContent className="max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Fee Structure Details</DialogTitle>
-                </DialogHeader>
-                {selectedStructure && (
-                  <div className="space-y-2">
-                    <div><strong>Name:</strong> {selectedStructure.name}</div>
-                    <div><strong>Class:</strong> {selectedStructure.class}</div>
-                    <div><strong>Total Amount:</strong> ₹{selectedStructure.totalAmount.toLocaleString()}</div>
-                    <div><strong>Installments:</strong> {selectedStructure.installments.count}</div>
-                    <div className="mt-2"><strong>Components:</strong></div>
-                    <ul className="ml-4">
-                      <li>Tuition Fee: ₹{selectedStructure.components.tuitionFee}</li>
-                      <li>Admission Fee: ₹{selectedStructure.components.admissionFee}</li>
-                      <li>Exam Fee: ₹{selectedStructure.components.examFee}</li>
-                      <li>Library Fee: ₹{selectedStructure.components.libraryFee}</li>
-                      <li>Lab Fee: ₹{selectedStructure.components.labFee}</li>
-                      <li>Sports Fee: ₹{selectedStructure.components.sportsFee}</li>
-                      <li>Miscellaneous: ₹{selectedStructure.components.miscellaneous}</li>
-                    </ul>
-                    <div className="mt-2"><strong>Installment Details:</strong></div>
-                    <ul className="ml-4">
-                      {selectedStructure.installments.amounts.map((amt, idx) => (
-                        <li key={idx}>Installment {idx + 1}: ₹{amt} (Due: {selectedStructure.installments.dueDates[idx]})</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                <div className="mt-6 flex justify-end">
-                  <Button variant="outline" onClick={() => setViewDialogOpen(false)}>Close</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
                 </TableBody>
               </Table>
             </CardContent>
+
             {/* Add Fee Structure Dialog */}
             <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-              <DialogContent className="max-w-xl">
+              <DialogContent className="max-w-xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Add Fee Structure</DialogTitle>
                 </DialogHeader>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Academic Year</Label>
-                    <Input value={newStructure.academicYear} onChange={e => setNewStructure(ns => ({ ...ns, academicYear: e.target.value }))} placeholder="2024-25" />
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Academic Year</Label>
+                      <Input value={newStructure.academicYear} onChange={e => setNewStructure(ns => ({ ...ns, academicYear: e.target.value }))} placeholder="2024-25" />
+                    </div>
+                    <div>
+                      <Label>Class</Label>
+                      <Input value={newStructure.class} onChange={e => setNewStructure(ns => ({ ...ns, class: e.target.value }))} placeholder="10" />
+                    </div>
                   </div>
+
                   <div>
-                    <Label>Class</Label>
-                    <Input value={newStructure.class} onChange={e => setNewStructure(ns => ({ ...ns, class: e.target.value }))} placeholder="10" />
+                    <Label>Select Fee Types</Label>
+                    <Select onValueChange={addFeeComponent}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select fee type to add" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {feeTypeOptions.filter(type => !feeComponents.find(comp => comp.name === type)).map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div>
-                    <Label>Tuition Fee</Label>
-                    <Input type="number" value={newStructure.tuitionFee} onChange={e => setNewStructure(ns => ({ ...ns, tuitionFee: Number(e.target.value) }))} />
-                  </div>
-                  <div>
-                    <Label>Admission Fee</Label>
-                    <Input type="number" value={newStructure.admissionFee} onChange={e => setNewStructure(ns => ({ ...ns, admissionFee: Number(e.target.value) }))} />
-                  </div>
-                  <div>
-                    <Label>Exam Fee</Label>
-                    <Input type="number" value={newStructure.examFee} onChange={e => setNewStructure(ns => ({ ...ns, examFee: Number(e.target.value) }))} />
-                  </div>
-                  <div>
-                    <Label>Library Fee</Label>
-                    <Input type="number" value={newStructure.libraryFee} onChange={e => setNewStructure(ns => ({ ...ns, libraryFee: Number(e.target.value) }))} />
-                  </div>
-                  <div>
-                    <Label>Lab Fee</Label>
-                    <Input type="number" value={newStructure.labFee} onChange={e => setNewStructure(ns => ({ ...ns, labFee: Number(e.target.value) }))} />
-                  </div>
-                  <div>
-                    <Label>Sports Fee</Label>
-                    <Input type="number" value={newStructure.sportsFee} onChange={e => setNewStructure(ns => ({ ...ns, sportsFee: Number(e.target.value) }))} />
-                  </div>
-                  <div>
-                    <Label>Miscellaneous</Label>
-                    <Input type="number" value={newStructure.miscellaneous} onChange={e => setNewStructure(ns => ({ ...ns, miscellaneous: Number(e.target.value) }))} />
-                  </div>
-                  <div>
-                    <Label>Other Fee Name</Label>
-                    <Input value={newStructure.customFeeName} onChange={e => setNewStructure(ns => ({ ...ns, customFeeName: e.target.value }))} placeholder="Transport, Hostel, etc." />
-                  </div>
-                  <div>
-                    <Label>Other Fee Amount</Label>
-                    <Input type="number" value={newStructure.customFeeAmount} onChange={e => setNewStructure(ns => ({ ...ns, customFeeAmount: Number(e.target.value) }))} />
-                  </div>
+
+                  {feeComponents.length > 0 && (
+                    <div>
+                      <Label>Fee Components</Label>
+                      <div className="space-y-2 mt-2">
+                        {feeComponents.map((component, index) => (
+                          <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                            <span className="flex-1">{component.name}</span>
+                            <Input 
+                              type="number" 
+                              value={component.amount} 
+                              onChange={e => updateFeeAmount(component.name, Number(e.target.value))}
+                              placeholder="Amount"
+                              className="w-32"
+                            />
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => removeFeeComponent(component.name)}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div>
                     <Label>Installment Count</Label>
                     <Input type="number" min={1} max={12} value={newStructure.installmentCount} onChange={e => handleInstallmentCountChange(Number(e.target.value))} />
                   </div>
-                </div>
-                <div className="mt-4">
-                  <Label>Installment Details</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {Array.from({ length: newStructure.installmentCount }).map((_, idx) => (
-                      <div key={idx} className="flex gap-2 items-center">
-                        <Input
-                          type="number"
-                          value={newStructure.installmentAmounts[idx] || 0}
-                          onChange={e => {
-                            const val = Number(e.target.value);
-                            setNewStructure(ns => {
-                              const amounts = [...ns.installmentAmounts];
-                              amounts[idx] = val;
-                              return { ...ns, installmentAmounts: amounts };
-                            });
-                          }}
-                          placeholder={`Installment ${idx + 1} Amount`}
-                        />
-                        <Input
-                          type="date"
-                          value={newStructure.installmentDueDates[idx] || ""}
-                          onChange={e => {
-                            const val = e.target.value;
-                            setNewStructure(ns => {
-                              const dates = [...ns.installmentDueDates];
-                              dates[idx] = val;
-                              return { ...ns, installmentDueDates: dates };
-                            });
-                          }}
-                          placeholder={`Installment ${idx + 1} Due Date`}
-                        />
-                      </div>
-                    ))}
+                  
+                  <div className="mt-4">
+                    <Label>Installment Details</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {Array.from({ length: newStructure.installmentCount }).map((_, idx) => (
+                        <div key={idx} className="flex gap-2 items-center">
+                          <Input
+                            type="number"
+                            value={newStructure.installmentAmounts[idx] || 0}
+                            onChange={e => {
+                              const val = Number(e.target.value);
+                              setNewStructure(ns => {
+                                const amounts = [...ns.installmentAmounts];
+                                amounts[idx] = val;
+                                return { ...ns, installmentAmounts: amounts };
+                              });
+                            }}
+                            placeholder={`Installment ${idx + 1} Amount`}
+                          />
+                          <Input
+                            type="date"
+                            value={newStructure.installmentDueDates[idx] || ""}
+                            onChange={e => {
+                              const val = e.target.value;
+                              setNewStructure(ns => {
+                                const dates = [...ns.installmentDueDates];
+                                dates[idx] = val;
+                                return { ...ns, installmentDueDates: dates };
+                              });
+                            }}
+                            placeholder={`Installment ${idx + 1} Due Date`}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div className="mt-6 flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setAddDialogOpen(false)}>Cancel</Button>
-                  <Button onClick={handleAddStructure}>Add Structure</Button>
+                  
+                  <div className="mt-6 flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setAddDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleAddStructure}>Add Structure</Button>
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>

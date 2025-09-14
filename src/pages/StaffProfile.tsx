@@ -1,5 +1,6 @@
 import { UserCheck, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { StaffIdCardTemplate } from "@/components/id-cards/StaffIdCardTemplate";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -137,7 +138,12 @@ export default function StaffProfile() {
     }
   };
 
+  const [idCardDialogOpen, setIdCardDialogOpen] = useState(false);
   const handleDocumentGeneration = (type: string) => {
+    if (type === "ID Card") {
+      setIdCardDialogOpen(true);
+      return;
+    }
     toast({
       title: "Generating Document",
       description: `${type} is being generated and will be downloaded shortly`,
@@ -333,7 +339,8 @@ export default function StaffProfile() {
         <div className="overflow-x-auto">
           <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 min-w-[600px]">
             <TabsTrigger value="classes">Classes</TabsTrigger>
-            <TabsTrigger value="schedule">Schedule</TabsTrigger>
+            {/* Hide Schedule tab for now */}
+            {false && <TabsTrigger value="schedule">Schedule</TabsTrigger>}
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="certificates">Certificates</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
@@ -499,7 +506,7 @@ export default function StaffProfile() {
                 <Dialog open={editDialog.open} onOpenChange={open => setEditDialog({ ...editDialog, open })}>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Edit Attendance</DialogTitle>
+                      <DialogTitle>Take Attendance</DialogTitle>
                     </DialogHeader>
                     <div className="flex gap-2 mb-2">
                       <Button variant={editStatus === 'Present' ? 'default' : 'outline'} onClick={() => setEditStatus('Present')}>Present</Button>
@@ -620,6 +627,23 @@ export default function StaffProfile() {
                     <CreditCard className="h-6 w-6 mb-2" />
                     Generate ID Card
                   </Button>
+                  <Dialog open={idCardDialogOpen} onOpenChange={setIdCardDialogOpen}>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Staff ID Card Preview</DialogTitle>
+                      </DialogHeader>
+                      {staff && <StaffIdCardTemplate staff={staff} />}
+                      <div className="flex justify-end gap-2 mt-4 pt-4 border-t print:hidden">
+                        <Button variant="outline" onClick={() => setIdCardDialogOpen(false)}>
+                          Close
+                        </Button>
+                        <Button onClick={() => window.print()}>
+                          <CreditCard className="h-4 w-4 mr-2" />
+                          Print
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                   <Button 
                     variant="outline" 
                     className="h-20 flex-col"
