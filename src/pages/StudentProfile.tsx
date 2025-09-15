@@ -26,6 +26,10 @@ import { mockApi, Student } from "@/services/mockApi";
 
 import { Input } from "@/components/ui/input";
 import { PrintableIdCard } from "@/components/id-cards/PrintableIdCard";
+import { BonafideCertificateTemplate } from "@/components/documents/BonafideCertificateTemplate";
+import { ConductCertificateTemplate } from "@/components/documents/ConductCertificateTemplate";
+import { TransferCertificateTemplate } from "@/components/documents/TransferCertificateTemplate";
+import { CertificateTemplate } from "@/components/documents/CertificateTemplate";
 import { useToast } from "@/hooks/use-toast";
 import placeholderImg from '/placeholder.svg';
 
@@ -188,12 +192,22 @@ export default function StudentProfile() {
     }
   };
 
+  const [showCertificateDialog, setShowCertificateDialog] = useState(false);
+  const [certificateType, setCertificateType] = useState<string>("");
+
   const handleDocumentGeneration = (type: string) => {
     if (type === "ID Card") {
       setShowIdCardDialog(true);
       return;
     }
-    // Simulate document generation and download for other types
+    
+    if (["Bonafide Certificate", "Conduct Certificate", "Character Certificate", "Transfer Certificate"].includes(type)) {
+      setCertificateType(type);
+      setShowCertificateDialog(true);
+      return;
+    }
+    
+    // For other types like Report Card
     const fileName = `${type.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
     const fileContent = `This is a mock ${type} for student ${student?.name || ''}.`;
     const blob = new Blob([fileContent], { type: 'application/pdf' });
@@ -748,7 +762,7 @@ export default function StudentProfile() {
         </TabsContent>
 
         <TabsContent value="documents">
-          {/* Printable ID Card Dialog */}
+          {/* Document Generation Dialogs */}
           {showIdCardDialog && student && (
             <Dialog open={showIdCardDialog} onOpenChange={setShowIdCardDialog}>
               <DialogContent className="max-w-2xl">
@@ -774,6 +788,83 @@ export default function StudentProfile() {
               </DialogContent>
             </Dialog>
           )}
+
+          {/* Certificate Generation Dialog */}
+          {showCertificateDialog && student && (
+            <Dialog open={showCertificateDialog} onOpenChange={setShowCertificateDialog}>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                <DialogHeader>
+                  <DialogTitle>{certificateType}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  {certificateType === "Bonafide Certificate" && (
+                    <BonafideCertificateTemplate
+                      studentName={student.name}
+                      fatherName={student.guardianName}
+                      className={`${student.class}-${student.section}`}
+                      schoolName="St. Mary's Senior Secondary School"
+                      principalName="Dr. John Smith"
+                      academicYear="2024-25"
+                      rollNumber={student.rollNo}
+                      purpose="Higher Education"
+                      certificateNumber={`BC${Date.now().toString().slice(-6)}`}
+                      issueDate={new Date().toLocaleDateString()}
+                    />
+                  )}
+                  {certificateType === "Conduct Certificate" && (
+                    <ConductCertificateTemplate
+                      studentName={student.name}
+                      className={`${student.class}-${student.section}`}
+                      schoolName="St. Mary's Senior Secondary School"
+                      principalName="Dr. John Smith"
+                      academicYear="2024-25"
+                      conduct="Excellent"
+                      issueDate={new Date().toLocaleDateString()}
+                      certificateNumber={`CC${Date.now().toString().slice(-6)}`}
+                    />
+                  )}
+                  {certificateType === "Character Certificate" && (
+                    <CertificateTemplate
+                      type="character"
+                      studentName={student.name}
+                      studentId={student.id}
+                      class={`${student.class}-${student.section}`}
+                      issuedDate={new Date().toLocaleDateString()}
+                      certificateId={`CHC${Date.now().toString().slice(-6)}`}
+                    />
+                  )}
+                  {certificateType === "Transfer Certificate" && (
+                    <TransferCertificateTemplate
+                      studentName={student.name}
+                      fatherName={student.guardianName}
+                      motherName="Mother Name"
+                      className={`${student.class}-${student.section}`}
+                      schoolName="St. Mary's Senior Secondary School"
+                      principalName="Dr. John Smith"
+                      academicYear="2024-25"
+                      dateOfBirth={student.dob}
+                      dateOfAdmission={student.admissionDate}
+                      dateOfLeaving={new Date().toLocaleDateString()}
+                      reasonForLeaving="Higher Studies"
+                      conduct="Excellent"
+                      certificateNumber={`TC${Date.now().toString().slice(-6)}`}
+                      issueDate={new Date().toLocaleDateString()}
+                    />
+                  )}
+                </div>
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button variant="outline" onClick={() => setShowCertificateDialog(false)}>
+                    Close
+                  </Button>
+                  <Button onClick={() => window.print()}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Print
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+          
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -781,32 +872,88 @@ export default function StudentProfile() {
                 Document Management
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <CardContent className="space-y-4">
+              {/* Quick Actions */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 <Button 
                   variant="outline" 
-                  className="h-20 flex-col"
+                  className="h-16 sm:h-20 flex-col justify-center"
                   onClick={() => handleDocumentGeneration("ID Card")}
                 >
-                  <CreditCard className="h-6 w-6 mb-2" />
-                  Generate ID Card
+                  <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
+                  <span className="text-xs sm:text-sm">Generate ID Card</span>
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="h-20 flex-col"
+                  className="h-16 sm:h-20 flex-col justify-center"
                   onClick={() => handleDocumentGeneration("Transfer Certificate")}
                 >
-                  <FileText className="h-6 w-6 mb-2" />
-                  Generate TC
+                  <FileText className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
+                  <span className="text-xs sm:text-sm">Transfer Certificate</span>
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="h-20 flex-col"
+                  className="h-16 sm:h-20 flex-col justify-center"
                   onClick={() => handleDocumentGeneration("Report Card")}
                 >
-                  <Download className="h-6 w-6 mb-2" />
-                  Report Card
+                  <Download className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
+                  <span className="text-xs sm:text-sm">Report Card</span>
                 </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-16 sm:h-20 flex-col justify-center"
+                  onClick={() => handleDocumentGeneration("Bonafide Certificate")}
+                >
+                  <FileText className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
+                  <span className="text-xs sm:text-sm">Bonafide Certificate</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-16 sm:h-20 flex-col justify-center"
+                  onClick={() => handleDocumentGeneration("Conduct Certificate")}
+                >
+                  <FileText className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
+                  <span className="text-xs sm:text-sm">Conduct Certificate</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-16 sm:h-20 flex-col justify-center"
+                  onClick={() => handleDocumentGeneration("Character Certificate")}
+                >
+                  <FileText className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
+                  <span className="text-xs sm:text-sm">Character Certificate</span>
+                </Button>
+              </div>
+
+              {/* Uploaded Documents Section */}
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-3">Uploaded Documents</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium text-sm">Admission Form</p>
+                        <p className="text-xs text-muted-foreground">PDF • 2024-01-15</p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="ghost">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium text-sm">Birth Certificate</p>
+                        <p className="text-xs text-muted-foreground">PDF • 2024-01-10</p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="ghost">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

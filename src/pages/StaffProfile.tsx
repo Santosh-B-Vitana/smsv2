@@ -25,6 +25,9 @@ import {
   RotateCcw
 } from "lucide-react";
 import { mockApi, Staff } from "@/services/mockApi";
+import { IdCardTemplate } from "@/components/id-cards/IdCardTemplate";
+import { ExperienceCertificateTemplate } from "@/components/certificates/ExperienceCertificateTemplate";
+import { SalaryCertificateTemplate } from "@/components/certificates/SalaryCertificateTemplate";
 import { useToast } from "@/hooks/use-toast";
 import placeholderImg from '/placeholder.svg';
 
@@ -139,11 +142,20 @@ export default function StaffProfile() {
   };
 
   const [idCardDialogOpen, setIdCardDialogOpen] = useState(false);
+  const [showCertificateDialog, setShowCertificateDialog] = useState(false);
+  const [certificateType, setCertificateType] = useState<string>("");
   const handleDocumentGeneration = (type: string) => {
     if (type === "ID Card") {
       setIdCardDialogOpen(true);
       return;
     }
+    
+    if (["Experience Certificate", "Salary Certificate"].includes(type)) {
+      setCertificateType(type);
+      setShowCertificateDialog(true);
+      return;
+    }
+    
     toast({
       title: "Generating Document",
       description: `${type} is being generated and will be downloaded shortly`,
@@ -609,6 +621,85 @@ export default function StaffProfile() {
         </TabsContent>
 
         <TabsContent value="documents">
+          {/* Document Generation Dialogs */}
+          <Dialog open={idCardDialogOpen} onOpenChange={setIdCardDialogOpen}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Staff ID Card Preview</DialogTitle>
+              </DialogHeader>
+              {staff && (
+                <IdCardTemplate 
+                  person={staff}
+                  type="staff"
+                />
+              )}
+              <div className="flex justify-end gap-2 mt-4 pt-4 border-t print:hidden">
+                <Button variant="outline" onClick={() => setIdCardDialogOpen(false)}>
+                  Close
+                </Button>
+                <Button onClick={() => window.print()}>
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Print
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {showCertificateDialog && staff && (
+            <Dialog open={showCertificateDialog} onOpenChange={setShowCertificateDialog}>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                <DialogHeader>
+                  <DialogTitle>{certificateType}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  {certificateType === "Experience Certificate" && (
+                    <ExperienceCertificateTemplate
+                      staffName={staff.name}
+                      designation={staff.designation}
+                      department={staff.department}
+                      employeeId={staff.id}
+                      joiningDate="01/04/2020"
+                      workDuration="4 years 5 months"
+                      responsibilities={[
+                        "Teaching mathematics to secondary classes",
+                        "Preparing lesson plans and educational materials",
+                        "Conducting assessments and examinations",
+                        "Maintaining student records and progress reports",
+                        "Participating in school events and activities"
+                      ]}
+                      performance="Excellent"
+                      issueDate={new Date().toLocaleDateString()}
+                      certificateNumber={`EXP${Date.now().toString().slice(-6)}`}
+                    />
+                  )}
+                  {certificateType === "Salary Certificate" && (
+                    <SalaryCertificateTemplate
+                      staffName={staff.name}
+                      designation={staff.designation}
+                      department={staff.department}
+                      employeeId={staff.id}
+                      joiningDate="01/04/2020"
+                      basicSalary="45,000"
+                      allowances="8,000"
+                      totalSalary="53,000"
+                      issueDate={new Date().toLocaleDateString()}
+                      certificateNumber={`SAL${Date.now().toString().slice(-6)}`}
+                    />
+                  )}
+                </div>
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button variant="outline" onClick={() => setShowCertificateDialog(false)}>
+                    Close
+                  </Button>
+                  <Button onClick={() => window.print()}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Print
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -616,81 +707,64 @@ export default function StaffProfile() {
                 Document Management
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <Button 
-                    variant="outline" 
-                    className="h-20 flex-col"
-                    onClick={() => handleDocumentGeneration("ID Card")}
-                  >
-                    <CreditCard className="h-6 w-6 mb-2" />
-                    Generate ID Card
-                  </Button>
-                  <Dialog open={idCardDialogOpen} onOpenChange={setIdCardDialogOpen}>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>Staff ID Card Preview</DialogTitle>
-                      </DialogHeader>
-                      {staff && <StaffIdCardTemplate staff={staff} />}
-                      <div className="flex justify-end gap-2 mt-4 pt-4 border-t print:hidden">
-                        <Button variant="outline" onClick={() => setIdCardDialogOpen(false)}>
-                          Close
-                        </Button>
-                        <Button onClick={() => window.print()}>
-                          <CreditCard className="h-4 w-4 mr-2" />
-                          Print
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                  <Button 
-                    variant="outline" 
-                    className="h-20 flex-col"
-                    onClick={() => handleDocumentGeneration("Experience Certificate")}
-                  >
-                    <FileText className="h-6 w-6 mb-2" />
-                    Experience Certificate
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="h-20 flex-col"
-                    onClick={() => handleDocumentGeneration("Salary Certificate")}
-                  >
-                    <Download className="h-6 w-6 mb-2" />
-                    Salary Certificate
-                  </Button>
-                </div>
-                
-                <div>
-                  <h4 className="font-medium mb-3">Uploaded Documents</h4>
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Document Name</TableHead>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Upload Date</TableHead>
-                          <TableHead>Actions</TableHead>
+            <CardContent className="space-y-4">
+              {/* Quick Actions */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <Button 
+                  variant="outline" 
+                  className="h-16 sm:h-20 flex-col justify-center"
+                  onClick={() => handleDocumentGeneration("ID Card")}
+                >
+                  <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
+                  <span className="text-xs sm:text-sm">Generate ID Card</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-16 sm:h-20 flex-col justify-center"
+                  onClick={() => handleDocumentGeneration("Experience Certificate")}
+                >
+                  <FileText className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
+                  <span className="text-xs sm:text-sm">Experience Certificate</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-16 sm:h-20 flex-col justify-center"
+                  onClick={() => handleDocumentGeneration("Salary Certificate")}
+                >
+                  <Download className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
+                  <span className="text-xs sm:text-sm">Salary Certificate</span>
+                </Button>
+              </div>
+              
+              {/* Uploaded Documents Section */}
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-3">Uploaded Documents</h4>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Document Name</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Upload Date</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {mockDocuments.map((doc, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">{doc.name}</TableCell>
+                          <TableCell>{doc.type}</TableCell>
+                          <TableCell>{doc.uploadDate}</TableCell>
+                          <TableCell>
+                            <Button variant="outline" size="sm">
+                              <Download className="h-4 w-4 mr-1" />
+                              Download
+                            </Button>
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {mockDocuments.map((doc, index) => (
-                          <TableRow key={index}>
-                            <TableCell className="font-medium">{doc.name}</TableCell>
-                            <TableCell>{doc.type}</TableCell>
-                            <TableCell>{doc.uploadDate}</TableCell>
-                            <TableCell>
-                              <Button variant="outline" size="sm">
-                                <Download className="h-4 w-4 mr-1" />
-                                Download
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               </div>
             </CardContent>

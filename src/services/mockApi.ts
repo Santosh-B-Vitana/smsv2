@@ -31,6 +31,17 @@ const mockSyllabi: Syllabus[] = [
   }
 ];
 // Mock API service for School Management System
+// Mock API: Send SMS to parent
+export function sendSMSToParent(studentId: string, message: string): Promise<{ success: boolean; parentId: string; }>
+{
+  // Simulate API delay and response
+  return new Promise(resolve => {
+    setTimeout(() => {
+      // For demo, assume parentId is 'PARENT_' + studentId
+      resolve({ success: true, parentId: `PARENT_${studentId}` });
+    }, 500);
+  });
+}
 // Class Management
 export interface SchoolClass {
   id: string;

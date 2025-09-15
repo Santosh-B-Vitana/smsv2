@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CertificateTemplate } from "./CertificateTemplate";
 import { useToast } from "@/hooks/use-toast";
+import { ReportCardTemplate } from "../examinations/ReportCardTemplate";
 
 interface Certificate {
   id: string;
@@ -44,6 +45,21 @@ const mockCertificates: Certificate[] = [
 ];
 
 export function DocumentManager() {
+  const [viewReportStudent, setViewReportStudent] = useState(null);
+  const [selectedReportSection, setSelectedReportSection] = useState("");
+  // Mock students for demo
+  const mockStudents = [
+    { id: 'STU001', name: 'Alice Johnson' },
+    { id: 'STU002', name: 'David Chen' },
+    { id: 'STU003', name: 'Priya Singh' },
+    { id: 'STU004', name: 'Rahul Verma' },
+    { id: 'STU005', name: 'Sneha Patel' }
+  ];
+  const [selectedReportClass, setSelectedReportClass] = useState("");
+  const [selectedReportTerm, setSelectedReportTerm] = useState("");
+  const [showStudentTable, setShowStudentTable] = useState(false);
+  // Track generated status for each student
+  const [studentReportStatus, setStudentReportStatus] = useState<{[id: string]: 'generated' | 'pending'}>({});
   const [certificates, setCertificates] = useState<Certificate[]>(mockCertificates);
   const [selectedStudent, setSelectedStudent] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
@@ -240,15 +256,14 @@ export function DocumentManager() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Academic Reports
+                <FileText className="h-5 w-5" /> Academic Reports
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex gap-4">
-                  <Select>
-                    <SelectTrigger className="w-48">
+                  <Select value={selectedReportClass} onValueChange={setSelectedReportClass}>
+                    <SelectTrigger className="w-40">
                       <SelectValue placeholder="Select class" />
                     </SelectTrigger>
                     <SelectContent>
@@ -257,8 +272,19 @@ export function DocumentManager() {
                       <SelectItem value="class-3">Class 3</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Select>
-                    <SelectTrigger className="w-48">
+                  <Select value={selectedReportSection} onValueChange={setSelectedReportSection}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Select section" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="A">Section A</SelectItem>
+                      <SelectItem value="B">Section B</SelectItem>
+                      <SelectItem value="C">Section C</SelectItem>
+                      <SelectItem value="D">Section D</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedReportTerm} onValueChange={setSelectedReportTerm}>
+                    <SelectTrigger className="w-40">
                       <SelectValue placeholder="Select term" />
                     </SelectTrigger>
                     <SelectContent>
@@ -267,20 +293,225 @@ export function DocumentManager() {
                       <SelectItem value="annual">Annual</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button>Generate Report</Button>
+                  <Button onClick={() => setShowStudentTable(true)}>
+                    Search
+                  </Button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="border rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">Progress Reports</h4>
-                    <p className="text-sm text-muted-foreground mb-3">Student academic progress reports</p>
-                    <Button variant="outline" size="sm">Generate</Button>
-                  </div>
-                  <div className="border rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">Mark Sheets</h4>
-                    <p className="text-sm text-muted-foreground mb-3">Detailed examination mark sheets</p>
-                    <Button variant="outline" size="sm">Generate</Button>
-                  </div>
-                </div>
+                {showStudentTable && (
+                  <>
+                    <div className="flex justify-between items-center mt-6 mb-2">
+                      <Button variant="outline" onClick={() => {
+                        // Mark all as generated
+                        const newStatus = {};
+                        mockStudents.forEach(s => newStatus[s.id] = 'generated');
+                        setStudentReportStatus(newStatus);
+                      }}>
+                        Generate for Everyone
+                      </Button>
+                      <div className="flex gap-4">
+                        <span className="font-semibold">Stats:</span>
+                        <span className="text-green-600">Generated: {Object.values(studentReportStatus).filter(s => s === 'generated').length}</span>
+                        <span className="text-yellow-600">Pending: {mockStudents.length - Object.values(studentReportStatus).filter(s => s === 'generated').length}</span>
+                      </div>
+                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Student Name</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {mockStudents.map(student => (
+                          <TableRow key={student.id}>
+                            <TableCell>{student.name}</TableCell>
+                            <TableCell>
+                              <Badge variant={studentReportStatus[student.id] === 'generated' ? 'default' : 'secondary'}>
+                                {studentReportStatus[student.id] === 'generated' ? 'Generated' : 'Pending'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="outline" onClick={() => {
+                                  setStudentReportStatus(prev => ({ ...prev, [student.id]: 'generated' }));
+                                }}>
+                                  {studentReportStatus[student.id] === 'generated' ? 'Regenerate' : 'Generate'}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => setViewReportStudent(student)}
+                                  disabled={studentReportStatus[student.id] !== 'generated'}
+                                  className={studentReportStatus[student.id] !== 'generated' ? 'opacity-50 cursor-not-allowed' : ''}
+                                >
+                                  <Eye className="h-4 w-4" /> View
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  disabled={studentReportStatus[student.id] !== 'generated'}
+                                  className={studentReportStatus[student.id] !== 'generated' ? 'opacity-50 cursor-not-allowed' : ''}
+                                  onClick={async () => {
+                                    // Navigate to parent profile and send SMS
+                                    const message = `Report card for ${student.name} is now available.`;
+                                    const res = await import('../../services/mockApi');
+                                    const api = res.sendSMSToParent;
+                                    const result = await api(student.id, message);
+                                    // Navigate to parent profile (mock)
+                                    window.location.href = `/parent/${result.parentId}`;
+                                  }}
+                                >
+                                  Send to Parent
+                                </Button>
+                    {/* Report Card Dialog */}
+                    <Dialog open={!!viewReportStudent} onOpenChange={() => setViewReportStudent(null)}>
+                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                        <DialogHeader>
+                          <div className="flex items-center justify-between">
+                            <DialogTitle>Report Card Preview</DialogTitle>
+                            <Button onClick={() => {
+                              const printWindow = window.open('', '_blank');
+                              if (printWindow) {
+                                printWindow.document.write(`
+                                  <html>
+                                    <head>
+                                      <title>Report Card</title>
+                                      <style>
+                                        body { background: #fff; margin: 0; padding: 0; }
+                                        .print-container {
+                                          width: 800px;
+                                          margin: 0 auto;
+                                          background: #fff;
+                                          border-radius: 12px;
+                                          box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+                                          border: 1px solid #e0e7ef;
+                                          padding: 16px 24px;
+                                          font-family: 'serif', 'Georgia', 'Times New Roman', Times, serif;
+                                          page-break-inside: avoid;
+                                          height: 100vh;
+                                          overflow: hidden;
+                                        }
+                                        h1, h2, h3, h4 { color: #1e40af; }
+                                        .text-blue-800 { color: #1e40af; }
+                                        .text-blue-600 { color: #2563eb; }
+                                        .text-green-600 { color: #16a34a; }
+                                        .text-yellow-600 { color: #ca8a04; }
+                                        .text-red-600 { color: #dc2626; }
+                                        .border-blue-800 { border-color: #1e40af; }
+                                        .border-blue-200 { border-color: #bfdbfe; }
+                                        .bg-blue-50 { background: #eff6ff; }
+                                        .bg-gray-50 { background: #f9fafb; }
+                                        .border { border: 1px solid #e5e7eb; }
+                                        table { border-collapse: collapse; width: 100%; page-break-inside: avoid; }
+                                        th, td { border: 1px solid #e5e7eb; padding: 8px; }
+                                        th { background: #eff6ff; }
+                                        .font-bold { font-weight: bold; }
+                                        .font-semibold { font-weight: 600; }
+                                        .rounded-lg { border-radius: 0.5rem; }
+                                        .rounded { border-radius: 0.25rem; }
+                                        .mx-auto { margin-left: auto; margin-right: auto; }
+                                        .text-center { text-align: center; }
+                                        .mb-8 { margin-bottom: 2rem; }
+                                        .mb-6 { margin-bottom: 1.5rem; }
+                                        .mb-4 { margin-bottom: 1rem; }
+                                        .mb-3 { margin-bottom: 0.75rem; }
+                                        .mb-2 { margin-bottom: 0.5rem; }
+                                        .pb-6 { padding-bottom: 1.5rem; }
+                                        .pt-4 { padding-top: 1rem; }
+                                        .pt-8 { padding-top: 2rem; }
+                                        .p-4 { padding: 1rem; }
+                                        .p-8 { padding: 2rem; }
+                                        .gap-4 { gap: 1rem; }
+                                        .max-w-4xl { max-width: 56rem; }
+                                        .border-t { border-top: 1px solid #e5e7eb; }
+                                        @media print {
+                                          html, body {
+                                            width: 100vw;
+                                            height: 100vh;
+                                            background: #fff;
+                                            margin: 0;
+                                            padding: 0;
+                                          }
+                                          .print-container {
+                                            width: 800px;
+                                            margin: 0 auto;
+                                            box-shadow: none;
+                                            border-radius: 0;
+                                            page-break-inside: avoid;
+                                            page-break-before: avoid;
+                                            page-break-after: avoid;
+                                            height: 100vh;
+                                            overflow: hidden;
+                                            padding: 8px 0;
+                                          }
+                                          table, tr, td, th { page-break-inside: avoid !important; }
+                                          .mb-8, .mb-6, .mb-4, .mb-3, .mb-2, .pb-6, .pt-4, .pt-8, .p-4, .p-8 { margin-bottom: 0 !important; padding-bottom: 0 !important; padding-top: 0 !important; }
+                                        }
+                                      </style>
+                                    </head>
+                                    <body>
+                                      <div class="print-container">
+                                        ${document.getElementById('report-card-preview')?.innerHTML}
+                                      </div>
+                                    </body>
+                                  </html>
+                                `);
+                                printWindow.document.close();
+                                printWindow.print();
+                              }
+                            }} className="gap-2">
+                              Print
+                            </Button>
+                          </div>
+                        </DialogHeader>
+                        {viewReportStudent && (
+                          <div id="report-card-preview">
+                            <ReportCardTemplate
+                              reportCard={{
+                                id: 'RC001',
+                                studentId: viewReportStudent.id,
+                                studentName: viewReportStudent.name,
+                                class: selectedReportClass.replace('class-', ''),
+                                section: selectedReportSection,
+                                term: selectedReportTerm,
+                                subjects: [
+                                  { name: 'Mathematics', marksObtained: 88, totalMarks: 100, grade: 'A' },
+                                  { name: 'Science', marksObtained: 92, totalMarks: 100, grade: 'A+' },
+                                  { name: 'English', marksObtained: 85, totalMarks: 100, grade: 'A' },
+                                  { name: 'Social Studies', marksObtained: 78, totalMarks: 100, grade: 'B+' },
+                                  { name: 'Hindi', marksObtained: 80, totalMarks: 100, grade: 'A' }
+                                ],
+                                totalMarks: 500,
+                                totalObtained: 423,
+                                percentage: 84.6,
+                                grade: 'A',
+                                attendance: 96,
+                                rank: 5,
+                                remarks: 'Excellent performance. Keep up the good work!',
+                                generatedDate: new Date().toISOString()
+                              }}
+                            />
+                          </div>
+                        )}
+                      </DialogContent>
+                    </Dialog>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  disabled={studentReportStatus[student.id] !== 'generated'}
+                                  className={studentReportStatus[student.id] !== 'generated' ? 'opacity-50 cursor-not-allowed' : ''}
+                                >
+                                  <Download className="h-4 w-4" /> Download
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
