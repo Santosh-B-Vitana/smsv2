@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Settings, User, Bell, Shield, Database, Palette } from "lucide-react";
+import { Settings, User, Bell, Shield, Database, Palette, Building } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,17 @@ export function SettingsManager() {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [pushNotifications, setPushNotifications] = useState(true);
+  const [showInfrastructure, setShowInfrastructure] = useState(() => {
+    const saved = localStorage.getItem('showInfrastructure');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  const handleInfrastructureToggle = (checked: boolean) => {
+    setShowInfrastructure(checked);
+    localStorage.setItem('showInfrastructure', JSON.stringify(checked));
+    // Trigger a custom event to notify the sidebar
+    window.dispatchEvent(new CustomEvent('infrastructureToggle', { detail: checked }));
+  };
 
   const handleSave = () => {
     toast({
@@ -246,9 +257,29 @@ export function SettingsManager() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleSave}>Save Settings</Button>
-            </CardContent>
-          </Card>
+                 <Button onClick={handleSave}>Save Settings</Button>
+               </CardContent>
+             </Card>
+
+             {(user?.role === 'admin' || user?.role === 'super_admin') && (
+               <Card>
+                 <CardHeader>
+                   <CardTitle>Navigation Settings</CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                   <div className="flex items-center justify-between">
+                     <div>
+                       <h3 className="font-medium">Show Infrastructure Menu</h3>
+                       <p className="text-sm text-muted-foreground">Toggle visibility of Infrastructure features (Transport, Library, Hostel, Health)</p>
+                     </div>
+                     <Switch 
+                       checked={showInfrastructure} 
+                       onCheckedChange={handleInfrastructureToggle}
+                     />
+                   </div>
+                 </CardContent>
+               </Card>
+             )}
 
           {user?.role === 'admin' && (
             <Card>

@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { mockApi } from '../../services/mockApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSchool } from '@/contexts/SchoolContext';
 import { Button } from '@/components/ui/button';
@@ -14,99 +13,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
-import { LogOut, Settings, User, Sparkles, BadgeCheck, CreditCard, Bell } from 'lucide-react';
+import { LogOut, Settings, User, BadgeCheck, CreditCard, Bell } from 'lucide-react';
+import { UniversalSearch } from '@/components/search/UniversalSearch';
 
 export function Header() {
-  // Sidebar context for mobile menu
   const { toggleSidebar } = useSidebar();
-  // Universal search bar state
-  type ClassSuggestion = { type: "Class"; name: string; id: string };
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [suggestions, setSuggestions] = React.useState<(string | ClassSuggestion)[]>([]);
-  const [classItems, setClassItems] = React.useState<{ id: string; name: string }[]>([]);
-  const students = ["Aarav Sharma", "Priya Singh", "Rahul Verma", "Sneha Patel", "Rohan Gupta"];
-  const staff = ["Dr. Rajesh Sharma", "Anil Kumar", "Priya Singh", "Ms. Sarah", "Mr. John", "Ms. Lisa"];
-  // Combine all for search with professional labels
-  const moduleFiles = [
-    "Admissions.tsx", "Alumni.tsx", "Analytics.tsx", "Announcements.tsx", "Assignments.tsx", "Attendance.tsx", "ChildProfile.tsx", "ClassDetail.tsx", "ClassProfile.tsx", "Communication.tsx", "Dashboard.tsx", "Documents.tsx", "Examinations.tsx", "Fees.tsx", "Grades.tsx", "Health.tsx", "IdCards.tsx", "Index.tsx", "Library.tsx", "Login.tsx", "MyClassDetail.tsx", "MyClasses.tsx", "Notifications.tsx", "ParentChildFeeDetails.tsx", "ParentFees.tsx", "ParentNotifications.tsx", "Reports.tsx", "Settings.tsx", "Staff.tsx", "StaffAttendance.tsx", "StaffAttendanceTeacher.tsx", "StaffEdit.tsx", "StaffProfile.tsx", "StudentAttendance.tsx", "StudentDetail.tsx", "StudentEdit.tsx", "StudentFeeDetails.tsx", "StudentProfile.tsx", "Students.tsx", "SuperAdminLogin.tsx", "Timetable.tsx", "Transport.tsx"
-  ];
-  const modules = moduleFiles.map(f => f.replace(/\.tsx$/, ""));
-  const allItems = [
-    ...modules.map(m => ({ type: "Section", name: m })),
-    ...students.map(s => ({ type: "Student", name: s })),
-    ...staff.map(st => ({ type: "Staff Member", name: st })),
-    ...classItems.map(cls => ({ type: "Class", name: `${cls.name} (${cls.id})`, id: cls.id }))
-  ];
-
-  // Fetch classes on mount
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const classes = await mockApi.getClasses();
-        setClassItems(classes.map(cls => ({ id: cls.id, name: `${cls.standard} ${cls.section}` })));
-      } catch {}
-    })();
-  }, []);
-  React.useEffect(() => {
-    if (!searchTerm.trim()) {
-      setSuggestions([]);
-      return;
-    }
-    const term = searchTerm.toLowerCase();
-    setSuggestions(
-      allItems
-        .filter(item => item.name.toLowerCase().includes(term))
-        .slice(0, 6)
-        .map(item => {
-          if (typeof item === "object" && item.type === "Class") {
-            // Defensive: item may not have id, fallback to empty string
-            return { type: "Class", name: item.name, id: (item as any).id || "" };
-          }
-          return `${item.type}: ${item.name}`;
-        })
-    );
-  }, [searchTerm, allItems]);
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-  const handleSuggestionClick = (suggestion: any) => {
-    setSearchTerm("");
-    setSuggestions([]);
-    // If suggestion is a class object, route to its profile
-    if (typeof suggestion === "object" && suggestion.type === "Class") {
-      // Defensive: ensure id is in CLSxxx format
-      let classId = suggestion.id;
-      if (!/^CLS\d{3}$/.test(classId)) {
-        // Try to find the correct classId from classItems
-        const found = classItems.find(cls => cls.id === classId || cls.id.endsWith(classId));
-        classId = found ? found.id : "CLS001";
-      }
-      window.location.href = `/class/${classId}`;
-      return;
-    }
-    // Parse suggestion string: "Type: Name"
-    const [type, ...nameParts] = suggestion.split(": ");
-    const name = nameParts.join(": ");
-    let path = "/";
-    if (type === "Section") {
-      if (name === "ClassProfile") {
-        path = "/class/CLS001"; // fallback to first class if needed
-      } else if (name === "MyClassDetail") {
-        path = "/my-class-detail/CLS001";
-      } else if (name === "MyClasses") {
-        path = "/my-classes";
-      } else {
-        path += name.replace(/\s+/g, "").toLowerCase();
-      }
-    } else if (type === "Student") {
-      path += "students/" + name.replace(/\s+/g, "-").toLowerCase();
-    } else if (type === "Staff Member") {
-      path += "staff/" + name.replace(/\s+/g, "-").toLowerCase();
-    }
-    window.location.href = path;
-  };
   const { user, logout } = useAuth();
   const { schoolInfo } = useSchool();
 
@@ -147,46 +59,24 @@ export function Header() {
         <span className="block w-6 h-0.5 bg-foreground rounded transition-all"></span>
       </button>
       {/* School info - enhanced mobile responsive */}
-      <div className="flex items-center gap-1 sm:gap-2 flex-1 min-w-0">
+      <div className="flex items-center gap-1 sm:gap-2 flex-1 min-w-0 header-school-info">
         {schoolInfo?.logoUrl && (
           <img 
             src={schoolInfo.logoUrl} 
             alt={`${schoolInfo.name} Logo`}
-            className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 object-contain rounded-sm"
+            className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 object-contain rounded-sm flex-shrink-0"
           />
         )}
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 overflow-hidden">
           <h1 className="font-semibold text-xs sm:text-sm lg:text-base text-foreground truncate">
             {schoolInfo?.name || 'SMS'}
           </h1>
         </div>
       </div>
-      {/* Universal search bar for admin - mobile responsive */}
-      {user?.role === "admin" && (
-        <div className="relative flex-1 flex justify-center max-w-sm lg:max-w-md">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="Search..."
-            className="border rounded-lg px-2 sm:px-3 py-1 text-xs sm:text-sm w-full focus:outline-none focus:ring"
-            autoComplete="off"
-          />
-          {suggestions.length > 0 && (
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-full bg-background border rounded-lg shadow-lg z-50">
-              <ul className="divide-y divide-border">
-                {suggestions.map((s, idx) => (
-                  <li
-                    key={idx}
-                    className="px-3 py-2 cursor-pointer hover:bg-accent text-sm"
-                    onClick={() => handleSuggestionClick(s)}
-                  >
-                    {s && typeof s === "object" && s.type === "Class" ? `Class: ${s.name}` : String(s)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+      {/* Enhanced Universal Search for Admin and Super Admin */}
+      {(user?.role === "admin" || user?.role === "super_admin") && (
+        <div className="flex-1 flex justify-center max-w-sm lg:max-w-md">
+          <UniversalSearch className="w-full" />
         </div>
       )}
       {/* User menu styled like NavUser, with photo and details */}

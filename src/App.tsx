@@ -31,6 +31,7 @@ import Reports from "@/pages/Reports";
 import Timetable from "@/pages/Timetable";
 import Transport from "@/pages/Transport";
 import Library from "@/pages/Library";
+import Hostel from "@/pages/Hostel";
 import Health from "@/pages/Health";
 import Fees from "@/pages/Fees";
 import Communication from "@/pages/Communication";
@@ -109,6 +110,7 @@ function App() {
                   <Route path="/timetable" element={<Layout><Timetable /></Layout>} />
                   <Route path="/transport" element={<Layout><Transport /></Layout>} />
                   <Route path="/library" element={<Layout><Library /></Layout>} />
+                  <Route path="/hostel" element={<Layout><Hostel /></Layout>} />
                   <Route path="/health" element={<Layout><Health /></Layout>} />
                   <Route path="/fees" element={<Layout><Fees /></Layout>} />
                   <Route path="/communication" element={<Layout><Communication /></Layout>} />

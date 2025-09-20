@@ -25,11 +25,12 @@ import { ParentFeePayment } from "@/components/fees/ParentFeePayment";
 import { mockApi, Student } from "@/services/mockApi";
 
 import { Input } from "@/components/ui/input";
-import { PrintableIdCard } from "@/components/id-cards/PrintableIdCard";
+import { IdCardTemplate } from "@/components/id-cards/IdCardTemplate";
 import { BonafideCertificateTemplate } from "@/components/documents/BonafideCertificateTemplate";
 import { ConductCertificateTemplate } from "@/components/documents/ConductCertificateTemplate";
 import { TransferCertificateTemplate } from "@/components/documents/TransferCertificateTemplate";
 import { CertificateTemplate } from "@/components/documents/CertificateTemplate";
+import { ReportCardTemplate } from "@/components/examinations/ReportCardTemplate";
 import { useToast } from "@/hooks/use-toast";
 import placeholderImg from '/placeholder.svg';
 
@@ -194,6 +195,7 @@ export default function StudentProfile() {
 
   const [showCertificateDialog, setShowCertificateDialog] = useState(false);
   const [certificateType, setCertificateType] = useState<string>("");
+  const [showReportCardDialog, setShowReportCardDialog] = useState(false);
 
   const handleDocumentGeneration = (type: string) => {
     if (type === "ID Card") {
@@ -406,14 +408,14 @@ export default function StudentProfile() {
 
       {/* Tabs for detailed information */}
       <Tabs defaultValue="attendance" className="space-y-4">
-        <div className="overflow-x-auto">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 min-w-[600px]">
-            <TabsTrigger value="attendance">Attendance</TabsTrigger>
-            <TabsTrigger value="academic">Academic Performance</TabsTrigger>
-            <TabsTrigger value="communication">Communication</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="awards">Awards & Achievements</TabsTrigger>
-            <TabsTrigger value="fee">Fee</TabsTrigger>
+        <div className="tabs-list-container overflow-x-auto">
+          <TabsList className="tabs-list grid w-full grid-cols-2 lg:grid-cols-6 min-w-[600px] md:min-w-[720px]">
+            <TabsTrigger value="attendance" className="tabs-trigger">Attendance</TabsTrigger>
+            <TabsTrigger value="academic" className="tabs-trigger">Academic Performance</TabsTrigger>
+            <TabsTrigger value="communication" className="tabs-trigger">Communication</TabsTrigger>
+            <TabsTrigger value="documents" className="tabs-trigger">Documents</TabsTrigger>
+            <TabsTrigger value="awards" className="tabs-trigger">Awards & Achievements</TabsTrigger>
+            <TabsTrigger value="fee" className="tabs-trigger">Fee</TabsTrigger>
           </TabsList>
         <TabsContent value="fee">
           {/* Fee info and payment for this student */}
@@ -579,23 +581,34 @@ export default function StudentProfile() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Exam</label>
-                  <select className="border rounded px-2 py-1" value={selectedExam} onChange={e => setSelectedExam(e.target.value)}>
-                    {examOptions.map(exam => (
-                      <option key={exam} value={exam}>{exam}</option>
-                    ))}
-                  </select>
+              <div className="flex flex-wrap gap-4 mb-4 justify-between items-center">
+                <div className="flex gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Exam</label>
+                    <select className="border rounded px-2 py-1" value={selectedExam} onChange={e => setSelectedExam(e.target.value)}>
+                      {examOptions.map(exam => (
+                        <option key={exam} value={exam}>{exam}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Year</label>
+                    <select className="border rounded px-2 py-1" value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
+                      {yearOptions.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Year</label>
-                  <select className="border rounded px-2 py-1" value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
-                    {yearOptions.map(year => (
-                      <option key={year} value={year}>{year}</option>
-                    ))}
-                  </select>
-                </div>
+                <Button 
+                  variant="outline" 
+                  className="h-10 flex items-center gap-2"
+                  onClick={() => setShowReportCardDialog(true)}
+                >
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">Generate Report Card</span>
+                  <span className="sm:hidden">Report Card</span>
+                </Button>
               </div>
               <div className="overflow-x-auto">
                 <Table>
@@ -765,25 +778,21 @@ export default function StudentProfile() {
           {/* Document Generation Dialogs */}
           {showIdCardDialog && student && (
             <Dialog open={showIdCardDialog} onOpenChange={setShowIdCardDialog}>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
                 <DialogHeader>
                   <DialogTitle>Printable Student ID Card</DialogTitle>
                 </DialogHeader>
-                <PrintableIdCard person={{
-                  id: student.id,
-                  name: student.name,
-                  rollNo: student.rollNo,
-                  class: student.class,
-                  section: student.section,
-                  guardianName: student.guardianName,
-                  guardianPhone: student.guardianPhone,
-                  address: student.address
-                }} type="student" />
-                <div className="flex justify-end gap-2 mt-4">
-                  <Button variant="default" onClick={() => window.print()}>
+                <div className="print-container">
+                  <IdCardTemplate person={student} type="student" />
+                </div>
+                <div className="flex justify-end gap-2 mt-4 print:hidden">
+                  <Button variant="outline" onClick={() => setShowIdCardDialog(false)}>Close</Button>
+                  <Button variant="default" onClick={() => {
+                    window.print();
+                  }}>
+                    <Download className="h-4 w-4 mr-2" />
                     Print
                   </Button>
-                  <Button variant="outline" onClick={() => setShowIdCardDialog(false)}>Close</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -852,11 +861,63 @@ export default function StudentProfile() {
                     />
                   )}
                 </div>
-                <div className="flex justify-end gap-2 mt-4">
+                <div className="flex justify-end gap-2 mt-4 print:hidden">
                   <Button variant="outline" onClick={() => setShowCertificateDialog(false)}>
                     Close
                   </Button>
-                  <Button onClick={() => window.print()}>
+                  <Button onClick={() => {
+                    window.print();
+                  }}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Print
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          {/* Report Card Generation Dialog */}
+          {showReportCardDialog && student && (
+            <Dialog open={showReportCardDialog} onOpenChange={setShowReportCardDialog}>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                <DialogHeader>
+                  <DialogTitle>Student Report Card</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <ReportCardTemplate
+                    reportCard={{
+                      id: `RC${Date.now()}`,
+                      studentId: student.id,
+                      studentName: student.name,
+                      class: student.class,
+                      section: student.section,
+                      term: selectedExam,
+                      subjects: mockMarksApi({ exam: selectedExam, year: selectedYear }).map(mark => ({
+                        name: mark.subject,
+                        marksObtained: mark.marks,
+                        totalMarks: mark.total,
+                        grade: mark.grade
+                      })),
+                      totalMarks: mockMarksApi({ exam: selectedExam, year: selectedYear }).reduce((sum, mark) => sum + mark.total, 0),
+                      totalObtained: mockMarksApi({ exam: selectedExam, year: selectedYear }).reduce((sum, mark) => sum + mark.marks, 0),
+                      percentage: mockMarksApi({ exam: selectedExam, year: selectedYear }).length > 0 ? 
+                        (mockMarksApi({ exam: selectedExam, year: selectedYear }).reduce((sum, mark) => sum + mark.marks, 0) / 
+                         mockMarksApi({ exam: selectedExam, year: selectedYear }).reduce((sum, mark) => sum + mark.total, 0)) * 100 : 0,
+                      grade: "A",
+                      attendance: 95,
+                      rank: 5,
+                      remarks: "Excellent performance. Keep up the good work!",
+                      generatedDate: new Date().toISOString()
+                    }}
+                  />
+                </div>
+                <div className="flex justify-end gap-2 mt-4 print:hidden">
+                  <Button variant="outline" onClick={() => setShowReportCardDialog(false)}>
+                    Close
+                  </Button>
+                  <Button onClick={() => {
+                    window.print();
+                  }}>
                     <Download className="h-4 w-4 mr-2" />
                     Print
                   </Button>
@@ -890,14 +951,6 @@ export default function StudentProfile() {
                 >
                   <FileText className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
                   <span className="text-xs sm:text-sm">Transfer Certificate</span>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="h-16 sm:h-20 flex-col justify-center"
-                  onClick={() => handleDocumentGeneration("Report Card")}
-                >
-                  <Download className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
-                  <span className="text-xs sm:text-sm">Report Card</span>
                 </Button>
                 <Button 
                   variant="outline" 

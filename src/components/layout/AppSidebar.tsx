@@ -1,5 +1,5 @@
 import * as React from "react"
-import { GraduationCap, Users, UserCheck, Calendar, BookOpen, Award, FileText, Clock, Bus, Heart, DollarSign, MessageSquare, Megaphone, FileImage, CreditCard, BarChart3, Settings, User } from "lucide-react"
+import { GraduationCap, Users, UserCheck, Calendar, BookOpen, Award, FileText, Clock, Bus, Heart, DollarSign, MessageSquare, Megaphone, FileImage, CreditCard, BarChart3, Settings, User, Building } from "lucide-react"
 import { NavMain } from "@/components/sidebar/nav-main"
 import { NavProjects } from "@/components/sidebar/nav-projects"
 import { NavUser } from "@/components/sidebar/nav-user"
@@ -17,6 +17,19 @@ import { usePermissions } from "@/contexts/PermissionsContext"
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
   const { hasPermission } = usePermissions()
+  const [showInfrastructure, setShowInfrastructure] = React.useState(() => {
+    const saved = localStorage.getItem('showInfrastructure');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  React.useEffect(() => {
+    const handleInfrastructureToggle = (event: CustomEvent) => {
+      setShowInfrastructure(event.detail);
+    };
+
+    window.addEventListener('infrastructureToggle', handleInfrastructureToggle as EventListener);
+    return () => window.removeEventListener('infrastructureToggle', handleInfrastructureToggle as EventListener);
+  }, []);
 
   // Define navigation items based on user role
   const getNavigationItems = () => {
@@ -49,6 +62,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           icon: FileText,
         },
         // Library and Health hidden for super_admin
+        ...(showInfrastructure ? [{
+          title: "Infrastructure",
+          url: "#",
+          icon: Building,
+          items: [
+            { title: "Transport", url: "/transport" },
+            { title: "Hostel", url: "/hostel" },
+          ],
+        }] : []),
         {
           title: "Fees",
           url: "/fees",
@@ -102,8 +124,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: "/staff",
           icon: UserCheck,
         },
-  // Examinations hidden for admin
+    // Examinations hidden for admin
         // Library and Health hidden for admin
+        ...(showInfrastructure ? [{
+          title: "Infrastructure",
+          url: "#",
+          icon: Building,
+          items: [
+            { title: "Transport", url: "/transport" },
+            { title: "Library", url: "/library" },
+            { title: "Hostel", url: "/hostel" },
+            { title: "Health", url: "/health" },
+          ],
+        }] : []),
         {
           title: "Fees",
           url: "/fees",

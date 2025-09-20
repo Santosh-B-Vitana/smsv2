@@ -510,3 +510,142 @@
   }
 }
 
+/* Enhanced Print Styles */
+@media print {
+  @page {
+    margin: 0.5in;
+    size: A4;
+  }
+  
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    color-adjust: exact;
+  }
+  
+  .print:hidden,
+  .print\\:hidden {
+    display: none !important;
+  }
+  
+  .print-container {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .id-card-container,
+  .certificate-container,
+  .report-card-container {
+    page-break-after: always;
+    width: 100% !important;
+    margin: 0 !important;
+    background: white !important;
+  }
+  
+  /* Ensure proper scaling for print */
+  .bg-white,
+  .bg-gray-50,
+  .bg-blue-50 {
+    background: white !important;
+  }
+  
+  .border,
+  .border-2,
+  .border-gray-300,
+  .border-blue-200 {
+    border: 1px solid #000 !important;
+  }
+}
+
+/* Tablet responsive improvements */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Header branding fix for tablet - improved */
+  .header-school-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    overflow: hidden;
+  }
+  
+  .header-school-info h1 {
+    font-size: 0.8rem !important;
+    line-height: 1.2 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+    margin: 0;
+  }
+
+  /* Tab improvements for tablet - enhanced */
+  .tabs-list-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 2px;
+  }
+  
+  .tabs-list-container::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .tabs-list {
+    width: max-content !important;
+    min-width: 100%;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    grid-template-columns: none !important;
+  }
+  
+  .tabs-trigger {
+    flex-shrink: 0 !important;
+    min-width: 130px !important;
+    max-width: 160px !important;
+    white-space: nowrap;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.75rem !important;
+    text-align: center;
+    justify-content: center;
+  }
+  
+  /* Better document generation buttons for tablet */
+  .document-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    gap: 0.75rem !important;
+  }
+  
+  .document-button {
+    height: 4rem !important;
+    font-size: 0.75rem !important;
+    padding: 0.5rem !important;
+  }
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 767px) {
+  .tabs-list {
+    display: flex !important;
+    overflow-x: auto !important;
+    grid-template-columns: none !important;
+    width: max-content !important;
+    min-width: 100% !important;
+  }
+  
+  .tabs-trigger {
+    flex-shrink: 0 !important;
+    min-width: 100px !important;
+    font-size: 0.7rem !important;
+    padding: 0.4rem 0.6rem !important;
+  }
+  
+  .header-school-info h1 {
+    font-size: 0.75rem !important;
+    max-width: 120px !important;
+  }
+}
+
