@@ -386,7 +386,7 @@ export default function StaffProfile() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <UserCheck className="h-5 w-5" />
-                Staff Attendance Record
+                Attendance Record
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -398,6 +398,7 @@ export default function StaffProfile() {
                       <TableHead>Status</TableHead>
                       <TableHead>Method</TableHead>
                       <TableHead>Comment</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -415,6 +416,19 @@ export default function StaffProfile() {
                         </TableCell>
                         <TableCell>{record.method}</TableCell>
                         <TableCell>{record.comment || '-'}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditDialog({ open: true, index });
+                              setEditStatus(record.status);
+                              setEditComment(record.comment || '');
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -621,6 +635,65 @@ export default function StaffProfile() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Edit Attendance Dialog */}
+      {editDialog.open && (
+        <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog({ open })}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Attendance Record</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Status</label>
+                <select 
+                  className="w-full mt-1 p-2 border rounded-md"
+                  value={editStatus}
+                  onChange={(e) => setEditStatus(e.target.value)}
+                >
+                  <option value="Present">Present</option>
+                  <option value="Absent">Absent</option>
+                  <option value="Late">Late</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Comment</label>
+                <input
+                  type="text"
+                  className="w-full mt-1 p-2 border rounded-md"
+                  value={editComment}
+                  onChange={(e) => setEditComment(e.target.value)}
+                  placeholder="Optional comment..."
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setEditDialog({ open: false })}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => {
+                    if (editDialog.index !== undefined) {
+                      const updatedAttendance = [...mockAttendance];
+                      updatedAttendance[editDialog.index] = {
+                        ...updatedAttendance[editDialog.index],
+                        status: editStatus,
+                        comment: editComment
+                      };
+                      setMockAttendance(updatedAttendance);
+                    }
+                    setEditDialog({ open: false });
+                  }}
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

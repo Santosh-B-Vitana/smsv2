@@ -94,7 +94,7 @@ export default function AdminDashboard() {
           </div>
           
           <div 
-            onClick={() => window.location.href = '/attendance'}
+            onClick={() => window.location.href = '/staff-attendance'}
             className="dashboard-card cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 text-center p-6"
           >
             <Calendar className="w-8 h-8 mx-auto mb-2 text-primary" />
