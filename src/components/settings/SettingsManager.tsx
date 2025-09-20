@@ -22,7 +22,7 @@ export function SettingsManager() {
   const [pushNotifications, setPushNotifications] = useState(true);
   const [showInfrastructure, setShowInfrastructure] = useState(() => {
     const saved = localStorage.getItem('showInfrastructure');
-    return saved !== null ? JSON.parse(saved) : true;
+    return saved !== null ? JSON.parse(saved) : false;
   });
 
   const handleInfrastructureToggle = (checked: boolean) => {

@@ -19,7 +19,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { hasPermission } = usePermissions()
   const [showInfrastructure, setShowInfrastructure] = React.useState(() => {
     const saved = localStorage.getItem('showInfrastructure');
-    return saved !== null ? JSON.parse(saved) : true;
+    return saved !== null ? JSON.parse(saved) : false;
   });
 
   React.useEffect(() => {
