@@ -5,9 +5,11 @@ import { StatsCard } from "../../components/dashboard/StatsCard";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 export default function StaffDashboard() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [todaySchedule, setTodaySchedule] = useState([
     { time: "08:00 - 08:45", subject: "Mathematics", class: "10-A" },
@@ -20,37 +22,28 @@ export default function StaffDashboard() {
     <div className="space-y-8 animate-fade-in">
       {/* Welcome Section */}
       <div>
-        <h1 className="text-display">Welcome back, {user?.name}</h1>
+        <h1 className="text-display">{t('dashboard.welcomeBack')}, {user?.name}</h1>
         <p className="text-muted-foreground mt-2">
-          Your teaching schedule and important updates for today.
+          {t('dashboard.teachingSchedule')}
         </p>
       </div>
 
       {/* Stats Cards - Mobile responsive for Teachers */}
       <div className="mobile-stats grid gap-3 sm:gap-4 lg:gap-6">
         <StatsCard
-          title="Classes Today"
+          title={t('dashboard.classesToday')}
           value={4}
           icon={BookOpen}
-          trend={{ value: 0, label: "scheduled" }}
         />
         <StatsCard
-          title="Upcoming Events"
-          value={2}
-          icon={Calendar}
-          trend={{ value: 1, label: "this week" }}
+          title="Attendance Today"
+          value="92%"
+          icon={CheckCircle}
         />
         <StatsCard
-          title="Student Highlights"
-          value={3}
-          icon={Users}
-          trend={{ value: 2, label: "achievements" }}
-        />
-        <StatsCard
-          title="Messages"
-          value={5}
-          icon={MessageSquare}
-          trend={{ value: 2, label: "unread" }}
+          title="Assignments to Grade"
+          value={7}
+          icon={Clock}
         />
       </div>
 
@@ -59,7 +52,7 @@ export default function StaffDashboard() {
         <div className="dashboard-card">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
-            My Assigned Classes
+            {t('dashboard.myAssignedClasses')}
           </h3>
           <div className="space-y-3">
             {[
@@ -73,7 +66,7 @@ export default function StaffDashboard() {
                   <p className="font-medium text-sm">{assignment.subject}</p>
                   <p className="text-xs text-muted-foreground">Class {assignment.class} - Section {assignment.section}</p>
                 </div>
-                <Badge variant="secondary">Active</Badge>
+                <Badge variant="secondary">{t('dashboard.active')}</Badge>
               </div>
             ))}
           </div>
@@ -81,23 +74,23 @@ export default function StaffDashboard() {
 
         {/* Quick Actions */}
         <div className="dashboard-card">
-          <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('dashboard.quickActions')}</h3>
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <button className="p-2 sm:p-3 lg:p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/leave-management')}>
               <Clock className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mx-auto mb-1 sm:mb-2" />
-              <p className="text-xs sm:text-sm font-medium">Apply Leave</p>
+              <p className="text-xs sm:text-sm font-medium">{t('dashboard.applyLeave')}</p>
             </button>
             <button className="p-2 sm:p-3 lg:p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/my-classes')}>
               <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mx-auto mb-1 sm:mb-2" />
-              <p className="text-xs sm:text-sm font-medium">My Classes</p>
+              <p className="text-xs sm:text-sm font-medium">{t('dashboard.myClasses')}</p>
             </button>
             <button className="p-2 sm:p-3 lg:p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/assignments')}>
               <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mx-auto mb-1 sm:mb-2" />
-              <p className="text-xs sm:text-sm font-medium">Grade Assignments</p>
+              <p className="text-xs sm:text-sm font-medium">{t('dashboard.gradeAssignments')}</p>
             </button>
             <button className="p-2 sm:p-3 lg:p-4 rounded-lg border hover:bg-muted/50 transition-colors" onClick={() => navigate('/communication')}>
               <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 mx-auto mb-1 sm:mb-2" />
-              <p className="text-xs sm:text-sm font-medium">Send Message</p>
+              <p className="text-xs sm:text-sm font-medium">{t('dashboard.sendMessage')}</p>
             </button>
           </div>
         </div>

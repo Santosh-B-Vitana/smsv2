@@ -16,9 +16,11 @@ import {
   Eye
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function UpdatedParentDashboard() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   // Mock data for parent dashboard
   const childInfo = {
@@ -60,9 +62,9 @@ export default function UpdatedParentDashboard() {
     <div className="space-y-6">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-6">
-        <h1 className="text-2xl font-bold mb-2">Welcome back, Parent!</h1>
+        <h1 className="text-2xl font-bold mb-2">{t('dashboard.welcomeBack')}, Parent!</h1>
         <p className="text-muted-foreground">
-          Here's an overview of {childInfo.name}'s academic progress and school activities.
+          {t('dashboard.trackProgress')}
         </p>
       </div>
 
@@ -75,7 +77,7 @@ export default function UpdatedParentDashboard() {
                 <User className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Student</p>
+                <p className="text-sm text-muted-foreground">{t('profile.student')}</p>
                 <p className="font-semibold">{childInfo.name}</p>
                 <p className="text-xs text-muted-foreground">{childInfo.class} • Roll: {childInfo.rollNo}</p>
               </div>
@@ -90,9 +92,9 @@ export default function UpdatedParentDashboard() {
                 <Calendar className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Attendance</p>
+                <p className="text-sm text-muted-foreground">{t('dashboard.attendance')}</p>
                 <p className="font-semibold text-green-600">{childInfo.attendance}</p>
-                <p className="text-xs text-muted-foreground">This month</p>
+                <p className="text-xs text-muted-foreground">{t('profile.thisMonth')}</p>
               </div>
             </div>
           </CardContent>
@@ -105,9 +107,9 @@ export default function UpdatedParentDashboard() {
                 <TrendingUp className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Performance</p>
+                <p className="text-sm text-muted-foreground">{t('profile.performance')}</p>
                 <p className="font-semibold text-blue-600">{childInfo.performance}</p>
-                <p className="text-xs text-muted-foreground">Overall grade</p>
+                <p className="text-xs text-muted-foreground">{t('profile.overallGrade')}</p>
               </div>
             </div>
           </CardContent>
@@ -120,7 +122,7 @@ export default function UpdatedParentDashboard() {
                 <CreditCard className="h-6 w-6 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Fees Due</p>
+                <p className="text-sm text-muted-foreground">{t('fees.pending')} Fees</p>
                 <p className="font-semibold text-orange-600">₹{feesSummary.pendingAmount.toLocaleString()}</p>
                 <p className="text-xs text-muted-foreground">Due: {feesSummary.nextDueDate}</p>
               </div>
@@ -136,7 +138,7 @@ export default function UpdatedParentDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                Recent Activities
+                {t('activities.recentActivities')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -161,7 +163,7 @@ export default function UpdatedParentDashboard() {
                       </div>
                     </div>
                     <Badge variant={activity.status === 'completed' ? 'default' : 'secondary'}>
-                      {activity.status === 'completed' ? 'Completed' : 'Pending'}
+                      {activity.status === 'completed' ? t('activities.completed') : t('activities.pending')}
                     </Badge>
                   </div>
                 ))}
@@ -175,7 +177,7 @@ export default function UpdatedParentDashboard() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
-                  Fee Summary
+                  {t('fees.feeSummary')}
                 </CardTitle>
                 <Button 
                   variant="outline" 
@@ -183,25 +185,25 @@ export default function UpdatedParentDashboard() {
                   onClick={() => navigate('/fees')}
                 >
                   <Eye className="h-4 w-4 mr-2" />
-                  View Details
+                  {t('fees.viewDetails')}
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center p-4 border rounded-lg">
-                  <p className="text-sm text-muted-foreground">Total Fees</p>
+                  <p className="text-sm text-muted-foreground">{t('fees.totalFees')}</p>
                   <p className="text-xl font-bold">₹{feesSummary.totalDue.toLocaleString()}</p>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <p className="text-sm text-muted-foreground">Pending</p>
+                  <p className="text-sm text-muted-foreground">{t('fees.pending')}</p>
                   <p className="text-xl font-bold text-orange-600">₹{feesSummary.pendingAmount.toLocaleString()}</p>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <p className="text-sm text-muted-foreground">Next Due</p>
+                  <p className="text-sm text-muted-foreground">{t('fees.nextDue')}</p>
                   <p className="text-sm font-medium">{feesSummary.nextDueDate}</p>
                   <Button size="sm" className="mt-2 w-full">
-                    Pay Now
+                    {t('fees.payNow')}
                   </Button>
                 </div>
               </div>
@@ -215,7 +217,7 @@ export default function UpdatedParentDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                Upcoming Events
+                {t('activities.upcomingEvents')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -237,7 +239,7 @@ export default function UpdatedParentDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
-                Notifications
+                {t('notifications.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>

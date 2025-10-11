@@ -6,6 +6,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PayrollManager } from "@/components/payroll/PayrollManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
@@ -29,6 +30,7 @@ import { ExperienceCertificateTemplate } from "@/components/certificates/Experie
 import { SalaryCertificateTemplate } from "@/components/certificates/SalaryCertificateTemplate";
 import { useToast } from "@/hooks/use-toast";
 import placeholderImg from '/placeholder.svg';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function StaffProfile() {
   // Late dialog state
@@ -60,6 +62,7 @@ export default function StaffProfile() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -67,10 +70,10 @@ export default function StaffProfile() {
     try {
       const dataUrl = await mockApi.uploadStaffPhoto(staff.id, file);
       setStaff({ ...staff, photoUrl: dataUrl });
-      toast({ title: "Photo updated", description: "Staff photo saved successfully" });
+      toast({ title: t('staffProfilePage.photoUpdated'), description: t('staffProfilePage.photoSavedSuccess') });
     } catch (err) {
       console.error(err);
-      toast({ title: "Upload failed", description: "Could not save photo", variant: "destructive" });
+      toast({ title: t('staffProfilePage.uploadFailed'), description: t('staffProfilePage.couldNotSavePhoto'), variant: "destructive" });
     }
   };
 
@@ -124,8 +127,8 @@ export default function StaffProfile() {
     } catch (error) {
       console.error("Failed to fetch staff:", error);
       toast({
-        title: "Error",
-        description: "Failed to load staff profile",
+        title: t('staffProfilePage.errorTitle'),
+        description: t('staffProfilePage.failedToLoad'),
         variant: "destructive"
       });
     } finally {
@@ -140,13 +143,13 @@ export default function StaffProfile() {
       await mockApi.updateStaff(staff.id, { status: newStatus });
       setStaff({ ...staff, status: newStatus });
       toast({
-        title: "Success",
-        description: `Staff ${newStatus === 'active' ? 'reactivated' : 'deactivated'} successfully`,
+        title: t('staffProfilePage.successTitle'),
+        description: newStatus === 'active' ? t('staffProfilePage.reactivatedSuccess') : t('staffProfilePage.deactivatedSuccess'),
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update staff status",
+        title: t('staffProfilePage.errorTitle'),
+        description: t('staffProfilePage.failedToUpdate'),
         variant: "destructive"
       });
     } finally {
@@ -159,7 +162,7 @@ export default function StaffProfile() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading staff profile...</p>
+          <p className="text-muted-foreground">{t('staffProfilePage.loadingProfile')}</p>
         </div>
       </div>
     );
@@ -168,10 +171,10 @@ export default function StaffProfile() {
   if (!staff) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <div className="text-red-500 mb-4">Staff member not found</div>
+        <div className="text-red-500 mb-4">{t('staffProfilePage.staffNotFound')}</div>
         <Button onClick={() => navigate("/staff")} variant="outline">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Staff
+          {t('staffProfilePage.backToStaff')}
         </Button>
       </div>
     );
@@ -188,11 +191,11 @@ export default function StaffProfile() {
             size="sm"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+            {t('staffProfilePage.back')}
           </Button>
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold">Staff Profile</h1>
-            <p className="text-muted-foreground">Complete staff information and records</p>
+            <h1 className="text-2xl lg:text-3xl font-bold">{t('staffProfilePage.title')}</h1>
+            <p className="text-muted-foreground">{t('staffProfilePage.completeInfo')}</p>
           </div>
         </div>
         
@@ -203,7 +206,7 @@ export default function StaffProfile() {
             size="sm"
           >
             <Edit className="h-4 w-4 mr-2" />
-            Edit Profile
+            {t('staffProfilePage.editProfile')}
           </Button>
           
           {staff.status === 'active' ? (
@@ -213,7 +216,7 @@ export default function StaffProfile() {
               disabled={actionLoading}
               onClick={() => handleStatusChange('inactive')}
             >
-              Deactivate
+              {t('staffProfilePage.deactivate')}
             </Button>
           ) : (
             <Button
@@ -223,7 +226,7 @@ export default function StaffProfile() {
               onClick={() => handleStatusChange('active')}
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              Reactivate
+              {t('staffProfilePage.reactivate')}
             </Button>
           )}
         </div>
@@ -242,7 +245,7 @@ export default function StaffProfile() {
                 )}
               </div>
               <label htmlFor="staff-photo-upload" className="mt-2 px-5 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 cursor-pointer font-semibold text-base block border-2 border-blue-800">
-                Upload Recent Photo
+                {t('staffProfilePage.uploadPhoto')}
                 <input
                   id="staff-photo-upload"
                   type="file"
@@ -252,7 +255,7 @@ export default function StaffProfile() {
                 />
               </label>
               <Badge variant={staff.status === 'active' ? 'default' : 'secondary'} className="mt-2 mb-2">
-                {staff.status}
+                {staff.status === 'active' ? t('common.active') : t('common.inactive')}
               </Badge>
             </div>
             
@@ -261,7 +264,7 @@ export default function StaffProfile() {
                 <div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <User className="h-4 w-4" />
-                    Personal Details
+                    {t('staffProfilePage.personalDetails')}
                   </div>
                   <div className="space-y-2">
                     <div>
@@ -269,14 +272,14 @@ export default function StaffProfile() {
                       <div className="text-sm text-muted-foreground">ID: {staff.id}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium">Phone</div>
+                      <div className="text-sm font-medium">{t('staffProfilePage.phone')}</div>
                       <div className="text-sm flex items-center gap-1">
                         <Phone className="h-3 w-3" />
                         {staff.phone}
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium">Email</div>
+                      <div className="text-sm font-medium">{t('staffProfilePage.email')}</div>
                       <div className="text-sm flex items-center gap-1">
                         <Mail className="h-3 w-3" />
                         {staff.email}
@@ -290,20 +293,20 @@ export default function StaffProfile() {
                 <div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Briefcase className="h-4 w-4" />
-                    Professional Details
+                    {t('staffProfilePage.professionalDetails')}
                   </div>
                   <div className="space-y-2">
                     <div>
-                      <div className="text-sm font-medium">Designation</div>
+                      <div className="text-sm font-medium">{t('staffProfilePage.designation')}</div>
                       <div className="text-sm">{staff.designation}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium">Department</div>
+                      <div className="text-sm font-medium">{t('staffProfilePage.department')}</div>
                       <div className="text-sm">{staff.department}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium">Experience</div>
-                      <div className="text-sm">{staff.experience} years</div>
+                      <div className="text-sm font-medium">{t('staffProfilePage.experience')}</div>
+                      <div className="text-sm">{staff.experience} {t('staffProfilePage.years')}</div>
                     </div>
                   </div>
                 </div>
@@ -313,15 +316,15 @@ export default function StaffProfile() {
                 <div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <MapPin className="h-4 w-4" />
-                    Contact Information
+                    {t('staffProfilePage.contactInfo')}
                   </div>
                   <div className="space-y-2">
                     <div>
-                      <div className="text-sm font-medium">Address</div>
+                      <div className="text-sm font-medium">{t('staffProfilePage.address')}</div>
                       <div className="text-sm">{staff.address}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium">Emergency Contact</div>
+                      <div className="text-sm font-medium">{t('staffProfilePage.emergencyContact')}</div>
                       <div className="text-sm">{staff.phone}</div>
                     </div>
                   </div>
@@ -335,12 +338,13 @@ export default function StaffProfile() {
       {/* Tabs for detailed information */}
       <Tabs defaultValue="classes" className="space-y-4">
         <div className="tabs-list-container overflow-x-auto">
-          <TabsList className="tabs-list grid w-full grid-cols-2 lg:grid-cols-6 min-w-[600px] md:min-w-[720px]">
-            <TabsTrigger value="classes" className="tabs-trigger">Classes</TabsTrigger>
-            <TabsTrigger value="attendance" className="tabs-trigger">Attendance</TabsTrigger>
-            <TabsTrigger value="documents" className="tabs-trigger">Documents</TabsTrigger>
-            <TabsTrigger value="certificates" className="tabs-trigger">Certificates</TabsTrigger>
-            <TabsTrigger value="performance" className="tabs-trigger">Performance</TabsTrigger>
+          <TabsList className="tabs-list grid w-full grid-cols-3 lg:grid-cols-6 min-w-[600px] md:min-w-[720px]">
+            <TabsTrigger value="classes" className="tabs-trigger">{t('staffProfilePage.classes')}</TabsTrigger>
+            <TabsTrigger value="attendance" className="tabs-trigger">{t('staffProfilePage.attendance')}</TabsTrigger>
+            <TabsTrigger value="payroll" className="tabs-trigger">{t('staffProfilePage.payroll')}</TabsTrigger>
+            <TabsTrigger value="documents" className="tabs-trigger">{t('staffProfilePage.documents')}</TabsTrigger>
+            <TabsTrigger value="certificates" className="tabs-trigger">{t('staffProfilePage.certificates')}</TabsTrigger>
+            <TabsTrigger value="performance" className="tabs-trigger">{t('staffProfilePage.performance')}</TabsTrigger>
           </TabsList>
         </div>
 
@@ -349,7 +353,7 @@ export default function StaffProfile() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <GraduationCap className="h-5 w-5" />
-                Assigned Classes
+                {t('staffProfilePage.assignedClasses')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -357,10 +361,10 @@ export default function StaffProfile() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Class</TableHead>
-                      <TableHead>Subject</TableHead>
-                      <TableHead>Students</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>{t('staffProfilePage.class')}</TableHead>
+                      <TableHead>{t('staffProfilePage.subject')}</TableHead>
+                      <TableHead>{t('staffProfilePage.students')}</TableHead>
+                      <TableHead>{t('common.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -615,6 +619,10 @@ export default function StaffProfile() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="payroll">
+          <PayrollManager staffId={staff?.id} />
         </TabsContent>
 
         <TabsContent value="performance">

@@ -446,6 +446,126 @@ interface Communication {
   status: 'sent' | 'delivered' | 'failed';
 }
 
+// Role management interfaces
+interface SchoolRole {
+  id: string;
+  schoolId: string;
+  roleName: string;
+  permissions: {
+    [key: string]: {
+      read: boolean;
+      write: boolean;
+      delete: boolean;
+    };
+  };
+}
+
+interface UserRole {
+  id: string;
+  userId: string;
+  schoolId: string;
+  roleId: string;
+}
+
+// Payroll interfaces
+interface PayrollEntry {
+  id: string;
+  staffId: string;
+  month: string;
+  year: number;
+  basicSalary: number;
+  allowances: {
+    hra: number;
+    da: number;
+    ta: number;
+    other: number;
+  };
+  deductions: {
+    pf: number;
+    esi: number;
+    tax: number;
+    other: number;
+  };
+  grossSalary: number;
+  netSalary: number;
+  status: 'pending' | 'processed' | 'paid';
+  processedDate?: string;
+  paidDate?: string;
+}
+
+// Import data interfaces
+interface ImportResult {
+  success: boolean;
+  imported: number;
+  failed: number;
+  errors: string[];
+}
+
+// Mock role and payroll data
+const mockSchoolRoles: SchoolRole[] = [
+  {
+    id: "ROLE001",
+    schoolId: "SCH001",
+    roleName: "Principal",
+    permissions: {
+      students: { read: true, write: true, delete: true },
+      staff: { read: true, write: true, delete: true },
+      fees: { read: true, write: true, delete: true },
+      attendance: { read: true, write: true, delete: true },
+      reports: { read: true, write: true, delete: false },
+      settings: { read: true, write: true, delete: false }
+    }
+  },
+  {
+    id: "ROLE002",
+    schoolId: "SCH001",
+    roleName: "Academic Head",
+    permissions: {
+      students: { read: true, write: true, delete: false },
+      staff: { read: true, write: false, delete: false },
+      fees: { read: true, write: false, delete: false },
+      attendance: { read: true, write: true, delete: false },
+      reports: { read: true, write: true, delete: false },
+      settings: { read: false, write: false, delete: false }
+    }
+  }
+];
+
+const mockUserRoles: UserRole[] = [
+  {
+    id: "UR001",
+    userId: "USR002",
+    schoolId: "SCH001", 
+    roleId: "ROLE001"
+  }
+];
+
+const mockPayrollEntries: PayrollEntry[] = [
+  {
+    id: "PAY001",
+    staffId: "STF001",
+    month: "January",
+    year: 2024,
+    basicSalary: 50000,
+    allowances: {
+      hra: 15000,
+      da: 5000,
+      ta: 2000,
+      other: 1000
+    },
+    deductions: {
+      pf: 6000,
+      esi: 1500,
+      tax: 8000,
+      other: 500
+    },
+    grossSalary: 73000,
+    netSalary: 57000,
+    status: 'paid',
+    processedDate: '2024-01-25',
+    paidDate: '2024-01-31'
+  }
+];
 
 // Mock data
 const mockSchools: SchoolInfo[] = [
@@ -1442,6 +1562,106 @@ export const mockApi = {
     return true;
   },
 
+  // Role Management APIs
+  getSchoolRoles: async (schoolId: string): Promise<SchoolRole[]> => {
+    await delay(300);
+    return mockSchoolRoles.filter(role => role.schoolId === schoolId);
+  },
+
+  addSchoolRole: async (role: Omit<SchoolRole, 'id'>): Promise<SchoolRole> => {
+    await delay(300);
+    const newRole: SchoolRole = {
+      ...role,
+      id: `ROLE${String(mockSchoolRoles.length + 1).padStart(3, '0')}`
+    };
+    mockSchoolRoles.push(newRole);
+    return newRole;
+  },
+
+  updateSchoolRole: async (id: string, updates: Partial<SchoolRole>): Promise<SchoolRole | null> => {
+    await delay(300);
+    const idx = mockSchoolRoles.findIndex(r => r.id === id);
+    if (idx === -1) return null;
+    mockSchoolRoles[idx] = { ...mockSchoolRoles[idx], ...updates };
+    return mockSchoolRoles[idx];
+  },
+
+  deleteSchoolRole: async (id: string): Promise<boolean> => {
+    await delay(300);
+    const idx = mockSchoolRoles.findIndex(r => r.id === id);
+    if (idx === -1) return false;
+    mockSchoolRoles.splice(idx, 1);
+    return true;
+  },
+
+  getUserRoles: async (schoolId: string): Promise<UserRole[]> => {
+    await delay(300);
+    return mockUserRoles.filter(ur => ur.schoolId === schoolId);
+  },
+
+  assignUserRole: async (userRole: Omit<UserRole, 'id'>): Promise<UserRole> => {
+    await delay(300);
+    const newUserRole: UserRole = {
+      ...userRole,
+      id: `UR${String(mockUserRoles.length + 1).padStart(3, '0')}`
+    };
+    mockUserRoles.push(newUserRole);
+    return newUserRole;
+  },
+
+  // Payroll APIs
+  getPayrollEntries: async (staffId?: string): Promise<PayrollEntry[]> => {
+    await delay(300);
+    return staffId 
+      ? mockPayrollEntries.filter(entry => entry.staffId === staffId)
+      : mockPayrollEntries;
+  },
+
+  addPayrollEntry: async (entry: Omit<PayrollEntry, 'id'>): Promise<PayrollEntry> => {
+    await delay(300);
+    const newEntry: PayrollEntry = {
+      ...entry,
+      id: `PAY${String(mockPayrollEntries.length + 1).padStart(3, '0')}`
+    };
+    mockPayrollEntries.push(newEntry);
+    return newEntry;
+  },
+
+  updatePayrollEntry: async (id: string, updates: Partial<PayrollEntry>): Promise<PayrollEntry | null> => {
+    await delay(300);
+    const idx = mockPayrollEntries.findIndex(e => e.id === id);
+    if (idx === -1) return null;
+    mockPayrollEntries[idx] = { ...mockPayrollEntries[idx], ...updates };
+    return mockPayrollEntries[idx];
+  },
+
+  // Data Import APIs
+  importStudents: async (data: any[]): Promise<ImportResult> => {
+    await delay(1000); // Simulate processing time
+    const imported = Math.floor(data.length * 0.9); // 90% success rate
+    const failed = data.length - imported;
+    
+    return {
+      success: true,
+      imported,
+      failed,
+      errors: failed > 0 ? [`${failed} records failed validation`] : []
+    };
+  },
+
+  importStaff: async (data: any[]): Promise<ImportResult> => {
+    await delay(1000);
+    const imported = Math.floor(data.length * 0.85); // 85% success rate
+    const failed = data.length - imported;
+    
+    return {
+      success: true,
+      imported,
+      failed,
+      errors: failed > 0 ? [`${failed} records failed validation`] : []
+    };
+  }
+
 };
 
 // Export types for use in components
@@ -1463,5 +1683,9 @@ export type {
   Admission,
   Communication,
   Syllabus,
-  User
+  User,
+  SchoolRole,
+  UserRole,
+  PayrollEntry,
+  ImportResult
 };

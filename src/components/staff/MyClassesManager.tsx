@@ -57,6 +57,10 @@ export function MyClassesManager() {
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Subject:</span>
+                  <span className="font-medium">{classInfo.subject || 'General'}</span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Students:</span>
                   <span className="font-medium">{classInfo.totalStudents}</span>
                 </div>

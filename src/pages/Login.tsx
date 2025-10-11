@@ -8,9 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Sun, Moon, Monitor } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Footer } from '@/components/layout/Footer';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -19,6 +22,8 @@ export default function Login() {
   const [error, setError] = useState('');
   const { login, loading, isAuthenticated } = useAuth();
   const { schoolInfo } = useSchool();
+  const { t } = useLanguage();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   // Redirect if already authenticated
@@ -82,7 +87,33 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted/30">
+      {/* Theme Toggle */}
+      <div className="absolute top-4 right-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" className="bg-background/80 backdrop-blur-sm">
+              {theme === 'light' && <Sun className="h-4 w-4" />}
+              {theme === 'dark' && <Moon className="h-4 w-4" />}
+              {theme === 'system' && <Monitor className="h-4 w-4" />}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setTheme('light')}>
+              <Sun className="mr-2 h-4 w-4" />
+              {t('settings.light')}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme('dark')}>
+              <Moon className="mr-2 h-4 w-4" />
+              {t('settings.dark')}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme('system')}>
+              <Monitor className="mr-2 h-4 w-4" />
+              {t('settings.system')}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-4 sm:space-y-6">
           {/* School Branding */}
@@ -94,45 +125,45 @@ export default function Login() {
                 className="w-16 h-16 object-contain mx-auto mb-4 rounded-lg shadow-sm border border-slate-200"
               />
             )}
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">
               {schoolInfo?.name || 'School Management System'}
             </h1>
-            <p className="text-sm sm:text-base text-slate-600">
-              Sign in to access your dashboard
+            <p className="text-sm sm:text-base text-muted-foreground">
+              {t('auth.signInAccess')}
             </p>
           </div>
 
-          <Card className="border-slate-200 shadow-lg">
+          <Card className="border-border shadow-lg bg-card">
             <CardHeader className="space-y-2 pb-4">
-              <CardTitle className="text-lg sm:text-xl">Sign In</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">{t('auth.signIn')}</CardTitle>
               <CardDescription className="text-sm">
-                Enter your credentials to access the system
+                {t('auth.enterCredentials')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t('auth.email')}</Label>
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your.email@school.edu"
+                    placeholder={t('auth.emailPlaceholder')}
                     required
                     className="border-slate-200 focus:border-blue-500"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{t('auth.password')}</Label>
                   <div className="relative">
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter your password"
+                      placeholder={t('auth.enterPassword')}
                       required
                       className="border-slate-200 focus:border-blue-500 pr-10"
                     />
@@ -164,7 +195,7 @@ export default function Login() {
                   disabled={loading}
                 >
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Sign In
+                  {t('auth.signIn')}
                 </Button>
               </form>
             </CardContent>
@@ -173,8 +204,8 @@ export default function Login() {
           {/* Demo Credentials */}
           <Card className="border-slate-200">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Demo Credentials (Click to use)</CardTitle>
-              <CardDescription className="text-xs">All demo accounts use password: "password"</CardDescription>
+              <CardTitle className="text-sm">{t('auth.demoCredentials')}</CardTitle>
+              <CardDescription className="text-xs">{t('auth.allDemoPassword')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2 text-xs">
@@ -202,7 +233,7 @@ export default function Login() {
               to="/super-admin-login" 
               className="text-sm text-slate-600 hover:text-slate-900 underline"
             >
-              Super Admin Access →
+              {t('auth.superAdminAccess')}
             </Link>
           </div>
         </div>

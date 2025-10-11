@@ -11,6 +11,7 @@ import { mockApi, Student } from "../../services/mockApi";
 import placeholderImg from '/placeholder.svg';
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 
 export function StudentList() {
@@ -23,6 +24,7 @@ export function StudentList() {
   
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetchStudents();
@@ -91,7 +93,7 @@ export function StudentList() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading students...</p>
+          <p className="text-muted-foreground">{t('studentList.loading')}</p>
         </div>
       </div>
     );
@@ -102,9 +104,9 @@ export function StudentList() {
   {/* Header Section - All names and details are now Indian context (e.g. Aarav Gupta, Priya Singh, ₹) */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Students</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t('studentList.title')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage student information and records
+            {t('studentList.subtitle')}
           </p>
         </div>
   {/* The Add Student button is now handled by StudentsManager for dialog functionality */}
@@ -113,14 +115,14 @@ export function StudentList() {
       {/* Filters Section */}
       <Card className="border-border">
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg">Filters & Search</CardTitle>
+          <CardTitle className="text-lg">{t('studentList.filters')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name or roll number..."
+                placeholder={t('studentList.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -129,24 +131,24 @@ export function StudentList() {
             
             <Select value={selectedClass} onValueChange={setSelectedClass}>
               <SelectTrigger>
-                <SelectValue placeholder="All Classes" />
+                <SelectValue placeholder={t('studentList.allClasses')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Classes</SelectItem>
+                <SelectItem value="all">{t('studentList.allClasses')}</SelectItem>
                 {Array.from({length: 12}, (_, i) => (
-                  <SelectItem key={i+1} value={String(i+1)}>Class {i+1}</SelectItem>
+                  <SelectItem key={i+1} value={String(i+1)}>{t('studentList.class')} {i+1}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             <Select value={selectedSection} onValueChange={setSelectedSection}>
               <SelectTrigger>
-                <SelectValue placeholder="All Sections" />
+                <SelectValue placeholder={t('studentList.allSections')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Sections</SelectItem>
+                <SelectItem value="all">{t('studentList.allSections')}</SelectItem>
                 {['A', 'B', 'C', 'D'].map(section => (
-                  <SelectItem key={section} value={section}>Section {section}</SelectItem>
+                  <SelectItem key={section} value={section}>{t('studentList.section')} {section}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -161,7 +163,7 @@ export function StudentList() {
               className="w-full"
             >
               <Filter className="h-4 w-4 mr-2" />
-              Clear Filters
+              {t('studentList.clearFilters')}
             </Button>
           </div>
         </CardContent>
@@ -170,7 +172,7 @@ export function StudentList() {
       {/* Results Summary */}
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>
-          Showing {filteredStudents.length} of {students.length} students
+          {t('studentList.showing')} {filteredStudents.length} {t('studentList.of')} {students.length} {t('studentList.students')}
         </span>
       </div>
 
@@ -182,13 +184,13 @@ export function StudentList() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-border">
-                    <TableHead className="font-semibold">Roll No</TableHead>
-                    <TableHead className="font-semibold">Name</TableHead>
-                    <TableHead className="font-semibold hidden sm:table-cell">Class</TableHead>
-                    <TableHead className="font-semibold hidden md:table-cell">Guardian Name</TableHead>
-                    <TableHead className="font-semibold hidden lg:table-cell">Contact</TableHead>
-                    <TableHead className="font-semibold">Status</TableHead>
-                    <TableHead className="font-semibold text-right">Actions</TableHead>
+                    <TableHead className="font-semibold">{t('studentList.rollNo')}</TableHead>
+                    <TableHead className="font-semibold">{t('studentList.name')}</TableHead>
+                    <TableHead className="font-semibold hidden sm:table-cell">{t('studentList.class')}</TableHead>
+                    <TableHead className="font-semibold hidden md:table-cell">{t('studentList.guardianName')}</TableHead>
+                    <TableHead className="font-semibold hidden lg:table-cell">{t('studentList.contact')}</TableHead>
+                    <TableHead className="font-semibold">{t('studentList.status')}</TableHead>
+                    <TableHead className="font-semibold text-right">{t('studentList.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -231,7 +233,7 @@ export function StudentList() {
                           variant={student.status === 'active' ? 'default' : 'secondary'}
                           className="text-xs"
                         >
-                          {student.status}
+                          {student.status === 'active' ? t('common.active') : t('common.inactive')}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -241,7 +243,7 @@ export function StudentList() {
                           onClick={() => navigate(`/students/${student.id}`)}
                           className="flex items-center gap-2"
                         >
-                          <Eye className="h-4 w-4 mr-1" /> Manage
+                          <Eye className="h-4 w-4 mr-1" /> {t('common.manage')}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -253,15 +255,15 @@ export function StudentList() {
             <div className="text-center py-12">
               <div className="text-muted-foreground mb-4">
                 <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium">No students found</p>
-                <p className="text-sm">Try adjusting your search criteria</p>
+                <p className="text-lg font-medium">{t('studentList.noStudentsFound')}</p>
+                <p className="text-sm">{t('studentList.adjustCriteria')}</p>
               </div>
               <Button 
                 onClick={() => navigate("/students/new")}
                 variant="outline"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add First Student
+                {t('studentList.addFirstStudent')}
               </Button>
             </div>
           )}

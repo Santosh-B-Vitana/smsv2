@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { mockApi, Student } from "../../services/mockApi";
 import placeholderImg from '/placeholder.svg';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function StudentProfileDrawer({ studentId, open, onClose }: {
   studentId: string | null;
@@ -17,6 +18,7 @@ export function StudentProfileDrawer({ studentId, open, onClose }: {
   const [actionLoading, setActionLoading] = useState(false);
   const [showReactivateDialog, setShowReactivateDialog] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (open && studentId) {
@@ -31,11 +33,11 @@ export function StudentProfileDrawer({ studentId, open, onClose }: {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-lg w-full p-0">
         <DialogHeader className="p-6 border-b">
-          <DialogTitle>Student Profile</DialogTitle>
+          <DialogTitle>{t('studentProfile.title')}</DialogTitle>
         </DialogHeader>
         <div className="p-6 flex flex-col gap-6">
           {loading || !student ? (
-            <div className="text-center text-muted-foreground">Loading...</div>
+            <div className="text-center text-muted-foreground">{t('common.loading')}</div>
           ) : (
             <>
               <div className="flex items-center gap-4">
@@ -50,7 +52,7 @@ export function StudentProfileDrawer({ studentId, open, onClose }: {
                   <label 
                     htmlFor={`photo-upload-${student.id}`} 
                     className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1 cursor-pointer hover:bg-primary/90 transition-colors"
-                    title="Upload Photo"
+                    title={t('common.uploadPhoto')}
                   >
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -76,44 +78,44 @@ export function StudentProfileDrawer({ studentId, open, onClose }: {
                 </div>
                 <div>
                   <div className="text-xl font-bold">{student.name}</div>
-                  <div className="text-sm text-muted-foreground">Roll No: {student.rollNo}</div>
+                  <div className="text-sm text-muted-foreground">{t('studentProfile.rollNo')}: {student.rollNo}</div>
                   <Badge variant={student.status === 'active' ? 'default' : 'secondary'} className="mt-2">
-                    {student.status}
+                    {student.status === 'active' ? t('common.active') : t('common.inactive')}
                   </Badge>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <div className="font-semibold">Class & Section</div>
+                  <div className="font-semibold">{t('studentProfile.classSection')}</div>
                   <div>{student.class}-{student.section}</div>
                 </div>
                 <div>
-                  <div className="font-semibold">DOB</div>
+                  <div className="font-semibold">{t('studentProfile.dob')}</div>
                   <div>{student.dob}</div>
                 </div>
                 <div>
-                  <div className="font-semibold">Guardian</div>
+                  <div className="font-semibold">{t('studentProfile.guardian')}</div>
                   <div>{student.guardianName}</div>
                 </div>
                 <div>
-                  <div className="font-semibold">Guardian Phone</div>
+                  <div className="font-semibold">{t('studentProfile.guardianPhone')}</div>
                   <div>{student.guardianPhone}</div>
                 </div>
                 <div>
-                  <div className="font-semibold">Address</div>
+                  <div className="font-semibold">{t('studentProfile.address')}</div>
                   <div>{student.address}</div>
                 </div>
                 <div>
-                  <div className="font-semibold">Category</div>
+                  <div className="font-semibold">{t('studentProfile.category')}</div>
                   <div>{student.category}</div>
                 </div>
                 <div>
-                  <div className="font-semibold">Admission Date</div>
+                  <div className="font-semibold">{t('studentProfile.admissionDate')}</div>
                   <div>{student.admissionDate}</div>
                 </div>
                 {student.previousSchool && (
                   <div>
-                    <div className="font-semibold">Previous School</div>
+                    <div className="font-semibold">{t('studentProfile.previousSchool')}</div>
                     <div>{student.previousSchool}</div>
                   </div>
                 )}
@@ -125,7 +127,7 @@ export function StudentProfileDrawer({ studentId, open, onClose }: {
                   onClick={() => {
                     if (student) navigate(`/students/${student.id}/edit`);
                   }}
-                >Edit</Button>
+                >{t('common.edit')}</Button>
                 {student.status === 'active' ? (
                   <Button
                     variant="destructive"
@@ -137,23 +139,23 @@ export function StudentProfileDrawer({ studentId, open, onClose }: {
                       setStudent({ ...student, status: 'inactive' });
                       setActionLoading(false);
                     }}
-                  >Deactivate</Button>
+                  >{t('common.deactivate')}</Button>
                 ) : (
                   <Button
                     variant="secondary"
                     disabled={actionLoading}
                     onClick={() => setShowReactivateDialog(true)}
-                  >Reactivate</Button>
+                  >{t('common.reactivate')}</Button>
                 )}
       {/* Reactivate Warning Dialog */}
       <RadixDialog open={showReactivateDialog} onOpenChange={setShowReactivateDialog}>
         <DialogContent className="max-w-sm w-full">
           <DialogHeader>
-            <DialogTitle>Warning</DialogTitle>
+            <DialogTitle>{t('common.warning')}</DialogTitle>
           </DialogHeader>
-          <div className="mb-4 text-yellow-700 font-semibold">Reactivating will admit the student again. Are you sure you want to proceed?</div>
+          <div className="mb-4 text-yellow-700 font-semibold">{t('studentProfile.reactivateWarning')}</div>
           <div className="flex gap-4 justify-end">
-            <Button variant="outline" onClick={() => setShowReactivateDialog(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowReactivateDialog(false)}>{t('common.cancel')}</Button>
             <Button
               variant="secondary"
               onClick={async () => {
@@ -164,7 +166,7 @@ export function StudentProfileDrawer({ studentId, open, onClose }: {
                 setActionLoading(false);
                 setShowReactivateDialog(false);
               }}
-            >Reactivate</Button>
+            >{t('common.reactivate')}</Button>
           </div>
         </DialogContent>
       </RadixDialog>
@@ -172,12 +174,12 @@ export function StudentProfileDrawer({ studentId, open, onClose }: {
                   variant="secondary"
                   disabled={actionLoading}
                   onClick={() => alert('TC generated (mock)!')}
-                >Generate TC</Button>
+                >{t('common.generateTC')}</Button>
                 <Button
                   variant="secondary"
                   disabled={actionLoading}
                   onClick={() => alert('Report card generated (mock)!')}
-                >Report Card</Button>
+                >{t('common.reportCard')}</Button>
               </div>
             </>
           )}

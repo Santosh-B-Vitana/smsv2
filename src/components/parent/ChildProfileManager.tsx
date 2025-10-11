@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ParentChildSelector } from "./ParentChildSelector";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const childData = {
   id: "STU001",
@@ -48,6 +49,7 @@ export function ChildProfileManager() {
     address: "123 Main Street, Springfield"
   });
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const childrenData = {
     child1: { ...childData, name: "Alice Johnson", class: "10-A", rollNo: "001" },
@@ -60,14 +62,14 @@ export function ChildProfileManager() {
     // In real implementation, this would update the API
     setShowEditDialog(false);
     toast({
-      title: "Success",
-      description: "Contact information updated successfully"
+      title: t('childProfile.successTitle'),
+      description: t('childProfile.successMessage')
     });
   };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">My Child</h1>
+      <h1 className="text-3xl font-bold">{t('childProfile.title')}</h1>
 
       {/* Child Selector */}
       <ParentChildSelector 
@@ -85,13 +87,13 @@ export function ChildProfileManager() {
             <div className="space-y-2">
               <h2 className="text-2xl font-bold">{currentChild.name}</h2>
               <div className="flex gap-4 text-sm text-muted-foreground">
-                <span>Class: {currentChild.class}</span>
-                <span>Roll No: {currentChild.rollNo}</span>
-                <span>Student ID: {currentChild.id}</span>
+                <span>{t('studentList.class')}: {currentChild.class}</span>
+                <span>{t('studentProfile.rollNo')}: {currentChild.rollNo}</span>
+                <span>{t('childProfile.studentId')}: {currentChild.id}</span>
               </div>
               <div className="flex gap-2">
-                <Badge variant="default">Overall Grade: {currentChild.currentGrade}</Badge>
-                <Badge variant="secondary">Attendance: {currentChild.attendance}%</Badge>
+                <Badge variant="default">{t('childProfile.overallGrade')}: {currentChild.currentGrade}</Badge>
+                <Badge variant="secondary">{t('childProfile.attendance')}: {currentChild.attendance}%</Badge>
               </div>
             </div>
           </div>
@@ -100,10 +102,10 @@ export function ChildProfileManager() {
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="subjects">Subjects</TabsTrigger>
-          <TabsTrigger value="grades">Recent Grades</TabsTrigger>
-          <TabsTrigger value="profile">Profile Details</TabsTrigger>
+          <TabsTrigger value="overview">{t('childProfile.overview')}</TabsTrigger>
+          <TabsTrigger value="subjects">{t('childProfile.subjects')}</TabsTrigger>
+          <TabsTrigger value="grades">{t('childProfile.recentGrades')}</TabsTrigger>
+          <TabsTrigger value="profile">{t('childProfile.profileDetails')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -112,21 +114,21 @@ export function ChildProfileManager() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Award className="h-5 w-5" />
-                  Academic Performance
+                  {t('childProfile.academicPerformance')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span>Overall Grade</span>
+                    <span>{t('childProfile.overallGrade')}</span>
                     <Badge variant="default" className="text-lg">{currentChild.currentGrade}</Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>Class Rank</span>
+                    <span>{t('childProfile.classRank')}</span>
                     <span className="font-semibold">3rd out of 35</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>Attendance Rate</span>
+                    <span>{t('childProfile.attendanceRate')}</span>
                     <span className="font-semibold text-green-600">{currentChild.attendance}%</span>
                   </div>
                 </div>
@@ -137,22 +139,22 @@ export function ChildProfileManager() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  This Week
+                  {t('childProfile.thisWeek')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="p-3 rounded-lg bg-primary/5 border-l-4 border-primary">
-                    <p className="font-medium text-sm">Math Test</p>
-                    <p className="text-xs text-muted-foreground">Tomorrow, 10:00 AM</p>
+                    <p className="font-medium text-sm">{t('childProfile.mathTest')}</p>
+                    <p className="text-xs text-muted-foreground">{t('childProfile.tomorrow')}, 10:00 AM</p>
                   </div>
                   <div className="p-3 rounded-lg bg-blue/5 border-l-4 border-blue-500">
-                    <p className="font-medium text-sm">Science Project Due</p>
-                    <p className="text-xs text-muted-foreground">Friday, 2:00 PM</p>
+                    <p className="font-medium text-sm">{t('childProfile.scienceProject')}</p>
+                    <p className="text-xs text-muted-foreground">{t('childProfile.friday')}, 2:00 PM</p>
                   </div>
                   <div className="p-3 rounded-lg bg-green/5 border-l-4 border-green-500">
-                    <p className="font-medium text-sm">Parent-Teacher Meeting</p>
-                    <p className="text-xs text-muted-foreground">Saturday, 3:00 PM</p>
+                    <p className="font-medium text-sm">{t('childProfile.ptMeeting')}</p>
+                    <p className="text-xs text-muted-foreground">{t('childProfile.saturday')}, 3:00 PM</p>
                   </div>
                 </div>
               </CardContent>
@@ -163,16 +165,16 @@ export function ChildProfileManager() {
         <TabsContent value="subjects">
           <Card>
             <CardHeader>
-              <CardTitle>Subject Performance</CardTitle>
+              <CardTitle>{t('childProfile.subjectPerformance')}</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Teacher</TableHead>
-                    <TableHead>Current Grade</TableHead>
-                    <TableHead>Attendance</TableHead>
+                    <TableHead>{t('childProfile.subject')}</TableHead>
+                    <TableHead>{t('childProfile.teacher')}</TableHead>
+                    <TableHead>{t('childProfile.currentGrade')}</TableHead>
+                    <TableHead>{t('childProfile.attendance')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -197,16 +199,16 @@ export function ChildProfileManager() {
         <TabsContent value="grades">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Grades</CardTitle>
+              <CardTitle>{t('childProfile.recentGrades')}</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Assessment</TableHead>
-                    <TableHead>Grade</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead>{t('childProfile.subject')}</TableHead>
+                    <TableHead>{t('childProfile.assessment')}</TableHead>
+                    <TableHead>{t('childProfile.grade')}</TableHead>
+                    <TableHead>{t('childProfile.date')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -230,21 +232,21 @@ export function ChildProfileManager() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Student Profile</CardTitle>
+                <CardTitle>{t('childProfile.studentProfile')}</CardTitle>
                 <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm">
                       <Edit className="h-4 w-4 mr-2" />
-                      Edit Contact Info
+                      {t('childProfile.editContactInfo')}
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Edit Contact Information</DialogTitle>
+                      <DialogTitle>{t('childProfile.editContactTitle')}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div>
-                        <Label htmlFor="phone">Phone Number</Label>
+                        <Label htmlFor="phone">{t('childProfile.phoneNumber')}</Label>
                         <Input
                           id="phone"
                           value={contactInfo.phone}
@@ -252,7 +254,7 @@ export function ChildProfileManager() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="email">Email Address</Label>
+                        <Label htmlFor="email">{t('childProfile.emailAddress')}</Label>
                         <Input
                           id="email"
                           type="email"
@@ -261,7 +263,7 @@ export function ChildProfileManager() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="address">Address</Label>
+                        <Label htmlFor="address">{t('childProfile.address')}</Label>
                         <Input
                           id="address"
                           value={contactInfo.address}
@@ -269,7 +271,7 @@ export function ChildProfileManager() {
                         />
                       </div>
                       <Button onClick={handleContactUpdate} className="w-full">
-                        Update Contact Information
+                        {t('childProfile.updateContact')}
                       </Button>
                     </div>
                   </DialogContent>
@@ -280,25 +282,25 @@ export function ChildProfileManager() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Full Name</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('childProfile.fullName')}</label>
                     <p className="font-medium">{currentChild.name}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Date of Birth</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('childProfile.dateOfBirth')}</label>
                     <p className="font-medium">{currentChild.dateOfBirth}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Blood Group</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('childProfile.bloodGroup')}</label>
                     <p className="font-medium">{currentChild.bloodGroup}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Admission Date</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('childProfile.admissionDate')}</label>
                     <p className="font-medium">{currentChild.admissionDate}</p>
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Contact Information</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('childProfile.contactInformation')}</label>
                     <div className="space-y-2 mt-2">
                       <div className="flex items-center gap-2">
                         <Phone className="h-4 w-4 text-muted-foreground" />

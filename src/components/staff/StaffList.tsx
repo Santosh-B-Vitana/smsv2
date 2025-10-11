@@ -9,6 +9,7 @@ import { mockApi, Staff } from "../../services/mockApi";
 import { StaffForm } from "./StaffForm";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function StaffList({ staff, refreshStaff }: { staff: Staff[]; refreshStaff: () => void }) {
   const [loading, setLoading] = useState(false);
@@ -17,6 +18,7 @@ export function StaffList({ staff, refreshStaff }: { staff: Staff[]; refreshStaf
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const filteredStaff = staff.filter(member =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,21 +86,21 @@ export function StaffList({ staff, refreshStaff }: { staff: Staff[]; refreshStaf
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Staff Management</h1>
+        <h1 className="text-3xl font-bold">{t('staffList.title')}</h1>
         <Button onClick={() => setShowForm(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Staff
+          {t('staffList.addStaff')}
         </Button>
       </div>
 
   <UICard>
         <CardHeader>
-          <CardTitle>Staff Directory</CardTitle>
+          <CardTitle>{t('staffList.directory')}</CardTitle>
           <div className="flex gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search staff..."
+                placeholder={t('staffList.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -106,7 +108,7 @@ export function StaffList({ staff, refreshStaff }: { staff: Staff[]; refreshStaf
             </div>
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
-              Filter
+              {t('staffList.filter')}
             </Button>
           </div>
         </CardHeader>
@@ -114,19 +116,19 @@ export function StaffList({ staff, refreshStaff }: { staff: Staff[]; refreshStaf
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Designation</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t('staffList.name')}</TableHead>
+                <TableHead>{t('staffList.designation')}</TableHead>
+                <TableHead>{t('staffList.department')}</TableHead>
+                <TableHead>{t('staffList.contact')}</TableHead>
+                <TableHead>{t('staffList.status')}</TableHead>
+                <TableHead>{t('staffList.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredStaff.length === 0 && !loading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    No staff found.
+                    {t('staffList.noStaffFound')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -143,7 +145,7 @@ export function StaffList({ staff, refreshStaff }: { staff: Staff[]; refreshStaf
                     <TableCell>{member.phone}</TableCell>
                     <TableCell>
                       <UIBadge variant={member.status === 'active' ? 'default' : 'secondary'}>
-                        {member.status}
+                        {member.status === 'active' ? t('common.active') : t('common.inactive')}
                       </UIBadge>
                     </TableCell>
                     <TableCell>
@@ -154,7 +156,7 @@ export function StaffList({ staff, refreshStaff }: { staff: Staff[]; refreshStaf
                             onClick={() => navigate(`/staff/${member.id}`)}
                             className="flex items-center gap-2"
                           >
-                            <Eye className="h-4 w-4 mr-1" /> Manage
+                            <Eye className="h-4 w-4 mr-1" /> {t('common.manage')}
                           </Button>
                         </div>
                     </TableCell>

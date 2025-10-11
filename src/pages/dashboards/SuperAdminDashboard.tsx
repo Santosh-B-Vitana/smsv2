@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import { PermissionsManager } from "@/components/permissions/PermissionsManager";
+import { RoleManagement } from "@/components/superadmin/RoleManagement";
+import { DataImportManager } from "@/components/superadmin/DataImportManager";
+import { PayrollManager } from "@/components/payroll/PayrollManager";
 
 import SchoolManagement from "../superadmin/SchoolManagement";
 import UserManagement from "../superadmin/UserManagement";
@@ -40,22 +43,22 @@ export default function SuperAdminDashboard() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
         {/* Mobile-First Tab Navigation */}
         <div className="w-full overflow-x-auto">
-          <TabsList className="grid w-full grid-cols-4 min-w-[320px] h-auto p-1">
-            <TabsTrigger value="overview" className="flex flex-col sm:flex-row gap-1 sm:gap-2 py-2 px-2 text-xs sm:text-sm">
+          <TabsList className="flex flex-wrap gap-1 h-auto p-1">
+            <TabsTrigger value="overview" className="flex items-center gap-2 py-2 px-3 text-xs sm:text-sm">
               <BarChart3 className="w-4 h-4" />
               <span>Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="permissions" className="flex flex-col sm:flex-row gap-1 sm:gap-2 py-2 px-2 text-xs sm:text-sm">
-              <Settings className="w-4 h-4" />
-              <span>Permissions</span>
-            </TabsTrigger>
-            <TabsTrigger value="schools" className="flex flex-col sm:flex-row gap-1 sm:gap-2 py-2 px-2 text-xs sm:text-sm">
+            <TabsTrigger value="schools" className="flex items-center gap-2 py-2 px-3 text-xs sm:text-sm">
               <School className="w-4 h-4" />
               <span>Schools</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex flex-col sm:flex-row gap-1 sm:gap-2 py-2 px-2 text-xs sm:text-sm">
+            <TabsTrigger value="users" className="flex items-center gap-2 py-2 px-3 text-xs sm:text-sm">
               <Users className="w-4 h-4" />
               <span>Users</span>
+            </TabsTrigger>
+            <TabsTrigger value="permissions" className="flex items-center gap-2 py-2 px-3 text-xs sm:text-sm">
+              <Settings className="w-4 h-4" />
+              <span>Permissions</span>
             </TabsTrigger>
           </TabsList>
         </div>
@@ -155,6 +158,7 @@ export default function SuperAdminDashboard() {
         <TabsContent value="users" className="space-y-4 sm:space-y-6">
           <UserManagement />
         </TabsContent>
+
       </Tabs>
     </div>
   );

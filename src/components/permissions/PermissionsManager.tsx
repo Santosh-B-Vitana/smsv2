@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Check, X, Save, AlertCircle, Eye, Edit, Trash2 } from "lucide-react";
+import { Check, X, Save, AlertCircle, Eye, Edit, Trash2, ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermissions, ModuleName, PermissionLevel } from "../../contexts/PermissionsContext";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "../../contexts/AuthContext";
+import { RoleManagement } from "../superadmin/RoleManagement";
 
 const MODULE_LABELS: Record<ModuleName, string> = {
   students: 'Student Management',
@@ -46,6 +47,7 @@ export function PermissionsManager() {
   const { user } = useAuth();
   const [saving, setSaving] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [editingRoles, setEditingRoles] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Filter permissions based on current user's school (for non-super admins)
@@ -147,7 +149,28 @@ export function PermissionsManager() {
       </Card>
     );
   }
-
+  
+  if (editingRoles) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setEditingRoles(null)}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Permissions
+          </Button>
+          <h2 className="text-lg font-semibold">
+            Role Management - {relevantSchools.find(s => s.schoolId === editingRoles)?.schoolName}
+          </h2>
+        </div>
+        <RoleManagement schoolId={editingRoles} />
+      </div>
+    );
+  }
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header - Mobile Responsive */}
@@ -177,9 +200,20 @@ export function PermissionsManager() {
             <CardHeader className="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <CardTitle className="text-lg">{school.schoolName}</CardTitle>
-                <Badge variant="secondary" className="text-xs w-fit">
-                  {Object.values(school.modules).filter(m => m.enabled).length} / {Object.keys(school.modules).length} modules enabled
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs w-fit">
+                    {Object.values(school.modules).filter(m => m.enabled).length} / {Object.keys(school.modules).length} modules enabled
+                  </Badge>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-xs"
+                    onClick={() => setEditingRoles(school.schoolId)}
+                  >
+                    <Edit className="w-3 h-3 mr-1" />
+                    Edit Roles
+                  </Button>
+                </div>
               </div>
               <CardDescription>
                 Configure module access and permission levels for this school

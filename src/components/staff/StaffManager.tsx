@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { Plus, Search, Users } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { StaffList } from "./StaffList";
 import { mockApi, Staff } from "../../services/mockApi";
 
 export function StaffManager() {
+  const { t } = useLanguage();
   const [staff, setStaff] = useState<Staff[]>([]);
   const [filteredStaff, setFilteredStaff] = useState<Staff[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -105,8 +106,8 @@ export function StaffManager() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Staff Management</h1>
-          <p className="text-muted-foreground">Manage school staff and faculty</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('staffMgmt.title')}</h1>
+          <p className="text-muted-foreground">{t('staffMgmt.subtitle')}</p>
         </div>
         {/* Removed top Add Staff button as requested */}
       </div>
@@ -120,7 +121,7 @@ export function StaffManager() {
                 <Users className="w-4 h-4 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Staff</p>
+                <p className="text-sm text-muted-foreground">{t('staff.totalStaff')}</p>
                 <p className="text-xl font-semibold">{stats.total}</p>
               </div>
             </div>
@@ -133,7 +134,7 @@ export function StaffManager() {
                 <Users className="w-4 h-4 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Active</p>
+                <p className="text-sm text-muted-foreground">{t('common.active')}</p>
                 <p className="text-xl font-semibold">{stats.active}</p>
               </div>
             </div>
@@ -146,7 +147,7 @@ export function StaffManager() {
                 <Users className="w-4 h-4 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Departments</p>
+                <p className="text-sm text-muted-foreground">{t('staff.departments')}</p>
                 <p className="text-xl font-semibold">{stats.departments}</p>
               </div>
             </div>
@@ -159,7 +160,7 @@ export function StaffManager() {
                 <Users className="w-4 h-4 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Teachers</p>
+                <p className="text-sm text-muted-foreground">{t('staff.teachers')}</p>
                 <p className="text-xl font-semibold">{stats.teachers}</p>
               </div>
             </div>
@@ -175,7 +176,7 @@ export function StaffManager() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
-                  placeholder="Search by name, email, or ID..."
+                  placeholder={t('staffMgmt.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -184,10 +185,10 @@ export function StaffManager() {
             </div>
             <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
               <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Filter by department" />
+                <SelectValue placeholder={t('staffMgmt.filterDepartment')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
+                <SelectItem value="all">{t('staffMgmt.allDepartments')}</SelectItem>
                 {getDepartments().map(department => (
                   <SelectItem key={department} value={department}>{department}</SelectItem>
                 ))}

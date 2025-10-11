@@ -33,6 +33,7 @@ import { CertificateTemplate } from "@/components/documents/CertificateTemplate"
 import { ReportCardTemplate } from "@/components/examinations/ReportCardTemplate";
 import { useToast } from "@/hooks/use-toast";
 import placeholderImg from '/placeholder.svg';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function StudentProfile() {
   // Photo upload state
@@ -46,10 +47,10 @@ export default function StudentProfile() {
       if (student) {
         setStudent({ ...student, photoUrl: dataUrl });
       }
-      toast({ title: "Photo updated", description: "Student photo saved successfully" });
+      toast({ title: t('studentProfilePage.photoUpdated'), description: t('studentProfilePage.photoSavedSuccess') });
     } catch (err) {
       console.error(err);
-      toast({ title: "Upload failed", description: "Could not save photo", variant: "destructive" });
+      toast({ title: t('studentProfilePage.uploadFailed'), description: t('studentProfilePage.couldNotSavePhoto'), variant: "destructive" });
     }
   };
   // Awards & Achievements dialog state
@@ -127,6 +128,7 @@ export default function StudentProfile() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Mock data for additional tabs
   const [mockAttendance, setMockAttendance] = useState([
@@ -163,8 +165,8 @@ export default function StudentProfile() {
     } catch (error) {
       console.error("Failed to fetch student:", error);
       toast({
-        title: "Error",
-        description: "Failed to load student profile",
+        title: t('studentProfilePage.errorTitle'),
+        description: t('studentProfilePage.failedToLoad'),
         variant: "destructive"
       });
     } finally {
@@ -179,13 +181,13 @@ export default function StudentProfile() {
       await mockApi.updateStudent(student.id, { status: newStatus });
       setStudent({ ...student, status: newStatus });
       toast({
-        title: "Success",
-        description: `Student ${newStatus === 'active' ? 'reactivated' : 'deactivated'} successfully`,
+        title: t('studentProfilePage.successTitle'),
+        description: newStatus === 'active' ? t('studentProfilePage.reactivatedSuccess') : t('studentProfilePage.deactivatedSuccess'),
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update student status",
+        title: t('studentProfilePage.errorTitle'),
+        description: t('studentProfilePage.failedToUpdate'),
         variant: "destructive"
       });
     } finally {
@@ -230,7 +232,7 @@ export default function StudentProfile() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading student profile...</p>
+          <p className="text-muted-foreground">{t('studentProfilePage.loadingProfile')}</p>
         </div>
       </div>
     );
@@ -239,10 +241,10 @@ export default function StudentProfile() {
   if (!student) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <div className="text-red-500 mb-4">Student not found</div>
+        <div className="text-red-500 mb-4">{t('studentProfilePage.studentNotFound')}</div>
         <Button onClick={() => navigate("/students")} variant="outline">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Students
+          {t('studentProfilePage.backToStudents')}
         </Button>
       </div>
     );
@@ -259,11 +261,11 @@ export default function StudentProfile() {
             size="sm"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+            {t('studentProfilePage.back')}
           </Button>
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold">Student Profile</h1>
-            <p className="text-muted-foreground">Complete student information and records</p>
+            <h1 className="text-2xl lg:text-3xl font-bold">{t('studentProfilePage.title')}</h1>
+            <p className="text-muted-foreground">{t('studentProfilePage.completeInfo')}</p>
           </div>
         </div>
         
@@ -274,7 +276,7 @@ export default function StudentProfile() {
             size="sm"
           >
             <Edit className="h-4 w-4 mr-2" />
-            Edit Profile
+            {t('studentProfilePage.editProfile')}
           </Button>
           
           {student.status === 'active' ? (
@@ -284,7 +286,7 @@ export default function StudentProfile() {
               disabled={actionLoading}
               onClick={() => handleStatusChange('inactive')}
             >
-              Deactivate
+              {t('studentProfilePage.deactivate')}
             </Button>
           ) : (
             <Button
@@ -294,7 +296,7 @@ export default function StudentProfile() {
               onClick={() => handleStatusChange('active')}
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              Reactivate
+              {t('studentProfilePage.reactivate')}
             </Button>
           )}
         </div>
@@ -316,7 +318,7 @@ export default function StudentProfile() {
               </div>
               {/* Always visible upload button below photo circle */}
               <label htmlFor="student-photo-upload" className="mt-2 px-5 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 cursor-pointer font-semibold text-base block border-2 border-blue-800">
-                Upload Recent Photo
+                {t('studentProfilePage.uploadPhoto')}
                 <input
                   id="student-photo-upload"
                   type="file"
@@ -326,7 +328,7 @@ export default function StudentProfile() {
                 />
               </label>
               <Badge variant={student.status === 'active' ? 'default' : 'secondary'} className="mt-2 mb-2">
-                {student.status}
+                {student.status === 'active' ? t('common.active') : t('common.inactive')}
               </Badge>
             </div>
             
@@ -335,19 +337,19 @@ export default function StudentProfile() {
                 <div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <User className="h-4 w-4" />
-                    Personal Details
+                    {t('studentProfilePage.personalDetails')}
                   </div>
                   <div className="space-y-2">
                     <div>
                       <div className="font-semibold text-lg">{student.name}</div>
-                      <div className="text-sm text-muted-foreground">Roll No: {student.rollNo}</div>
+                      <div className="text-sm text-muted-foreground">{t('studentProfilePage.rollNo')}: {student.rollNo}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium">Date of Birth</div>
+                      <div className="text-sm font-medium">{t('studentProfilePage.dateOfBirth')}</div>
                       <div className="text-sm">{student.dob}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium">Category</div>
+                      <div className="text-sm font-medium">{t('studentProfilePage.category')}</div>
                       <div className="text-sm">{student.category}</div>
                     </div>
                   </div>
@@ -358,20 +360,20 @@ export default function StudentProfile() {
                 <div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <GraduationCap className="h-4 w-4" />
-                    Academic Details
+                    {t('studentProfilePage.academicDetails')}
                   </div>
                   <div className="space-y-2">
                     <div>
-                      <div className="text-sm font-medium">Class & Section</div>
+                      <div className="text-sm font-medium">{t('studentProfilePage.classSection')}</div>
                       <div className="text-sm">{student.class}-{student.section}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium">Admission Date</div>
+                      <div className="text-sm font-medium">{t('studentProfilePage.admissionDate')}</div>
                       <div className="text-sm">{student.admissionDate}</div>
                     </div>
                     {student.previousSchool && (
                       <div>
-                        <div className="text-sm font-medium">Previous School</div>
+                        <div className="text-sm font-medium">{t('studentProfilePage.previousSchool')}</div>
                         <div className="text-sm">{student.previousSchool}</div>
                       </div>
                     )}
@@ -383,11 +385,11 @@ export default function StudentProfile() {
                 <div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <Users className="h-4 w-4" />
-                    Guardian Details
+                    {t('studentProfilePage.guardianDetails')}
                   </div>
                   <div className="space-y-2">
                     <div>
-                      <div className="text-sm font-medium">Guardian Name</div>
+                      <div className="text-sm font-medium">{t('studentProfilePage.guardianName')}</div>
                       <div className="text-sm">{student.guardianName}</div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -410,12 +412,12 @@ export default function StudentProfile() {
       <Tabs defaultValue="attendance" className="space-y-4">
         <div className="tabs-list-container overflow-x-auto">
           <TabsList className="tabs-list grid w-full grid-cols-2 lg:grid-cols-6 min-w-[600px] md:min-w-[720px]">
-            <TabsTrigger value="attendance" className="tabs-trigger">Attendance</TabsTrigger>
-            <TabsTrigger value="academic" className="tabs-trigger">Academic Performance</TabsTrigger>
-            <TabsTrigger value="communication" className="tabs-trigger">Communication</TabsTrigger>
-            <TabsTrigger value="documents" className="tabs-trigger">Documents</TabsTrigger>
-            <TabsTrigger value="awards" className="tabs-trigger">Awards & Achievements</TabsTrigger>
-            <TabsTrigger value="fee" className="tabs-trigger">Fee</TabsTrigger>
+            <TabsTrigger value="attendance" className="tabs-trigger">{t('studentProfilePage.attendance')}</TabsTrigger>
+            <TabsTrigger value="academic" className="tabs-trigger">{t('studentProfilePage.academicPerformance')}</TabsTrigger>
+            <TabsTrigger value="communication" className="tabs-trigger">{t('studentProfilePage.communication')}</TabsTrigger>
+            <TabsTrigger value="documents" className="tabs-trigger">{t('studentProfilePage.documents')}</TabsTrigger>
+            <TabsTrigger value="awards" className="tabs-trigger">{t('studentProfilePage.awards')}</TabsTrigger>
+            <TabsTrigger value="fee" className="tabs-trigger">{t('studentProfilePage.fee')}</TabsTrigger>
           </TabsList>
         <TabsContent value="fee">
           {/* Fee info and payment for this student */}

@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage, Language } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useSchool } from '@/contexts/SchoolContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,12 +16,16 @@ import {
   DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu';
 import { useSidebar } from '@/components/ui/sidebar';
-import { LogOut, Settings, User, BadgeCheck, CreditCard, Bell } from 'lucide-react';
+import { LogOut, Settings, User, BadgeCheck, CreditCard, Bell, Sun, Moon, Monitor } from 'lucide-react';
 import { UniversalSearch } from '@/components/search/UniversalSearch';
+import { CenteredModal } from '@/components/common/CenteredModal';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function Header() {
   const { toggleSidebar } = useSidebar();
   const { user, logout } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
+  const { theme, setTheme } = useTheme();
   const { schoolInfo } = useSchool();
 
   const handleLogout = () => {
@@ -42,35 +48,50 @@ export function Header() {
   const [profileOpen, setProfileOpen] = React.useState(false);
   const [settingsOpen, setSettingsOpen] = React.useState(false);
 
+  // Language change handler with immediate UI update
+  const handleLanguageChange = (newLanguage: Language) => {
+    setLanguage(newLanguage);
+    // Force re-render by closing and reopening the dialog
+    setTimeout(() => {
+      setSettingsOpen(false);
+      setTimeout(() => setSettingsOpen(true), 100);
+    }, 50);
+  };
+
   // Determine if school is pro or not (mock: if schoolInfo.plan === 'Pro')
   // For now, let's assume schoolInfo has a 'plan' property, fallback to 'Pro' if missing
   const isPro = (schoolInfo as any)?.plan === 'Pro' || (schoolInfo as any)?.plan === 'Enterprise';
 
   return (
-  <header className="flex h-12 sm:h-14 lg:h-16 items-center gap-1 sm:gap-2 border-b border-border bg-background px-2 sm:px-3 lg:px-6">
-      {/* Mobile sidebar trigger replaced with hamburger menu using sidebar context */}
+  <header className="flex h-14 sm:h-16 lg:h-18 items-center gap-2 sm:gap-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-3 sm:px-4 lg:px-6 sticky top-0 z-40">
+      {/* Modern sidebar trigger with enhanced visual feedback */}
       <button
-        className="lg:hidden h-8 w-8 sm:h-7 sm:w-7 flex flex-col justify-center items-center focus:outline-none"
+        className="lg:hidden h-9 w-9 sm:h-8 sm:w-8 flex flex-col justify-center items-center focus:outline-none rounded-lg hover:bg-accent/50 transition-all duration-200 group"
         aria-label="Open navigation menu"
         onClick={toggleSidebar}
       >
-        <span className="block w-6 h-0.5 bg-foreground mb-1 rounded transition-all"></span>
-        <span className="block w-6 h-0.5 bg-foreground mb-1 rounded transition-all"></span>
-        <span className="block w-6 h-0.5 bg-foreground rounded transition-all"></span>
+        <span className="block w-5 h-0.5 bg-foreground mb-1 rounded-full transition-all group-hover:bg-primary"></span>
+        <span className="block w-5 h-0.5 bg-foreground mb-1 rounded-full transition-all group-hover:bg-primary"></span>
+        <span className="block w-5 h-0.5 bg-foreground rounded-full transition-all group-hover:bg-primary"></span>
       </button>
-      {/* School info - enhanced mobile responsive */}
-      <div className="flex items-center gap-1 sm:gap-2 flex-1 min-w-0 header-school-info">
+      {/* Modern school info with enhanced styling */}
+      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 header-school-info">
         {schoolInfo?.logoUrl && (
-          <img 
-            src={schoolInfo.logoUrl} 
-            alt={`${schoolInfo.name} Logo`}
-            className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 object-contain rounded-sm flex-shrink-0"
-          />
+          <div className="relative">
+            <img 
+              src={schoolInfo.logoUrl} 
+              alt={`${schoolInfo.name} Logo`}
+              className="w-6 h-6 sm:w-7 sm:h-7 lg:w-9 lg:h-9 object-contain rounded-lg shadow-sm flex-shrink-0 transition-transform hover:scale-105"
+            />
+          </div>
         )}
         <div className="min-w-0 flex-1 overflow-hidden">
-          <h1 className="font-semibold text-xs sm:text-sm lg:text-base text-foreground truncate">
-            {schoolInfo?.name || 'SMS'}
+          <h1 className="font-bold text-sm sm:text-base lg:text-lg text-foreground truncate bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text">
+            {schoolInfo?.name || 'School Management System'}
           </h1>
+          <p className="text-xs text-muted-foreground hidden sm:block">
+            Academic Excellence • Innovation • Growth
+          </p>
         </div>
       </div>
       {/* Enhanced Universal Search for Admin and Super Admin */}
@@ -83,20 +104,20 @@ export function Header() {
       <div className="flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 sm:w-32 lg:h-10 lg:w-56 rounded-lg px-1 sm:px-2 flex items-center gap-1 sm:gap-2">
-              <Avatar className="h-6 w-6 sm:h-8 sm:w-8 rounded-lg">
+            <Button variant="ghost" className="relative h-9 w-9 sm:w-36 lg:h-11 lg:w-60 rounded-xl px-1 sm:px-3 flex items-center gap-2 sm:gap-3 hover:bg-accent/50 transition-all duration-200 group">
+              <Avatar className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl ring-2 ring-background shadow-md group-hover:ring-primary/20 transition-all">
                 <AvatarImage src={user?.avatar || "/placeholder.svg"} alt={user?.name || 'User'} />
-                <AvatarFallback className="rounded-lg text-xs">
+                <AvatarFallback className="rounded-xl text-xs font-semibold bg-gradient-to-br from-primary/10 to-primary/5">
                   {user?.name ? getUserInitials(user.name) : 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden sm:grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold text-xs sm:text-sm">{user?.name}</span>
-                <span className="truncate text-xs">{user?.email}</span>
+                <span className="truncate font-semibold text-xs sm:text-sm group-hover:text-primary transition-colors">{user?.name}</span>
+                <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
               </div>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56 min-w-56 rounded-lg" align="end" forceMount>
+          <DropdownMenuContent className="w-56 min-w-56 rounded-lg bg-popover text-popover-foreground border border-border z-[10000]" align="end" forceMount>
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
@@ -117,29 +138,29 @@ export function Header() {
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => setAccountOpen(true)} className="cursor-pointer">
                 <BadgeCheck className="mr-2 h-4 w-4 text-green-500" />
-                <span>Account</span>
+                <span>{t('nav.account')}</span>
               </DropdownMenuItem>
               {user?.role !== 'parent' && user?.role !== 'staff' && (
                 <DropdownMenuItem onClick={() => setBillingOpen(true)} className="cursor-pointer">
                   <CreditCard className="mr-2 h-4 w-4 text-blue-500" />
-                  <span>Billing</span>
+                  <span>{t('nav.billing')}</span>
                 </DropdownMenuItem>
               )}
               {user?.role !== 'parent' && (
                 <DropdownMenuItem onClick={() => setNotificationsOpen(true)} className="cursor-pointer">
                   <Bell className="mr-2 h-4 w-4 text-pink-500 animate-bounce" />
-                  <span>Notifications</span>
+                  <span>{t('notifications.title')}</span>
                 </DropdownMenuItem>
               )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer" onClick={() => setProfileOpen(true)}>
               <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
+              <span>{t('nav.profile')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem className="cursor-pointer" onClick={() => setSettingsOpen(true)}>
               <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
+              <span>{t('nav.settings')}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem 
@@ -147,96 +168,177 @@ export function Header() {
               onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
+              <span>{t('nav.logout')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
   {/* Elegant dialogs for Account, Billing, Notifications, Profile, Settings */}
         {/* Profile Dialog */}
         {profileOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-background rounded-xl shadow-xl p-8 w-full max-w-md animate-fadeIn">
-              <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><User className="text-purple-500" /> Profile</h2>
-              <p className="text-muted-foreground mb-4">Your personal profile details.</p>
-              <div className="mb-4">
-                <div className="font-semibold">Name:</div>
-                <div>{user?.name}</div>
-                <div className="font-semibold mt-2">Email:</div>
-                <div>{user?.email}</div>
-                <div className="font-semibold mt-2">Role:</div>
-                <div>{user?.role}</div>
+          <CenteredModal open={profileOpen} onClose={() => setProfileOpen(false)} ariaLabel="Profile dialog">
+            <div className="bg-background border rounded-xl shadow-2xl p-8 w-full max-w-md mx-auto animate-enter relative">
+              <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><User className="text-purple-500" /> {t('nav.profile')}</h2>
+              <p className="text-muted-foreground mb-4">{t('profile.profileDescription')}</p>
+              <div className="mb-4 space-y-3">
+                <div>
+                  <div className="font-semibold text-sm text-muted-foreground">{t('profile.name')}</div>
+                  <div className="text-foreground">{user?.name}</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-sm text-muted-foreground">{t('common.email')}</div>
+                  <div className="text-foreground">{user?.email}</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-sm text-muted-foreground">{t('profile.role')}</div>
+                  <div className="text-foreground capitalize">{user?.role}</div>
+                </div>
               </div>
-              <Button variant="outline" className="w-full" onClick={() => setProfileOpen(false)}>Close</Button>
+              <Button variant="outline" className="w-full" onClick={() => setProfileOpen(false)}>{t('common.close')}</Button>
             </div>
-          </div>
+          </CenteredModal>
         )}
         {/* Settings Dialog */}
         {settingsOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-background rounded-xl shadow-xl p-8 w-full max-w-md animate-fadeIn">
-              <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><Settings className="text-gray-500" /> Settings</h2>
-              <p className="text-muted-foreground mb-4">App settings and preferences.</p>
-              <div className="mb-4">
-                <div className="font-semibold">Theme:</div>
-                <div>Default (customize in future)</div>
-                <div className="font-semibold mt-2">Notifications:</div>
-                <div>Enabled (customize in future)</div>
+          <CenteredModal open={settingsOpen} onClose={() => setSettingsOpen(false)} ariaLabel="Settings dialog">
+            <div className="bg-background border rounded-xl shadow-2xl p-8 w-full max-w-md mx-auto animate-enter relative">
+              <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><Settings className="text-muted-foreground" /> {t('settings.title')}</h2>
+              <p className="text-muted-foreground mb-4">{t('settings.description')}</p>
+              <div className="mb-4 space-y-3">
+                <div>
+                  <div className="font-semibold text-sm text-muted-foreground">{t('settings.theme')}</div>
+                  <div className="text-foreground">{t('settings.systemDefault')}</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-sm text-muted-foreground">{t('notifications.title')}</div>
+                  <div className="text-foreground">{t('settings.enabled')}</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-sm text-muted-foreground">{t('settings.language')}</div>
+                  <Select value={language} onValueChange={handleLanguageChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={t('settings.selectLanguage')} />
+                    </SelectTrigger>
+                    <SelectContent className="z-[10001] bg-popover text-popover-foreground border border-border shadow-md">
+                      <SelectItem value="en">{t('settings.english')}</SelectItem>
+                      <SelectItem value="hi">{t('settings.hindi')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <div className="font-semibold text-sm text-muted-foreground">{t('settings.theme')}</div>
+                  <Select value={theme} onValueChange={setTheme}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={t('settings.selectTheme')} />
+                    </SelectTrigger>
+                    <SelectContent className="z-[10001] bg-popover text-popover-foreground border border-border shadow-md">
+                      <SelectItem value="light">
+                        <div className="flex items-center gap-2">
+                          <Sun className="h-4 w-4" />
+                          {t('settings.light')}
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="dark">
+                        <div className="flex items-center gap-2">
+                          <Moon className="h-4 w-4" />
+                          {t('settings.dark')}
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="system">
+                        <div className="flex items-center gap-2">
+                          <Monitor className="h-4 w-4" />
+                          {t('settings.system')}
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <Button variant="outline" className="w-full" onClick={() => setSettingsOpen(false)}>Close</Button>
+              <Button variant="outline" className="w-full" onClick={() => setSettingsOpen(false)}>{t('common.close')}</Button>
             </div>
-          </div>
+          </CenteredModal>
         )}
         {/* Account Dialog */}
         {accountOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-background rounded-xl shadow-xl p-8 w-full max-w-md animate-fadeIn">
+          <CenteredModal open={accountOpen} onClose={() => setAccountOpen(false)} ariaLabel="Account dialog">
+            <div className="bg-background border rounded-xl shadow-2xl p-8 w-full max-w-md mx-auto animate-enter relative">
               <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><BadgeCheck className="text-green-500" /> Account</h2>
               <p className="text-muted-foreground mb-4">Manage your account details and preferences.</p>
-              <div className="mb-4">
-                <div className="font-semibold">Name:</div>
-                <div>{user?.name}</div>
-                <div className="font-semibold mt-2">Email:</div>
-                <div>{user?.email}</div>
+              <div className="mb-4 space-y-3">
+                <div>
+                  <div className="font-semibold text-sm text-muted-foreground">Name</div>
+                  <div className="text-foreground">{user?.name}</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-sm text-muted-foreground">Email</div>
+                  <div className="text-foreground">{user?.email}</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-sm text-muted-foreground">Account Status</div>
+                  <div className="text-green-600 flex items-center gap-1">
+                    <BadgeCheck className="h-4 w-4" /> Active
+                  </div>
+                </div>
               </div>
               <Button variant="outline" className="w-full" onClick={() => setAccountOpen(false)}>Close</Button>
             </div>
-          </div>
+          </CenteredModal>
         )}
         {/* Billing Dialog */}
         {billingOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-background rounded-xl shadow-xl p-8 w-full max-w-md animate-fadeIn">
+          <CenteredModal open={billingOpen} onClose={() => setBillingOpen(false)} ariaLabel="Billing dialog">
+            <div className="bg-background border rounded-xl shadow-2xl p-8 w-full max-w-md mx-auto animate-enter relative">
               <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><CreditCard className="text-blue-500" /> Billing</h2>
               <p className="text-muted-foreground mb-4">View and manage your billing information.</p>
-              <div className="mb-4">
-                <div className="font-semibold">Current Plan:</div>
-                <div>{(schoolInfo as any)?.plan || 'Pro'}</div>
-                <div className="font-semibold mt-2">School:</div>
-                <div>{schoolInfo?.name}</div>
+              <div className="mb-4 space-y-3">
+                <div>
+                  <div className="font-semibold text-sm text-muted-foreground">Current Plan</div>
+                  <div className="text-foreground font-medium">{(schoolInfo as any)?.plan || 'Pro'}</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-sm text-muted-foreground">School</div>
+                  <div className="text-foreground">{schoolInfo?.name}</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-sm text-muted-foreground">Billing Status</div>
+                  <div className="text-green-600 flex items-center gap-1">
+                    <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                    Current
+                  </div>
+                </div>
               </div>
               <Button variant="outline" className="w-full" onClick={() => setBillingOpen(false)}>Close</Button>
             </div>
-          </div>
+          </CenteredModal>
         )}
         {/* Notifications Dialog */}
         {notificationsOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-background rounded-xl shadow-xl p-8 w-full max-w-md animate-fadeIn">
-              <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><Bell className="text-pink-500" /> Notifications</h2>
+          <CenteredModal open={notificationsOpen} onClose={() => setNotificationsOpen(false)} ariaLabel="Notifications dialog">
+            <div className="bg-background border rounded-xl shadow-2xl p-8 w-full max-w-md mx-auto animate-enter relative">
+              <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><Bell className="text-amber-500" /> Notifications</h2>
               <p className="text-muted-foreground mb-4">Your recent notifications will appear here.</p>
-              {/* Mock notifications */}
-              <ul className="mb-4 space-y-2">
-                <li className="bg-accent rounded-lg px-3 py-2 flex items-center gap-2">
-                  <Bell className="text-pink-500" /> Welcome to Vitana Schools!
-                </li>
-                <li className="bg-accent rounded-lg px-3 py-2 flex items-center gap-2">
-                  <Bell className="text-pink-500" /> Your account is active.
-                </li>
-                {/* Removed Upgrade to Pro notification for admin and super admin */}
-              </ul>
+              <div className="mb-4 space-y-2 max-h-48 overflow-y-auto">
+                <div className="bg-accent/50 rounded-lg px-3 py-2 border border-border/50">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Bell className="text-amber-500 h-4 w-4" />
+                    <div>
+                      <div className="font-medium">Welcome to Vitana Schools!</div>
+                      <div className="text-xs text-muted-foreground">System notification</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-accent/50 rounded-lg px-3 py-2 border border-border/50">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Bell className="text-green-500 h-4 w-4" />
+                    <div>
+                      <div className="font-medium">Your account is active</div>
+                      <div className="text-xs text-muted-foreground">Account status</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <Button variant="outline" className="w-full" onClick={() => setNotificationsOpen(false)}>Close</Button>
             </div>
-          </div>
+          </CenteredModal>
         )}
       </div>
     </header>

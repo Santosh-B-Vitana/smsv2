@@ -75,25 +75,21 @@ export default function Dashboard() {
           title="Total Students"
           value={stats?.totalStudents || 0}
           icon={Users}
-          trend={{ value: 5.2, label: "from last month" }}
         />
         <StatsCard
           title="Total Staff"
           value={stats?.totalStaff || 0}
           icon={UserCheck}
-          trend={{ value: 2.1, label: "from last month" }}
         />
         <StatsCard
           title="Today's Attendance"
           value={`${stats?.attendanceToday || 0}%`}
           icon={Calendar}
-          trend={{ value: 1.8, label: "from yesterday" }}
         />
         <StatsCard
           title="Pending Fees"
           value={`₹${stats?.pendingFees?.toLocaleString() || 0}`}
           icon={DollarSign}
-          trend={{ value: -8.2, label: "from last week" }}
         />
       </div>
 

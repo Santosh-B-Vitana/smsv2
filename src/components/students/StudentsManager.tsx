@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Users, UserPlus, GraduationCap } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -9,6 +10,7 @@ import { StudentList } from "./StudentList";
 import { mockApi, Student } from "../../services/mockApi";
 
 export function StudentsManager() {
+  const { t } = useLanguage();
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -107,20 +109,20 @@ export function StudentsManager() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Student Management</h1>
-          <p className="text-muted-foreground">Manage student records and information</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('studentMgmt.title')}</h1>
+          <p className="text-muted-foreground">{t('studentMgmt.subtitle')}</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
-              Add Student
+              {t('studentMgmt.addStudent')}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
-                {selectedStudent ? 'Edit Student' : 'Add New Student'}
+                {selectedStudent ? t('studentMgmt.editStudent') : t('studentMgmt.addStudent')}
               </DialogTitle>
             </DialogHeader>
             <StudentForm
@@ -144,7 +146,7 @@ export function StudentsManager() {
                 <Users className="w-4 h-4 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Students</p>
+                <p className="text-sm text-muted-foreground">{t('studentMgmt.totalStudents')}</p>
                 <p className="text-xl font-semibold">{stats.total}</p>
               </div>
             </div>
@@ -157,7 +159,7 @@ export function StudentsManager() {
                 <UserPlus className="w-4 h-4 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Active</p>
+                <p className="text-sm text-muted-foreground">{t('common.active')}</p>
                 <p className="text-xl font-semibold">{stats.active}</p>
               </div>
             </div>
@@ -170,7 +172,7 @@ export function StudentsManager() {
                 <Users className="w-4 h-4 text-red-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Inactive</p>
+                <p className="text-sm text-muted-foreground">{t('common.inactive')}</p>
                 <p className="text-xl font-semibold">{stats.inactive}</p>
               </div>
             </div>
@@ -183,7 +185,7 @@ export function StudentsManager() {
                 <GraduationCap className="w-4 h-4 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Classes</p>
+                <p className="text-sm text-muted-foreground">{t('studentMgmt.classes')}</p>
                 <p className="text-xl font-semibold">{stats.classes}</p>
               </div>
             </div>

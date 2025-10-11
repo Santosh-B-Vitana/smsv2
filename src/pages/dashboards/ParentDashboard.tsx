@@ -3,9 +3,11 @@ import { User, Calendar, Award, MessageSquare, BadgeIndianRupee } from "lucide-r
 import { StatsCard } from "../../components/dashboard/StatsCard";
 import { ParentChildSelector } from "../../components/parent/ParentChildSelector";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 export default function ParentDashboard() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [selectedChildId, setSelectedChildId] = useState<string>("child1");
   
   const childrenData = {
@@ -33,9 +35,9 @@ export default function ParentDashboard() {
     <div className="space-y-8 animate-fade-in">
       {/* Welcome Section */}
       <div>
-        <h1 className="text-display">Welcome, {user?.name}</h1>
+        <h1 className="text-display">{t('dashboard.welcomeUser')}, {user?.name}</h1>
         <p className="text-muted-foreground mt-2">
-          Track your child's academic progress and school activities.
+          {t('dashboard.trackProgress')}
         </p>
       </div>
 
@@ -48,35 +50,31 @@ export default function ParentDashboard() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
-          title="Attendance"
+          title={t('dashboard.attendance')}
           value={`${childInfo.attendance}%`}
           icon={Calendar}
-          trend={{ value: 2.1, label: "this month" }}
         />
         <StatsCard
-          title="Pending Fees"
+          title={t('dashboard.pendingFees')}
           value={`₹${childInfo.pendingFees.toLocaleString()}`}
           icon={BadgeIndianRupee}
-          trend={{ value: 0, label: "due date: 30th" }}
         />
         <StatsCard
-          title="Last Exam Grade"
+          title={t('dashboard.lastExamGrade')}
           value={childInfo.lastExamGrade}
           icon={Award}
-          trend={{ value: 5, label: "improvement" }}
         />
         <StatsCard
-          title="Unread Messages"
+          title={t('dashboard.unreadMessages')}
           value={3}
           icon={MessageSquare}
-          trend={{ value: 1, label: "new today" }}
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Grades */}
         <div className="dashboard-card">
-          <h3 className="text-lg font-semibold mb-4">Recent Grades</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('dashboard.recentGrades')}</h3>
           <div className="space-y-3">
             {[
               { subject: "Mathematics", grade: "A+", date: "2024-03-10" },
@@ -97,7 +95,7 @@ export default function ParentDashboard() {
 
         {/* Child Achievements */}
         <div className="dashboard-card">
-          <h3 className="text-lg font-semibold mb-4">Achievements</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('dashboard.achievementsTitle')}</h3>
           <div className="space-y-3">
             <div className="p-3 rounded-lg bg-success/10 border-l-4 border-success">
               <p className="font-medium text-sm">Won 1st Prize in Science Fair</p>
@@ -112,7 +110,7 @@ export default function ParentDashboard() {
 
         {/* Upcoming Events */}
         <div className="dashboard-card">
-          <h3 className="text-lg font-semibold mb-4">Upcoming Events</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('dashboard.upcomingEvents')}</h3>
           <div className="space-y-3">
             <div className="p-3 rounded-lg bg-primary/5 border-l-4 border-primary">
               <p className="font-medium text-sm">Parent-Teacher Meeting</p>
@@ -131,7 +129,7 @@ export default function ParentDashboard() {
 
         {/* Direct Teacher Contact */}
         <div className="dashboard-card">
-          <h3 className="text-lg font-semibold mb-4">Contact Class Teacher</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('dashboard.contactClassTeacher')}</h3>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <User className="h-5 w-5 text-primary" />

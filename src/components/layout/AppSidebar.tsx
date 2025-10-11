@@ -13,10 +13,12 @@ import {
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/contexts/AuthContext"
 import { usePermissions } from "@/contexts/PermissionsContext"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
   const { hasPermission } = usePermissions()
+  const { t } = useLanguage()
   const [showInfrastructure, setShowInfrastructure] = React.useState(() => {
     const saved = localStorage.getItem('showInfrastructure');
     return saved !== null ? JSON.parse(saved) : false;
@@ -42,42 +44,43 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       return [
         ...baseItems,
         {
-          title: "Academics",
+          title: t('nav.academics'),
           url: "/academics",
           icon: BookOpen,
         },
         {
-          title: "Students",
+          title: t('nav.students'),
           url: "/students",
           icon: Users,
         },
         {
-          title: "Staff",
+          title: t('nav.staff'),
           url: "/staff", 
           icon: UserCheck,
         },
         {
-          title: "Examinations",
+          title: t('nav.examinations'),
           url: "/examinations",
           icon: FileText,
         },
         // Library and Health hidden for super_admin
         ...(showInfrastructure ? [{
-          title: "Infrastructure",
+          title: t('nav.infrastructure'),
           url: "#",
           icon: Building,
           items: [
-            { title: "Transport", url: "/transport" },
-            { title: "Hostel", url: "/hostel" },
+            { title: t('nav.transport'), url: "/transport" },
+            { title: t('nav.hostel'), url: "/hostel" },
+            { title: t('nav.visitorManagement'), url: "/visitor-management" },
           ],
         }] : []),
         {
-          title: "Fees",
+          title: t('nav.fees'),
           url: "/fees",
           icon: DollarSign,
         },
         {
-          title: "Communication",
+          title: t('nav.communication'),
           url: "/communication",
           icon: MessageSquare,
         },
@@ -93,12 +96,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         //   icon: CreditCard,
         // },
         {
-          title: "Alumni",
+          title: t('nav.alumni'),
           url: "/alumni",
           icon: GraduationCap,
         },
         {
-          title: "Settings",
+          title: t('nav.settings'),
           url: "/settings",
           icon: Settings,
         }
@@ -110,40 +113,41 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       return [
         ...baseItems,
         {
-          title: "Academics",
+          title: t('nav.academics'),
           url: "/academics",
           icon: BookOpen,
         },
         {
-          title: "Students",
+          title: t('nav.students'),
           url: "/students",
           icon: Users,
         },
         {
-          title: "Staff",
+          title: t('nav.staff'),
           url: "/staff",
           icon: UserCheck,
         },
     // Examinations hidden for admin
         // Library and Health hidden for admin
         ...(showInfrastructure ? [{
-          title: "Infrastructure",
+          title: t('nav.infrastructure'),
           url: "#",
           icon: Building,
           items: [
-            { title: "Transport", url: "/transport" },
-            { title: "Library", url: "/library" },
-            { title: "Hostel", url: "/hostel" },
-            { title: "Health", url: "/health" },
+            { title: t('nav.transport'), url: "/transport" },
+            { title: t('nav.library'), url: "/library" },
+            { title: t('nav.hostel'), url: "/hostel" },
+            { title: t('nav.health'), url: "/health" },
+            { title: t('nav.visitorManagement'), url: "/visitor-management" },
           ],
         }] : []),
         {
-          title: "Fees",
+          title: t('nav.fees'),
           url: "/fees",
           icon: DollarSign,
         },
         {
-          title: "Communication",
+          title: t('nav.communication'),
           url: "/communication",
           icon: MessageSquare,
         },
@@ -159,12 +163,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         //   icon: CreditCard,
         // },
         {
-          title: "Alumni",
+          title: t('nav.alumni'),
           url: "/alumni",
           icon: GraduationCap,
         },
         {
-          title: "Settings",
+          title: t('nav.settings'),
           url: "/settings",
           icon: Settings,
         }
@@ -176,22 +180,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       return [
         ...baseItems,
         {
-          title: "My Classes",
+          title: t('nav.myClasses'),
           url: "/my-classes",
           icon: GraduationCap,
         },
         {
-          title: "Attendance",
+          title: t('nav.attendance'),
           url: "/attendance",
           icon: UserCheck,
         },
         {
-          title: "Communication",
+          title: t('nav.communication'),
           url: "/communication", 
           icon: MessageSquare,
         },
         {
-          title: "Leave Management",
+          title: t('nav.leaveManagement'),
           url: "/leave-management",
           icon: Calendar,
         }
@@ -203,17 +207,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       return [
         ...baseItems,
         {
-          title: "Child Profile",
+          title: t('nav.childProfile'),
           url: "/child-profile",
           icon: User,
         },
         {
-          title: "Fees",
+          title: t('nav.fees'),
           url: "/parent-fees",
           icon: DollarSign,
         },
         {
-          title: "Notifications",
+          title: t('nav.notifications'),
           url: "/parent-notifications",
           icon: MessageSquare,
         }

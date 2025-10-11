@@ -2,9 +2,11 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SchoolProvider } from "@/contexts/SchoolContext";
 import { PermissionsProvider } from "@/contexts/PermissionsContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Layout } from "@/components/layout/Layout";
 
 // Import all pages
@@ -56,6 +58,7 @@ import StaffAttendanceTeacher from "./pages/StaffAttendanceTeacher";
 import NotFound from "./pages/NotFound";
 import ChildProfile from "./pages/ChildProfile"; // Updated import
 import LeaveManagement from "./pages/LeaveManagement";
+import VisitorManagement from "./pages/VisitorManagement";
 
 import SchoolManagement from "@/pages/superadmin/SchoolManagement";
 
@@ -71,10 +74,12 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          <SchoolProvider>
-            <PermissionsProvider>
+      <ThemeProvider defaultTheme="system" storageKey="school-ui-theme">
+        <TooltipProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <SchoolProvider>
+                <PermissionsProvider>
               <Router>
                 <Routes>
                   {/* Default route redirects to dashboard based on user role */}
@@ -111,8 +116,9 @@ function App() {
                   <Route path="/transport" element={<Layout><Transport /></Layout>} />
                   <Route path="/library" element={<Layout><Library /></Layout>} />
                   <Route path="/hostel" element={<Layout><Hostel /></Layout>} />
-                  <Route path="/health" element={<Layout><Health /></Layout>} />
-                  <Route path="/fees" element={<Layout><Fees /></Layout>} />
+                   <Route path="/health" element={<Layout><Health /></Layout>} />
+                   <Route path="/visitor-management" element={<Layout><VisitorManagement /></Layout>} />
+                   <Route path="/fees" element={<Layout><Fees /></Layout>} />
                   <Route path="/communication" element={<Layout><Communication /></Layout>} />
                   <Route path="/announcements" element={<Layout><Announcements /></Layout>} />
                   <Route path="/documents" element={<Layout><Documents /></Layout>} />
@@ -135,11 +141,13 @@ function App() {
                   <Route path="*" element={<Layout><NotFound /></Layout>} />
                 </Routes>
               </Router>
-              <Toaster />
-            </PermissionsProvider>
-          </SchoolProvider>
-        </AuthProvider>
-      </TooltipProvider>
+                <Toaster />
+                </PermissionsProvider>
+              </SchoolProvider>
+            </AuthProvider>
+          </LanguageProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

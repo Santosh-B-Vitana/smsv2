@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Child {
   id: string;
@@ -21,6 +22,7 @@ const mockChildren: Child[] = [
 ];
 
 export function ParentChildSelector({ onChildSelect, selectedChildId }: ParentChildSelectorProps) {
+  const { t } = useLanguage();
   const selectedChild = mockChildren.find(child => child.id === selectedChildId);
 
   return (
@@ -32,19 +34,19 @@ export function ParentChildSelector({ onChildSelect, selectedChildId }: ParentCh
               <User className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold">Select Child</h3>
-              <p className="text-sm text-muted-foreground">Choose which child's information to view</p>
+              <h3 className="font-semibold">{t('parent.selectChild')}</h3>
+              <p className="text-sm text-muted-foreground">{t('parent.chooseChild')}</p>
             </div>
           </div>
           <div className="w-64">
             <Select value={selectedChildId} onValueChange={onChildSelect}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a child" />
+                <SelectValue placeholder={t('parent.selectPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {mockChildren.map((child) => (
                   <SelectItem key={child.id} value={child.id}>
-                    {child.name} - Class {child.class}
+                    {child.name} - {t('common.class')} {child.class}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -54,9 +56,9 @@ export function ParentChildSelector({ onChildSelect, selectedChildId }: ParentCh
         {selectedChild && (
           <div className="mt-4 p-4 bg-muted/30 rounded-lg">
             <div className="flex gap-4 text-sm">
-              <span><strong>Name:</strong> {selectedChild.name}</span>
-              <span><strong>Class:</strong> {selectedChild.class}</span>
-              <span><strong>Roll No:</strong> {selectedChild.rollNo}</span>
+              <span><strong>{t('common.name')}:</strong> {selectedChild.name}</span>
+              <span><strong>{t('common.class')}:</strong> {selectedChild.class}</span>
+              <span><strong>{t('student.rollNo')}:</strong> {selectedChild.rollNo}</span>
             </div>
           </div>
         )}

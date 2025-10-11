@@ -12,11 +12,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSchool } from "../../contexts/SchoolContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 export function SettingsManager() {
   const { user } = useAuth();
   const { schoolInfo } = useSchool();
   const { toast } = useToast();
+  const { language, setLanguage, t } = useLanguage();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -43,7 +45,7 @@ export function SettingsManager() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+        <h1 className="text-2xl font-bold text-foreground">{t('settings.title')}</h1>
         <p className="text-muted-foreground">Manage your account and system preferences</p>
       </div>
 
@@ -51,15 +53,15 @@ export function SettingsManager() {
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="w-4 h-4" />
-            <span className="hidden sm:inline">Profile</span>
+            <span className="hidden sm:inline">{t('nav.profile')}</span>
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="w-4 h-4" />
-            <span className="hidden sm:inline">Notifications</span>
+            <span className="hidden sm:inline">{t('notifications.title')}</span>
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Shield className="w-4 h-4" />
-            <span className="hidden sm:inline">Security</span>
+            <span className="hidden sm:inline">{t('settings.security')}</span>
           </TabsTrigger>
           <TabsTrigger value="system" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
@@ -71,60 +73,60 @@ export function SettingsManager() {
         <TabsContent value="profile" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
+              <CardTitle>{t('profile.profileInformation')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="firstName">{t('profile.firstName')}</Label>
                   <Input id="firstName" defaultValue={user?.name?.split(' ')[0] || ""} />
                 </div>
                 <div>
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName">{t('profile.lastName')}</Label>
                   <Input id="lastName" defaultValue={user?.name?.split(' ').slice(1).join(' ') || ""} />
                 </div>
               </div>
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('common.email')}</Label>
                 <Input id="email" type="email" defaultValue={user?.email || ""} />
               </div>
               <div>
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone">{t('profile.phoneNumber')}</Label>
                 <Input id="phone" placeholder="Enter your phone number" />
               </div>
               <div>
-                <Label htmlFor="bio">Bio</Label>
+                <Label htmlFor="bio">{t('profile.bio')}</Label>
                 <Textarea id="bio" placeholder="Tell us about yourself..." />
               </div>
-              <Button onClick={handleSave}>Save Changes</Button>
+              <Button onClick={handleSave}>{t('profile.saveChanges')}</Button>
             </CardContent>
           </Card>
 
           {user?.role === 'admin' && (
             <Card>
               <CardHeader>
-                <CardTitle>School Information</CardTitle>
+                <CardTitle>{t('profile.schoolInformation')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="schoolName">School Name</Label>
+                  <Label htmlFor="schoolName">{t('profile.schoolName')}</Label>
                   <Input id="schoolName" defaultValue={schoolInfo?.name || ""} />
                 </div>
                 <div>
-                  <Label htmlFor="schoolAddress">Address</Label>
+                  <Label htmlFor="schoolAddress">{t('common.address')}</Label>
                   <Textarea id="schoolAddress" defaultValue={schoolInfo?.address || ""} />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="schoolPhone">Phone</Label>
+                    <Label htmlFor="schoolPhone">{t('common.phone')}</Label>
                     <Input id="schoolPhone" defaultValue={schoolInfo?.phone || ""} />
                   </div>
                   <div>
-                    <Label htmlFor="schoolEmail">Email</Label>
+                    <Label htmlFor="schoolEmail">{t('common.email')}</Label>
                     <Input id="schoolEmail" type="email" defaultValue={schoolInfo?.email || ""} />
                   </div>
                 </div>
-                <Button onClick={handleSave}>Update School Info</Button>
+                <Button onClick={handleSave}>{t('profile.updateSchoolInfo')}</Button>
               </CardContent>
             </Card>
           )}
@@ -134,13 +136,13 @@ export function SettingsManager() {
         <TabsContent value="notifications" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Notification Preferences</CardTitle>
+              <CardTitle>{t('notifications.notificationPreferences')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Email Notifications</h3>
-                  <p className="text-sm text-muted-foreground">Receive updates via email</p>
+                  <h3 className="font-medium">{t('notifications.emailNotifications')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('notifications.receiveEmailUpdates')}</p>
                 </div>
                 <Switch 
                   checked={emailNotifications} 
@@ -149,8 +151,8 @@ export function SettingsManager() {
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">SMS Notifications</h3>
-                  <p className="text-sm text-muted-foreground">Receive updates via SMS</p>
+                  <h3 className="font-medium">{t('notifications.smsNotifications')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('notifications.receiveSmsUpdates')}</p>
                 </div>
                 <Switch 
                   checked={smsNotifications} 
@@ -159,15 +161,15 @@ export function SettingsManager() {
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Push Notifications</h3>
-                  <p className="text-sm text-muted-foreground">Receive browser notifications</p>
+                  <h3 className="font-medium">{t('notifications.pushNotifications')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('notifications.receivePushUpdates')}</p>
                 </div>
                 <Switch 
                   checked={pushNotifications} 
                   onCheckedChange={setPushNotifications}
                 />
               </div>
-              <Button onClick={handleSave}>Save Preferences</Button>
+              <Button onClick={handleSave}>{t('notifications.savePreferences')}</Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -176,36 +178,36 @@ export function SettingsManager() {
         <TabsContent value="security" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Password & Security</CardTitle>
+              <CardTitle>{t('security.passwordSecurity')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="currentPassword">Current Password</Label>
+                <Label htmlFor="currentPassword">{t('security.currentPassword')}</Label>
                 <Input id="currentPassword" type="password" />
               </div>
               <div>
-                <Label htmlFor="newPassword">New Password</Label>
+                <Label htmlFor="newPassword">{t('security.newPassword')}</Label>
                 <Input id="newPassword" type="password" />
               </div>
               <div>
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <Label htmlFor="confirmPassword">{t('security.confirmPassword')}</Label>
                 <Input id="confirmPassword" type="password" />
               </div>
-              <Button onClick={handleSave}>Change Password</Button>
+              <Button onClick={handleSave}>{t('security.changePassword')}</Button>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Two-Factor Authentication</CardTitle>
+              <CardTitle>{t('security.twoFactorAuth')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Enable 2FA</h3>
-                  <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
+                  <h3 className="font-medium">{t('security.enable2FA')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('security.extraSecurity')}</p>
                 </div>
-                <Button variant="outline">Configure</Button>
+                <Button variant="outline">{t('security.configure')}</Button>
               </div>
             </CardContent>
           </Card>
@@ -215,24 +217,23 @@ export function SettingsManager() {
         <TabsContent value="system" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>System Preferences</CardTitle>
+              <CardTitle>{t('system.systemPreferences')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="language">Language</Label>
-                <Select defaultValue="en">
+                <Label htmlFor="language">{t('settings.language')}</Label>
+                <Select value={language} onValueChange={setLanguage}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder={t('settings.selectLanguage')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="es">Spanish</SelectItem>
-                    <SelectItem value="fr">French</SelectItem>
+                    <SelectItem value="en">{t('settings.english')}</SelectItem>
+                    <SelectItem value="hi">{t('settings.hindi')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="timezone">Timezone</Label>
+                <Label htmlFor="timezone">{t('system.timezone')}</Label>
                 <Select defaultValue="utc">
                   <SelectTrigger>
                     <SelectValue />
@@ -245,7 +246,7 @@ export function SettingsManager() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="dateFormat">Date Format</Label>
+                <Label htmlFor="dateFormat">{t('system.dateFormat')}</Label>
                 <Select defaultValue="mm/dd/yyyy">
                   <SelectTrigger>
                     <SelectValue />
@@ -257,20 +258,20 @@ export function SettingsManager() {
                   </SelectContent>
                 </Select>
               </div>
-                 <Button onClick={handleSave}>Save Settings</Button>
+                 <Button onClick={handleSave}>{t('system.saveSettings')}</Button>
                </CardContent>
              </Card>
 
              {(user?.role === 'admin' || user?.role === 'super_admin') && (
                <Card>
                  <CardHeader>
-                   <CardTitle>Navigation Settings</CardTitle>
+                   <CardTitle>{t('system.navigationSettings')}</CardTitle>
                  </CardHeader>
                  <CardContent className="space-y-4">
                    <div className="flex items-center justify-between">
                      <div>
-                       <h3 className="font-medium">Show Infrastructure Menu</h3>
-                       <p className="text-sm text-muted-foreground">Toggle visibility of Infrastructure features (Transport, Library, Hostel, Health)</p>
+                       <h3 className="font-medium">{t('system.showInfrastructureMenu')}</h3>
+                       <p className="text-sm text-muted-foreground">{t('system.infrastructureToggleDesc')}</p>
                      </div>
                      <Switch 
                        checked={showInfrastructure} 
@@ -281,35 +282,35 @@ export function SettingsManager() {
                </Card>
              )}
 
-          {user?.role === 'admin' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Data Management</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Export Data</h3>
-                    <p className="text-sm text-muted-foreground">Download all school data</p>
-                  </div>
-                  <Button variant="outline">
-                    <Database className="w-4 h-4 mr-2" />
-                    Export
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Backup Data</h3>
-                    <p className="text-sm text-muted-foreground">Create a backup of all data</p>
-                  </div>
-                  <Button variant="outline">
-                    <Database className="w-4 h-4 mr-2" />
-                    Backup
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+           {user?.role === 'admin' && (
+             <Card>
+               <CardHeader>
+                 <CardTitle>{t('system.dataManagement')}</CardTitle>
+               </CardHeader>
+               <CardContent className="space-y-4">
+                 <div className="flex items-center justify-between">
+                   <div>
+                     <h3 className="font-medium">{t('system.exportData')}</h3>
+                     <p className="text-sm text-muted-foreground">{t('system.downloadAllData')}</p>
+                   </div>
+                   <Button variant="outline">
+                     <Database className="w-4 h-4 mr-2" />
+                     {t('system.export')}
+                   </Button>
+                 </div>
+                 <div className="flex items-center justify-between">
+                   <div>
+                     <h3 className="font-medium">{t('system.backupData')}</h3>
+                     <p className="text-sm text-muted-foreground">{t('system.createBackup')}</p>
+                   </div>
+                   <Button variant="outline">
+                     <Database className="w-4 h-4 mr-2" />
+                     {t('system.backup')}
+                   </Button>
+                 </div>
+               </CardContent>
+             </Card>
+           )}
         </TabsContent>
       </Tabs>
     </div>

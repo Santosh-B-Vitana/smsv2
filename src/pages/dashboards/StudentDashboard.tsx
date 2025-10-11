@@ -36,25 +36,21 @@ export default function StudentDashboard() {
           title="My Attendance"
           value={`${studentData.attendance}%`}
           icon={Calendar}
-          trend={{ value: 1.2, label: "this month" }}
         />
         <StatsCard
           title="Average Grade"
           value={studentData.averageGrade}
           icon={Award}
-          trend={{ value: 0, label: "maintain excellence" }}
         />
         <StatsCard
           title="Pending Assignments"
           value={studentData.assignmentsPending}
           icon={BookOpen}
-          trend={{ value: -1, label: "completed yesterday" }}
         />
         <StatsCard
           title="Upcoming Exams"
           value={studentData.upcomingExams}
           icon={Clock}
-          trend={{ value: 0, label: "this week" }}
         />
       </div>
 
