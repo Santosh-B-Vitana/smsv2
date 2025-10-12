@@ -8,10 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DollarSign, CreditCard, Receipt, AlertCircle, Download, Plus, Settings } from "lucide-react";
+import { DollarSign, CreditCard, Receipt, AlertCircle, Download, Plus, Settings, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PaymentGatewayManager } from "./PaymentGatewayManager";
 import { AdvancedFeesManager } from "./AdvancedFeesManager";
+import { mockApi } from "@/services/mockApi";
 
 interface FeeRecord {
   id: string;
@@ -25,6 +26,12 @@ interface FeeRecord {
   status: 'paid' | 'pending' | 'overdue' | 'partial';
   lastPaymentDate?: string;
   academicYear: string;
+  siblings?: {
+    id: string;
+    name: string;
+    class: string;
+    pendingAmount: number;
+  }[];
 }
 
 interface PaymentTransaction {
@@ -46,6 +53,14 @@ export function FeesManager() {
   // State for student details dialog
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedStudentRecord, setSelectedStudentRecord] = useState<FeeRecord | null>(null);
+  const [students, setStudents] = useState<any[]>([]);
+
+  // Load students with sibling info
+  useState(() => {
+    mockApi.getStudents().then(studentsList => {
+      setStudents(studentsList);
+    });
+  });
 
   // Example installment data (should be fetched or managed per student)
   const [installmentPlans] = useState([
@@ -83,7 +98,10 @@ export function FeesManager() {
       dueDate: "2024-04-15",
       status: "partial",
       lastPaymentDate: "2024-03-10",
-      academicYear: "2024-25"
+      academicYear: "2024-25",
+      siblings: [
+        { id: "STU002", name: "Rohan Gupta", class: "8-B", pendingAmount: 15000 }
+      ]
     },
     {
       id: "FEE002",
@@ -367,6 +385,7 @@ export function FeesManager() {
                   <TableRow>
                     <TableHead>Student</TableHead>
                     <TableHead>Class</TableHead>
+                    <TableHead>Siblings</TableHead>
                     <TableHead>Total Amount</TableHead>
                     <TableHead>Paid Amount</TableHead>
                     <TableHead>Pending</TableHead>
@@ -386,6 +405,16 @@ export function FeesManager() {
                     <TableRow key={record.id}>
                       <TableCell className="font-medium">{record.studentName}</TableCell>
                       <TableCell>{record.class}</TableCell>
+                      <TableCell>
+                        {record.siblings && record.siblings.length > 0 ? (
+                          <div className="flex items-center gap-1">
+                            <Users className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs">{record.siblings.length} sibling(s)</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
                       <TableCell>₹{record.totalAmount.toLocaleString()}</TableCell>
                       <TableCell>₹{record.paidAmount.toLocaleString()}</TableCell>
                       <TableCell className={record.pendingAmount > 0 ? "text-red-600 font-medium" : ""}>
@@ -508,6 +537,37 @@ export function FeesManager() {
                       <p><strong>Due Date:</strong> {new Date(selectedStudentRecord.dueDate).toLocaleDateString()}</p>
                     </div>
                   </div>
+                  
+                  {/* Siblings Fee Details */}
+                  {selectedStudentRecord.siblings && selectedStudentRecord.siblings.length > 0 && (
+                    <div className="p-4 bg-muted/30 rounded-lg">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <h4 className="font-semibold">Siblings Fee Information</h4>
+                      </div>
+                      <div className="space-y-2">
+                        {selectedStudentRecord.siblings.map(sibling => (
+                          <div key={sibling.id} className="flex items-center justify-between p-3 bg-background rounded border">
+                            <div>
+                              <p className="font-medium">{sibling.name}</p>
+                              <p className="text-sm text-muted-foreground">Class {sibling.class}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-muted-foreground">Pending</p>
+                              <p className={`font-semibold ${sibling.pendingAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                ₹{sibling.pendingAmount.toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                        <div className="pt-2 border-t">
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Note:</strong> Fee payments can be adjusted across siblings. Please contact the fee office for sibling fee adjustments.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {/* Installment Management */}
                   <div>
                     <h4 className="font-semibold mb-2">Installment Management</h4>

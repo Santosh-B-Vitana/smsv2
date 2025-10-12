@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Users, UserCheck, Calendar, Award, GraduationCap, AlertTriangle, BadgeIndianRupee, BookOpen, FileText } from "lucide-react";
+import { Users, UserCheck, Calendar, Award, GraduationCap, AlertTriangle, BadgeIndianRupee, BookOpen, FileText, Shield } from "lucide-react";
 import { StatsCard } from "../../components/dashboard/StatsCard";
 import { mockApi, DashboardStats } from "../../services/mockApi";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -7,12 +7,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataImportManager } from "@/components/superadmin/DataImportManager";
 import { PayrollManager } from "@/components/payroll/PayrollManager";
+import { PermissionsManager } from "@/components/permissions/PermissionsManager";
 import { Settings, Upload, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function AdminDashboard() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,93 +53,132 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div>
-        <h1 className="text-display">{t('dashboard.welcome')}</h1>
-        <p className="text-muted-foreground mt-2">
-          Complete overview of school operations and management.
-        </p>
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="permissions">
+            <Shield className="w-4 h-4 mr-2" />
+            Role Permissions
+          </TabsTrigger>
+          <TabsTrigger value="management">Management</TabsTrigger>
+        </TabsList>
 
-      <div className="space-y-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatsCard
-            title={t('dashboard.totalStudents')}
-            value={stats?.totalStudents || 0}
-            icon={Users}
-            onClick={() => navigate('/students')}
-          />
-          <StatsCard
-            title={t('dashboard.totalStaff')}
-            value={stats?.totalStaff || 0}
-            icon={UserCheck}
-            onClick={() => navigate('/staff')}
-          />
-          <StatsCard
-            title={t('dashboard.todayAttendance')}
-            value={`${stats?.attendanceToday || 0}%`}
-            icon={Calendar}
-            onClick={() => navigate('/staff-attendance')}
-          />
-          <StatsCard
-            title={t('dashboard.pendingFees')}
-            value={`₹${stats?.pendingFees?.toLocaleString() || 0}`}
-            icon={BadgeIndianRupee}
-            onClick={() => navigate('/fees')}
-          />
-        </div>
+        <TabsContent value="dashboard">
+          {/* Header */}
+          <div>
+            <h1 className="text-display">{t('dashboard.welcome')}</h1>
+            <p className="text-muted-foreground mt-2">
+              Complete overview of school operations and management.
+            </p>
+          </div>
 
-        {/* Navigation Tiles */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            <div 
-              onClick={() => navigate('/students')}
-              className="dashboard-card cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 text-center p-6"
-            >
-              <Users className="w-8 h-8 mx-auto mb-2 text-primary" />
-              <p className="font-medium">{t('nav.students')}</p>
+          <div className="space-y-8 mt-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <StatsCard
+                title={t('dashboard.totalStudents')}
+                value={stats?.totalStudents || 0}
+                icon={Users}
+                onClick={() => navigate('/students')}
+              />
+              <StatsCard
+                title={t('dashboard.totalStaff')}
+                value={stats?.totalStaff || 0}
+                icon={UserCheck}
+                onClick={() => navigate('/staff')}
+              />
+              <StatsCard
+                title={t('dashboard.todayAttendance')}
+                value={`${stats?.attendanceToday || 0}%`}
+                icon={Calendar}
+                onClick={() => navigate('/staff-attendance')}
+              />
+              <StatsCard
+                title={t('dashboard.pendingFees')}
+                value={`₹${stats?.pendingFees?.toLocaleString() || 0}`}
+                icon={BadgeIndianRupee}
+                onClick={() => navigate('/fees')}
+              />
             </div>
-            
-            <div 
-              onClick={() => navigate('/staff')}
-              className="dashboard-card cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 text-center p-6"
-            >
-              <UserCheck className="w-8 h-8 mx-auto mb-2 text-primary" />
-              <p className="font-medium">{t('nav.staff')}</p>
-            </div>
-            
-            <div 
-              onClick={() => navigate('/staff-attendance')}
-              className="dashboard-card cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 text-center p-6"
-            >
-              <Calendar className="w-8 h-8 mx-auto mb-2 text-primary" />
-              <p className="font-medium">Attendance</p>
-            </div>
-            
-            <div 
-              onClick={() => navigate('/examinations')}
-              className="dashboard-card cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 text-center p-6"
-            >
-              <Award className="w-8 h-8 mx-auto mb-2 text-primary" />
-              <p className="font-medium">Examinations</p>
-            </div>
-            
-            <div 
-              onClick={() => navigate('/documents')}
-              className="dashboard-card cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 text-center p-6"
-            >
-              <FileText className="w-8 h-8 mx-auto mb-2 text-primary" />
-              <p className="font-medium">Document Manager</p>
-            </div>
-            <div 
-              onClick={() => navigate('/id-cards')}
-              className="dashboard-card cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 text-center p-6"
-            >
-              <BadgeIndianRupee className="w-8 h-8 mx-auto mb-2 text-primary" />
-              <p className="font-medium">Generate ID Cards</p>
+
+            {/* Navigation Tiles */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              <div 
+                onClick={() => navigate('/students')}
+                className="dashboard-card cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 text-center p-6"
+              >
+                <Users className="w-8 h-8 mx-auto mb-2 text-primary" />
+                <p className="font-medium">{t('nav.students')}</p>
+              </div>
+              
+              <div 
+                onClick={() => navigate('/staff')}
+                className="dashboard-card cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 text-center p-6"
+              >
+                <UserCheck className="w-8 h-8 mx-auto mb-2 text-primary" />
+                <p className="font-medium">{t('nav.staff')}</p>
+              </div>
+              
+              <div 
+                onClick={() => navigate('/staff-attendance')}
+                className="dashboard-card cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 text-center p-6"
+              >
+                <Calendar className="w-8 h-8 mx-auto mb-2 text-primary" />
+                <p className="font-medium">Attendance</p>
+              </div>
+              
+              <div 
+                onClick={() => navigate('/examinations')}
+                className="dashboard-card cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 text-center p-6"
+              >
+                <Award className="w-8 h-8 mx-auto mb-2 text-primary" />
+                <p className="font-medium">Examinations</p>
+              </div>
+              
+              <div 
+                onClick={() => navigate('/documents')}
+                className="dashboard-card cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 text-center p-6"
+              >
+                <FileText className="w-8 h-8 mx-auto mb-2 text-primary" />
+                <p className="font-medium">Document Manager</p>
+              </div>
+              <div 
+                onClick={() => navigate('/id-cards')}
+                className="dashboard-card cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 text-center p-6"
+              >
+                <BadgeIndianRupee className="w-8 h-8 mx-auto mb-2 text-primary" />
+                <p className="font-medium">Generate ID Cards</p>
+              </div>
             </div>
           </div>
-      </div>
+        </TabsContent>
+
+        <TabsContent value="permissions" className="space-y-4">
+          <PermissionsManager />
+        </TabsContent>
+
+        <TabsContent value="management" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Data Import</CardTitle>
+              <CardDescription>Import data from Excel files</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DataImportManager />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Payroll Management</CardTitle>
+              <CardDescription>Manage staff payroll and salaries</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PayrollManager />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

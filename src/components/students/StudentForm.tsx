@@ -29,12 +29,23 @@ export function StudentForm({ student, onClose, onSuccess }: StudentFormProps) {
     category: student?.category || "General",
     previousSchool: student?.previousSchool || "",
     status: student?.status || "active",
-    admissionDate: student?.admissionDate || ""
+    admissionDate: student?.admissionDate || "",
+    siblings: student?.siblings || []
   });
   const [loading, setLoading] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(student?.photoUrl || null);
+  const [allStudents, setAllStudents] = useState<Student[]>([]);
   const { toast } = useToast();
+
+  // Fetch all students for sibling selection
+  useState(() => {
+    mockApi.getStudents().then(students => {
+      // Filter out current student if editing
+      const filtered = student ? students.filter(s => s.id !== student.id) : students;
+      setAllStudents(filtered);
+    });
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -221,6 +232,53 @@ export function StudentForm({ student, onClose, onSuccess }: StudentFormProps) {
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
                 required
               />
+            </div>
+            <div>
+              <Label htmlFor="siblings">Siblings in School</Label>
+              <Select 
+                value={formData.siblings?.[0] || ""} 
+                onValueChange={(value) => {
+                  if (value && !formData.siblings?.includes(value)) {
+                    setFormData({...formData, siblings: [...(formData.siblings || []), value]});
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select sibling (if any)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allStudents
+                    .filter(s => !formData.siblings?.includes(s.id))
+                    .map(s => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name} - Class {s.class}-{s.section}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              {formData.siblings && formData.siblings.length > 0 && (
+                <div className="mt-2 space-y-2">
+                  {formData.siblings.map(siblingId => {
+                    const sibling = allStudents.find(s => s.id === siblingId);
+                    return sibling ? (
+                      <div key={siblingId} className="flex items-center justify-between p-2 bg-muted rounded">
+                        <span className="text-sm">{sibling.name} - Class {sibling.class}-{sibling.section}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setFormData({
+                            ...formData, 
+                            siblings: formData.siblings?.filter(id => id !== siblingId)
+                          })}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              )}
             </div>
             <div className="flex gap-2 justify-end">
               <Button type="button" variant="outline" onClick={onClose}>

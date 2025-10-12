@@ -7,6 +7,29 @@ import { Badge } from "@/components/ui/badge";
 import { mockApi, Student } from "../../services/mockApi";
 import placeholderImg from '/placeholder.svg';
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Users } from "lucide-react";
+
+function SiblingInfo({ siblingId }: { siblingId: string }) {
+  const [sibling, setSibling] = useState<Student | null>(null);
+  
+  useEffect(() => {
+    mockApi.getStudent(siblingId).then(setSibling).catch(() => setSibling(null));
+  }, [siblingId]);
+  
+  if (!sibling) return null;
+  
+  return (
+    <div className="flex items-center gap-3 p-2 bg-background rounded border">
+      <Users className="h-4 w-4 text-muted-foreground" />
+      <div className="flex-1">
+        <div className="font-medium text-sm">{sibling.name}</div>
+        <div className="text-xs text-muted-foreground">
+          Class {sibling.class}-{sibling.section} • Roll No: {sibling.rollNo}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function StudentProfileDrawer({ studentId, open, onClose }: {
   studentId: string | null;
@@ -120,6 +143,18 @@ export function StudentProfileDrawer({ studentId, open, onClose }: {
                   </div>
                 )}
               </div>
+              
+              {/* Siblings Section */}
+              {student.siblings && student.siblings.length > 0 && (
+                <div className="mt-4 p-4 bg-muted/30 rounded-lg">
+                  <h4 className="font-semibold mb-3">Siblings in School</h4>
+                  <div className="space-y-2">
+                    {student.siblings.map(siblingId => (
+                      <SiblingInfo key={siblingId} siblingId={siblingId} />
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="flex gap-2 mt-6">
                 <Button
                   variant="default"

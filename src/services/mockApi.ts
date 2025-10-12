@@ -160,6 +160,7 @@ interface Student {
   status: 'active' | 'inactive';
   admissionDate: string;
   photoUrl?: string;
+  siblings?: string[]; // Array of sibling student IDs
 }
 
 interface Staff {
