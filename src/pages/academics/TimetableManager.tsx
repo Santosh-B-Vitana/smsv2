@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { mockApi, SchoolClass } from "@/services/mockApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -11,8 +12,9 @@ interface TimetableEntry {
   id: string;
   day: string;
   period: number;
-  subject: string;
-  teacher: string;
+  type: 'class' | 'break';
+  subject: string; // For 'break', this is the break name
+  teacher?: string; // Only for 'class'
   startTime: string;
   endTime: string;
 }
@@ -40,33 +42,47 @@ export default function TimetableManager() {
   const [dialogMode, setDialogMode] = useState<'add'|'edit'>('add');
   const [dialogDay, setDialogDay] = useState<string>("");
   const [dialogPeriod, setDialogPeriod] = useState<number>(1);
+  const [dialogType, setDialogType] = useState<'class'|'break'>('class');
   const [dialogSubject, setDialogSubject] = useState<string>("");
   const [dialogStaff, setDialogStaff] = useState<string>("");
+  const [dialogStartTime, setDialogStartTime] = useState<string>("");
+  const [dialogEndTime, setDialogEndTime] = useState<string>("");
 
   // Open dialog for add/edit
   const openDialog = (mode: 'add'|'edit', day: string, period: number, entry?: TimetableEntry) => {
     setDialogMode(mode);
     setDialogDay(day);
     setDialogPeriod(period);
+    setDialogType(entry?.type || 'class');
     setDialogSubject(entry?.subject || "");
     setDialogStaff(entry?.teacher || "");
+    setDialogStartTime(entry?.startTime || getTimeSlot(period)?.start || "");
+    setDialogEndTime(entry?.endTime || getTimeSlot(period)?.end || "");
     setDialogOpen(true);
   };
 
   // Save entry (add or edit)
   const handleSaveEntry = () => {
-    if (!dialogSubject || !dialogStaff) {
-      toast.error("Please select subject and staff");
-      return;
+    if (dialogType === 'class') {
+      if (!dialogSubject || !dialogStaff) {
+        toast.error("Please select subject and staff");
+        return;
+      }
+    } else if (dialogType === 'break') {
+      if (!dialogSubject) {
+        toast.error("Please enter break name");
+        return;
+      }
     }
     const entry: TimetableEntry = {
       id: `${dialogDay}-${dialogPeriod}`,
       day: dialogDay,
       period: dialogPeriod,
+      type: dialogType,
       subject: dialogSubject,
-      teacher: dialogStaff,
-      startTime: getTimeSlot(dialogPeriod)?.start || "",
-      endTime: getTimeSlot(dialogPeriod)?.end || ""
+      teacher: dialogType === 'class' ? dialogStaff : undefined,
+      startTime: dialogStartTime,
+      endTime: dialogEndTime
     };
     setTimetables(prev => {
       const updated = prev.map(tt => {
@@ -101,6 +117,7 @@ export default function TimetableManager() {
           id: "1",
           day: "Monday",
           period: 1,
+          type: 'class',
           subject: "Mathematics",
           teacher: "Ms. Sarah",
           startTime: "09:00",
@@ -110,6 +127,7 @@ export default function TimetableManager() {
           id: "2",
           day: "Monday", 
           period: 2,
+          type: 'class',
           subject: "English",
           teacher: "Mr. John",
           startTime: "09:40",
@@ -119,6 +137,7 @@ export default function TimetableManager() {
           id: "3",
           day: "Monday",
           period: 3,
+          type: 'class',
           subject: "Science",
           teacher: "Ms. Lisa",
           startTime: "10:40",
@@ -128,11 +147,14 @@ export default function TimetableManager() {
     }
   ]);
 
-  const classes = [
-    { id: "1", name: "Class 1-A" },
-    { id: "2", name: "Class 1-B" },
-    { id: "3", name: "Class 2-A" }
-  ];
+  const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => {
+    async function fetchClasses() {
+      const apiClasses: SchoolClass[] = await mockApi.getClasses();
+      setClasses(apiClasses.map(cls => ({ id: cls.id, name: `${cls.standard} ${cls.section}` })));
+    }
+    fetchClasses();
+  }, []);
 
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const periods = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -232,58 +254,64 @@ export default function TimetableManager() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-24">Period</TableHead>
-                  <TableHead className="w-24">Time</TableHead>
-                  {days.map((day) => (
-                    <TableHead key={day} className="text-center min-w-32">
-                      {day}
-                    </TableHead>
-                  ))}
+                  <TableHead className="w-24">Day</TableHead>
+                  {periods.map((period) => {
+                    const timeSlot = getTimeSlot(period);
+                    return (
+                      <TableHead key={period} className="text-center min-w-32">
+                        <div>Period {period}</div>
+                        <div className="text-xs text-muted-foreground">{timeSlot ? `${timeSlot.start}-${timeSlot.end}` : "-"}</div>
+                      </TableHead>
+                    );
+                  })}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {periods.map((period) => {
-                  const timeSlot = getTimeSlot(period);
-                  return (
-                    <TableRow key={period}>
-                      <TableCell className="font-medium">{period}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {timeSlot ? `${timeSlot.start}-${timeSlot.end}` : "-"}
-                      </TableCell>
-                      {days.map((day) => {
-                        const entry = getTimetableEntry(day, period);
-                        return (
-                          <TableCell key={`${day}-${period}`} className="text-center">
-                            {entry ? (
-                              <div className="space-y-1">
-                                <div className="font-medium text-sm">{entry.subject}</div>
-                                <div className="text-xs text-muted-foreground">{entry.teacher}</div>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-6 px-2 text-xs"
-                                  onClick={() => handleEditEntry(day, period)}
-                                >
-                                  <Edit className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            ) : (
+                {days.map((day) => (
+                  <TableRow key={day}>
+                    <TableCell className="font-medium">{day}</TableCell>
+                    {periods.map((period) => {
+                      const entry = getTimetableEntry(day, period);
+                      return (
+                        <TableCell key={`${day}-${period}`} className="text-center">
+                          {entry ? (
+                            <div className="space-y-1">
+                              {entry.type === 'break' ? (
+                                <>
+                                  <div className="font-medium text-sm text-blue-600">{entry.subject}</div>
+                                  <div className="text-xs text-muted-foreground">Break</div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="font-medium text-sm">{entry.subject}</div>
+                                  <div className="text-xs text-muted-foreground">{entry.teacher}</div>
+                                </>
+                              )}
                               <Button
                                 size="sm"
-                                variant="outline"
-                                className="h-8 px-2 text-xs"
-                                onClick={() => handleAddEntry(day, period)}
+                                variant="ghost"
+                                className="h-6 px-2 text-xs"
+                                onClick={() => handleEditEntry(day, period)}
                               >
-                                <Plus className="h-3 w-3 mr-1" />
-                                Add
+                                <Edit className="h-3 w-3" />
                               </Button>
-                            )}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  );
-                })}
+                            </div>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 px-2 text-xs"
+                              onClick={() => handleAddEntry(day, period)}
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              Add
+                            </Button>
+                          )}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>
@@ -305,37 +333,81 @@ export default function TimetableManager() {
               <div>{dialogPeriod}</div>
             </div>
             <div>
-              <div className="font-semibold mb-1">Subject (Core)</div>
-              <Select value={coreSubjects.includes(dialogSubject) ? dialogSubject : ""} onValueChange={setDialogSubject}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Select core subject" /></SelectTrigger>
+              <div className="font-semibold mb-1">Type</div>
+              <Select value={dialogType} onValueChange={v => setDialogType(v as 'class'|'break')}>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Select type" /></SelectTrigger>
                 <SelectContent>
-                  {coreSubjects.map(sub => (
-                    <SelectItem key={sub} value={sub}>{sub}</SelectItem>
-                  ))}
+                  <SelectItem value="class">Class</SelectItem>
+                  <SelectItem value="break">Break</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <div className="font-semibold mb-1">Subject (Other)</div>
-              <Select value={otherSubjects.includes(dialogSubject) ? dialogSubject : ""} onValueChange={setDialogSubject}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Select other subject" /></SelectTrigger>
-                <SelectContent>
-                  {otherSubjects.map(sub => (
-                    <SelectItem key={sub} value={sub}>{sub}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <div className="font-semibold mb-1">Assign Staff</div>
-              <Select value={dialogStaff} onValueChange={setDialogStaff}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Select staff" /></SelectTrigger>
-                <SelectContent>
-                  {staffList.map(staff => (
-                    <SelectItem key={staff.id} value={staff.name}>{staff.name} ({staff.designation})</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {dialogType === 'class' ? (
+              <>
+                <div>
+                  <div className="font-semibold mb-1">Subject (Core)</div>
+                  <Select value={coreSubjects.includes(dialogSubject) ? dialogSubject : ""} onValueChange={setDialogSubject}>
+                    <SelectTrigger className="w-full"><SelectValue placeholder="Select core subject" /></SelectTrigger>
+                    <SelectContent>
+                      {coreSubjects.map(sub => (
+                        <SelectItem key={sub} value={sub}>{sub}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <div className="font-semibold mb-1">Subject (Other)</div>
+                  <Select value={otherSubjects.includes(dialogSubject) ? dialogSubject : ""} onValueChange={setDialogSubject}>
+                    <SelectTrigger className="w-full"><SelectValue placeholder="Select other subject" /></SelectTrigger>
+                    <SelectContent>
+                      {otherSubjects.map(sub => (
+                        <SelectItem key={sub} value={sub}>{sub}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <div className="font-semibold mb-1">Assign Staff</div>
+                  <Select value={dialogStaff} onValueChange={setDialogStaff}>
+                    <SelectTrigger className="w-full"><SelectValue placeholder="Select staff" /></SelectTrigger>
+                    <SelectContent>
+                      {staffList.map(staff => (
+                        <SelectItem key={staff.id} value={staff.name}>{staff.name} ({staff.designation})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            ) : (
+              <div>
+                <div className="font-semibold mb-1">Break Name</div>
+                <input
+                  className="w-full border rounded px-2 py-1"
+                  placeholder="e.g. Lunch Break, Short Break"
+                  value={dialogSubject}
+                  onChange={e => setDialogSubject(e.target.value)}
+                />
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="font-semibold mb-1">Start Time</div>
+                <input
+                  type="time"
+                  className="w-full border rounded px-2 py-1"
+                  value={dialogStartTime}
+                  onChange={e => setDialogStartTime(e.target.value)}
+                />
+              </div>
+              <div>
+                <div className="font-semibold mb-1">End Time</div>
+                <input
+                  type="time"
+                  className="w-full border rounded px-2 py-1"
+                  value={dialogEndTime}
+                  onChange={e => setDialogEndTime(e.target.value)}
+                />
+              </div>
             </div>
             <div className="flex gap-2 justify-end pt-2">
               <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>

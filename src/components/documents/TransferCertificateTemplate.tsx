@@ -1,6 +1,11 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Printer } from "lucide-react";
+import { generateTransferCertificate } from "@/utils/professionalCertificateGenerator";
+import { useSchool } from "@/contexts/SchoolContext";
+import { toast } from "sonner";
+import { PdfPreviewModal } from "@/components/common/PdfPreviewModal";
 
 interface TransferCertificateProps {
   studentName: string;
@@ -35,27 +40,43 @@ export function TransferCertificateTemplate({
   certificateNumber,
   issueDate
 }: TransferCertificateProps) {
-  const handleDownload = () => {
-    const printContent = document.getElementById('transfer-certificate')?.innerHTML;
-    const originalContent = document.body.innerHTML;
-    document.body.innerHTML = printContent || '';
-    window.print();
-    document.body.innerHTML = originalContent;
-    window.location.reload();
+  const { schoolInfo, loading } = useSchool();
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  
+  const handlePreview = () => {
+    if (!schoolInfo) {
+      toast.error("School information not available");
+      return;
+    }
+    
+    const url = generateTransferCertificate(schoolInfo, {
+      certificateNumber,
+      studentName,
+      fatherName,
+      motherName,
+      nationality: "Indian",
+      class: className,
+      dateOfBirth,
+      admissionDate: dateOfAdmission,
+      dateOfLeaving,
+      classAtLeaving: className,
+      conduct,
+      reasonForLeaving,
+      issueDate
+    });
+    
+    setPreviewUrl(url);
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-2 justify-end mb-4">
-        <Button onClick={handleDownload} variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Download
-        </Button>
-        <Button onClick={() => window.print()} variant="outline">
-          <Printer className="h-4 w-4 mr-2" />
-          Print
-        </Button>
-      </div>
+    <>
+      <div className="space-y-4">
+        <div className="flex gap-2 justify-end mb-4">
+          <Button onClick={handlePreview} disabled={loading || !schoolInfo} variant="outline">
+            <Printer className="h-4 w-4 mr-2" />
+            Preview & Print
+          </Button>
+        </div>
 
       <Card id="transfer-certificate" className="max-w-4xl mx-auto bg-white">
         <CardContent className="p-12">
@@ -160,6 +181,14 @@ export function TransferCertificateTemplate({
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+      
+      <PdfPreviewModal
+        open={!!previewUrl}
+        onClose={() => setPreviewUrl("")}
+        pdfUrl={previewUrl}
+        fileName={`Transfer_Certificate_${studentName.replace(/\s+/g, '_')}.pdf`}
+      />
+    </>
   );
 }

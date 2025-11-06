@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Check, X, Save, AlertCircle, Eye, Edit, Trash2, ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +9,24 @@ import { usePermissions, ModuleName, PermissionLevel } from "../../contexts/Perm
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "../../contexts/AuthContext";
 import { RoleManagement } from "../superadmin/RoleManagement";
+import { useLanguage } from "@/contexts/LanguageContext";
+
+// Map module names to translation keys
+const getModuleLabelKey = (moduleName: ModuleName) => {
+  switch (moduleName) {
+    case 'students': return 'nav.students';
+    case 'staff': return 'nav.staff';
+    case 'attendance': return 'nav.attendance';
+    case 'fees': return 'nav.fees';
+    case 'timetable': return 'nav.timetable';
+    case 'examinations': return 'nav.examinations';
+    case 'announcements': return 'nav.announcements';
+    case 'reports': return 'nav.reports';
+    case 'documents': return 'nav.documents';
+    case 'admissions': return 'nav.admissions';
+    default: return 'common.manage';
+  }
+};
 
 const MODULE_LABELS: Record<ModuleName, string> = {
   students: 'Student Management',
@@ -24,31 +41,32 @@ const MODULE_LABELS: Record<ModuleName, string> = {
   admissions: 'Admissions'
 };
 
-const PERMISSION_CONFIG: Record<PermissionLevel, { label: string; icon: any; color: string }> = {
-  read: { 
-    label: 'View', 
-    icon: Eye, 
-    color: 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200' 
-  },
-  write: { 
-    label: 'Edit', 
-    icon: Edit, 
-    color: 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200' 
-  },
-  delete: { 
-    label: 'Delete', 
-    icon: Trash2, 
-    color: 'bg-red-100 text-red-800 border-red-200 hover:bg-red-200' 
-  }
-};
-
 export function PermissionsManager() {
   const { schoolPermissions, updateSchoolPermissions, loading } = usePermissions();
   const { user } = useAuth();
+  const { t, language } = useLanguage();
   const [saving, setSaving] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [editingRoles, setEditingRoles] = useState<string | null>(null);
   const { toast } = useToast();
+  
+  const PERMISSION_CONFIG: Record<PermissionLevel, { label: string; icon: any; color: string }> = {
+    read: { 
+      label: t('permissions.read'),
+      icon: Eye, 
+      color: 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800' 
+    },
+    write: { 
+      label: t('permissions.write'),
+      icon: Edit, 
+      color: 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800' 
+    },
+    delete: { 
+      label: t('permissions.delete'),
+      icon: Trash2, 
+      color: 'bg-red-100 text-red-800 border-red-200 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800' 
+    }
+  };
 
   // Filter permissions based on current user's school (for non-super admins)
   const relevantSchools = user?.role === 'super_admin' 
@@ -67,14 +85,14 @@ export function PermissionsManager() {
       });
       
       toast({
-        title: "Success",
-        description: `${MODULE_LABELS[moduleName]} ${enabled ? 'enabled' : 'disabled'} for ${school?.schoolName}`,
+        title: t('permissions.success'),
+        description: `${t(getModuleLabelKey(moduleName))} ${enabled ? 'enabled' : 'disabled'} for ${school?.schoolName}`,
       });
       setHasChanges(true);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update permissions",
+        title: t('permissions.error'),
+        description: t('permissions.updateFailed'),
         variant: "destructive"
       });
     } finally {
@@ -113,14 +131,14 @@ export function PermissionsManager() {
       });
 
       toast({
-        title: "Success",
-        description: `${PERMISSION_CONFIG[permission].label} permission ${hasPermission ? 'revoked' : 'granted'}`,
+        title: t('permissions.success'),
+        description: `${PERMISSION_CONFIG[permission].label} ${hasPermission ? t('permissions.deleteAccess') : t('permissions.viewAccess')}`,
       });
       setHasChanges(true);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update permissions",
+        title: t('permissions.error'),
+        description: t('permissions.updateFailed'),
         variant: "destructive"
       });
     } finally {
@@ -161,10 +179,10 @@ export function PermissionsManager() {
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Permissions
+            {t('common.back')}
           </Button>
           <h2 className="text-lg font-semibold">
-            Role Management - {relevantSchools.find(s => s.schoolId === editingRoles)?.schoolName}
+            {t('permissions.roleManagement')} - {relevantSchools.find(s => s.schoolId === editingRoles)?.schoolName}
           </h2>
         </div>
         <RoleManagement schoolId={editingRoles} />
@@ -176,12 +194,9 @@ export function PermissionsManager() {
       {/* Header - Mobile Responsive */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Module Permissions</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t('permissions.title')}</h2>
           <p className="text-sm text-muted-foreground">
-            {user?.role === 'super_admin' 
-              ? 'Manage module access and permissions for each school'
-              : `Manage module permissions for ${relevantSchools[0]?.schoolName}`
-            }
+            {t('permissions.description')}
           </p>
         </div>
         {hasChanges && (
@@ -201,18 +216,18 @@ export function PermissionsManager() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <CardTitle className="text-lg">{school.schoolName}</CardTitle>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="text-xs w-fit">
-                    {Object.values(school.modules).filter(m => m.enabled).length} / {Object.keys(school.modules).length} modules enabled
-                  </Badge>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-xs"
-                    onClick={() => setEditingRoles(school.schoolId)}
-                  >
-                    <Edit className="w-3 h-3 mr-1" />
-                    Edit Roles
-                  </Button>
+          <Badge variant="secondary" className="text-xs w-fit">
+            {Object.values(school.modules).filter(m => m.enabled).length} / {Object.keys(school.modules).length} modules enabled
+          </Badge>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-xs"
+            onClick={() => setEditingRoles(school.schoolId)}
+          >
+            <Edit className="w-3 h-3 mr-1" />
+            {t('permissions.roleManagement')}
+          </Button>
                 </div>
               </div>
               <CardDescription>
@@ -236,13 +251,13 @@ export function PermissionsManager() {
                             disabled={isSaving}
                           />
                           <div className="min-w-0">
-                            <p className="font-medium text-foreground text-sm sm:text-base">{MODULE_LABELS[moduleName]}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {moduleData.enabled 
-                                ? `Active with ${moduleData.permissions.length} permission${moduleData.permissions.length !== 1 ? 's' : ''}` 
-                                : 'Module is disabled'
-                              }
-                            </p>
+            <p className="font-medium text-foreground text-sm sm:text-base">{t(getModuleLabelKey(moduleName))}</p>
+            <p className="text-xs text-muted-foreground">
+              {moduleData.enabled 
+                ? `Active with ${moduleData.permissions.length} permission${moduleData.permissions.length !== 1 ? 's' : ''}` 
+                : 'Module is disabled'
+              }
+            </p>
                           </div>
                         </div>
                         

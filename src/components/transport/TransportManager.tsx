@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,7 +39,7 @@ interface Student {
 }
 
 export function TransportManager() {
-  const [busRoutes] = useState<BusRoute[]>([
+  const [busRoutes, setBusRoutes] = useState<BusRoute[]>([
     {
       id: "ROUTE001",
       routeName: "North Route - Sector 1-5",
@@ -81,18 +81,18 @@ export function TransportManager() {
     }
   ]);
 
-  const [transportStudents] = useState<Student[]>([
+  const [transportStudents, setTransportStudents] = useState<Student[]>([
     {
       id: "STU001",
       name: "Alice Johnson",
       class: "10-A",
-      busRoute: "ROUTE001", 
+      busRoute: "ROUTE001",
       pickupPoint: "Sector 2 Main Gate",
       pickupTime: "07:15",
       guardianPhone: "+91-9876543220"
     },
     {
-      id: "STU002", 
+      id: "STU002",
       name: "David Chen",
       class: "10-A",
       busRoute: "ROUTE001",
@@ -102,7 +102,7 @@ export function TransportManager() {
     },
     {
       id: "STU003",
-      name: "Emma Wilson", 
+      name: "Emma Wilson",
       class: "9-B",
       busRoute: "ROUTE002",
       pickupPoint: "Sector 7 Metro Station",
@@ -111,7 +111,44 @@ export function TransportManager() {
     }
   ]);
 
+  // State for editing student
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+
+  const handleEditStudent = (student: Student) => {
+    setEditingStudent(student);
+    setEditDialogOpen(true);
+  };
+
+  const handleEditStudentChange = (field: keyof Student, value: string) => {
+    if (!editingStudent) return;
+    setEditingStudent({ ...editingStudent, [field]: value });
+  };
+
+  const handleEditStudentSave = () => {
+    if (!editingStudent) return;
+    setTransportStudents(students => students.map(s => s.id === editingStudent.id ? editingStudent : s));
+    setEditDialogOpen(false);
+    setEditingStudent(null);
+  };
+
   const { toast } = useToast();
+
+  // Students tab - search and filters
+  const [searchTerm, setSearchTerm] = useState("");
+  const [classFilter, setClassFilter] = useState("all");
+  const [routeFilter, setRouteFilter] = useState("all");
+
+  const filteredStudents = transportStudents.filter((s) => {
+    const matchesSearch = !searchTerm ||
+      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.id.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesClass = classFilter === "all" || s.class === classFilter;
+    const matchesRoute = routeFilter === "all" || s.busRoute === routeFilter;
+
+    return matchesSearch && matchesClass && matchesRoute;
+  });
 
   const sendLocationUpdate = (routeId: string) => {
     const route = busRoutes.find(r => r.id === routeId);
@@ -134,14 +171,107 @@ export function TransportManager() {
     return transportStudents.filter(student => student.busRoute === routeId);
   };
 
+  // Add Route Dialog State
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [newRoute, setNewRoute] = useState({
+    routeName: "",
+    busNumber: "",
+    driverName: "",
+    driverPhone: "",
+    capacity: 40,
+    startTime: "07:00",
+    endTime: "17:00",
+    status: "active",
+    gpsEnabled: false,
+  });
+
+  const handleAddRoute = () => {
+    setBusRoutes([
+      ...busRoutes,
+      {
+        id: `ROUTE${busRoutes.length + 1}`,
+        studentsAssigned: 0,
+        ...newRoute,
+        status: newRoute.status as 'active' | 'inactive' | 'maintenance',
+      },
+    ]);
+    setAddDialogOpen(false);
+    setNewRoute({
+      routeName: "",
+      busNumber: "",
+      driverName: "",
+      driverPhone: "",
+      capacity: 40,
+      startTime: "07:00",
+      endTime: "17:00",
+      status: "active",
+      gpsEnabled: false,
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Transport Management System</h2>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Route
-        </Button>
+        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Route
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Add New Bus Route</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-4 mb-2">
+              <div>
+                <Label>Route Name</Label>
+                <Input value={newRoute.routeName} onChange={e => setNewRoute(r => ({ ...r, routeName: e.target.value }))} />
+              </div>
+              <div>
+                <Label>Bus Number</Label>
+                <Input value={newRoute.busNumber} onChange={e => setNewRoute(r => ({ ...r, busNumber: e.target.value }))} />
+              </div>
+              <div>
+                <Label>Driver Name</Label>
+                <Input value={newRoute.driverName} onChange={e => setNewRoute(r => ({ ...r, driverName: e.target.value }))} />
+              </div>
+              <div>
+                <Label>Driver Phone</Label>
+                <Input value={newRoute.driverPhone} onChange={e => setNewRoute(r => ({ ...r, driverPhone: e.target.value }))} />
+              </div>
+              <div>
+                <Label>Capacity</Label>
+                <Input type="number" value={newRoute.capacity} onChange={e => setNewRoute(r => ({ ...r, capacity: Number(e.target.value) }))} />
+              </div>
+              <div>
+                <Label>Status</Label>
+                <Select value={newRoute.status} onValueChange={val => setNewRoute(r => ({ ...r, status: val as any }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Start Time</Label>
+                <Input type="time" value={newRoute.startTime} onChange={e => setNewRoute(r => ({ ...r, startTime: e.target.value }))} />
+              </div>
+              <div>
+                <Label>End Time</Label>
+                <Input type="time" value={newRoute.endTime} onChange={e => setNewRoute(r => ({ ...r, endTime: e.target.value }))} />
+              </div>
+              <div className="col-span-2 flex items-center gap-2">
+                <input type="checkbox" id="gpsEnabled" checked={newRoute.gpsEnabled} onChange={e => setNewRoute(r => ({ ...r, gpsEnabled: e.target.checked }))} />
+                <Label htmlFor="gpsEnabled">GPS Enabled</Label>
+              </div>
+            </div>
+            <Button onClick={handleAddRoute} className="w-full">Add Route</Button>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Summary Cards */}
@@ -252,11 +382,22 @@ export function TransportManager() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="outline" size="sm" onClick={() => sendLocationUpdate(route.id)}>
-                            <MapPin className="h-3 w-3" />
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => emergencyAlert(route.id)}>
-                            <Phone className="h-3 w-3" />
+                          <Button
+                            variant={route.gpsEnabled ? "outline" : "ghost"}
+                            size="sm"
+                            title={route.gpsEnabled ? "Disable GPS" : "Enable GPS"}
+                            onClick={() => {
+                              setBusRoutes(busRoutes.map(r =>
+                                r.id === route.id ? { ...r, gpsEnabled: !r.gpsEnabled } : r
+                              ));
+                            }}
+                          >
+                            <MapPin
+                              className={
+                                "h-3 w-3 transition-all " +
+                                (route.gpsEnabled ? "text-blue-600" : "text-gray-400 line-through opacity-60")
+                              }
+                            />
                           </Button>
                           <Dialog>
                             <DialogTrigger asChild>
@@ -310,8 +451,28 @@ export function TransportManager() {
                                     <Input type="time" defaultValue={route.endTime} />
                                   </div>
                                 </div>
-                                
-                                <Button className="w-full">Update Route</Button>
+                                <div>
+                                  <Label>Status</Label>
+                                  <Select defaultValue={route.status} onValueChange={val => {
+                                    // Update status in busRoutes
+                                    const updated = busRoutes.map(r => r.id === route.id ? { ...r, status: val as any } : r);
+                                    setBusRoutes(updated);
+                                  }}>
+                                    <SelectTrigger className="w-40">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="active">Active</SelectItem>
+                                      <SelectItem value="inactive">Inactive</SelectItem>
+                                      <SelectItem value="maintenance">Maintenance</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <DialogClose asChild>
+                                  <Button className="w-full" onClick={() => {
+                                    // Optionally, update route here if needed
+                                  }}>Update Route</Button>
+                                </DialogClose>
                               </div>
                             </DialogContent>
                           </Dialog>
@@ -330,7 +491,86 @@ export function TransportManager() {
             <CardHeader>
               <CardTitle>Students Transport Assignment</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-3">
+                <Input
+                  placeholder="Search students by name or ID..."
+                  className="w-full md:w-96"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <Select value={classFilter} onValueChange={setClassFilter}>
+                  <SelectTrigger className="w-full md:w-40">
+                    <SelectValue placeholder="Filter by Class" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Classes</SelectItem>
+                    {Array.from(new Set(transportStudents.map((s) => s.class))).map((cls) => (
+                      <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={routeFilter} onValueChange={setRouteFilter}>
+                  <SelectTrigger className="w-full md:w-56">
+                    <SelectValue placeholder="Filter by Route" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Routes</SelectItem>
+                    {busRoutes.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>{r.routeName}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex justify-end">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="default" size="sm">
+                      <Plus className="h-4 w-4 mr-2" /> Add Student
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                      <DialogTitle>Add New Student</DialogTitle>
+                    </DialogHeader>
+                    <form className="space-y-4">
+                      <div>
+                        <Label>Student Name</Label>
+                        <Input placeholder="Enter name" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Class</Label>
+                          <Input placeholder="e.g. 10-A" />
+                        </div>
+                        <div>
+                          <Label>Route</Label>
+                          <Input placeholder="Route ID or Name" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Pickup Point</Label>
+                          <Input placeholder="Pickup location" />
+                        </div>
+                        <div>
+                          <Label>Pickup Time</Label>
+                          <Input type="time" />
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Guardian Phone</Label>
+                        <Input placeholder="Phone number" />
+                      </div>
+                      <div className="flex justify-end">
+                        <Button type="submit">Add Student</Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -344,8 +584,8 @@ export function TransportManager() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transportStudents.map((student) => {
-                    const route = busRoutes.find(r => r.id === student.busRoute);
+                  {filteredStudents.map((student) => {
+                    const route = busRoutes.find((r) => r.id === student.busRoute);
                     return (
                       <TableRow key={student.id}>
                         <TableCell className="font-medium">{student.name}</TableCell>
@@ -356,10 +596,51 @@ export function TransportManager() {
                         <TableCell>{student.guardianPhone}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm">Edit</Button>
-                            <Button variant="outline" size="sm">
-                              <MapPin className="h-3 w-3" />
-                            </Button>
+                            <Dialog open={editDialogOpen && editingStudent?.id === student.id} onOpenChange={(open) => { if (!open) setEditDialogOpen(false); }}>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" onClick={() => handleEditStudent(student)}>Edit</Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-lg">
+                                <DialogHeader>
+                                  <DialogTitle>Edit Student</DialogTitle>
+                                </DialogHeader>
+                                {editingStudent && (
+                                  <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleEditStudentSave(); }}>
+                                    <div>
+                                      <Label>Student Name</Label>
+                                      <Input value={editingStudent.name} onChange={(e) => handleEditStudentChange('name', e.target.value)} />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <Label>Class</Label>
+                                        <Input value={editingStudent.class} onChange={(e) => handleEditStudentChange('class', e.target.value)} />
+                                      </div>
+                                      <div>
+                                        <Label>Route</Label>
+                                        <Input value={editingStudent.busRoute} onChange={(e) => handleEditStudentChange('busRoute', e.target.value)} />
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <Label>Pickup Point</Label>
+                                        <Input value={editingStudent.pickupPoint} onChange={(e) => handleEditStudentChange('pickupPoint', e.target.value)} />
+                                      </div>
+                                      <div>
+                                        <Label>Pickup Time</Label>
+                                        <Input type="time" value={editingStudent.pickupTime} onChange={(e) => handleEditStudentChange('pickupTime', e.target.value)} />
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <Label>Guardian Phone</Label>
+                                      <Input value={editingStudent.guardianPhone} onChange={(e) => handleEditStudentChange('guardianPhone', e.target.value)} />
+                                    </div>
+                                    <div className="flex justify-end">
+                                      <Button type="submit">Save</Button>
+                                    </div>
+                                  </form>
+                                )}
+                              </DialogContent>
+                            </Dialog>
                           </div>
                         </TableCell>
                       </TableRow>

@@ -71,7 +71,7 @@ export default function Academics() {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+  <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="academic-years" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             Academic Years
@@ -83,6 +83,10 @@ export default function Academics() {
           <TabsTrigger value="subjects" className="flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
             Subjects
+          </TabsTrigger>
+          <TabsTrigger value="timetable" className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Timetable
           </TabsTrigger>
           <TabsTrigger value="examinations" className="flex items-center gap-2">
             <Award className="h-4 w-4" />
@@ -103,6 +107,9 @@ export default function Academics() {
         </TabsContent>
 
 
+        <TabsContent value="timetable" className="space-y-6">
+          <TimetableManager />
+        </TabsContent>
         <TabsContent value="examinations" className="space-y-6">
           <ExaminationManager />
         </TabsContent>

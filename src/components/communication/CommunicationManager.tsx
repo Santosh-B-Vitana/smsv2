@@ -1,4 +1,9 @@
 
+
+// --- imports remain unchanged ---
+
+// Place dialog state and handler hooks here, after imports, inside the component
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,10 +43,73 @@ interface NotificationTemplate {
 }
 
 export function CommunicationManager() {
+  // Templates state (must be above all logic that uses it)
+  const [templates, setTemplates] = useState<NotificationTemplate[]>([]);
+  // Track if editing a template and which one
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+  // Dialog state for Add Template
+  const [addTemplateDialogOpen, setAddTemplateDialogOpen] = useState(false);
+  // Add Template dialog form state
+  const [newTemplateName, setNewTemplateName] = useState("");
+  const [newTemplateSubject, setNewTemplateSubject] = useState("");
+  const [newTemplateContent, setNewTemplateContent] = useState("");
+  const [newTemplateType, setNewTemplateType] = useState<'sms' | 'email' | 'notification' | "">("");
+  const [newTemplateCategory, setNewTemplateCategory] = useState<'attendance' | 'fees' | 'exam' | 'general' | "">("");
+
+  // Reset or prefill form fields when dialog opens
+  useEffect(() => {
+    if (addTemplateDialogOpen) {
+      if (editingTemplateId) {
+        const t = templates.find(t => t.id === editingTemplateId);
+        if (t) {
+          setNewTemplateName(t.name);
+          setNewTemplateSubject(t.subject);
+          setNewTemplateContent(t.content);
+          setNewTemplateType(t.type);
+          setNewTemplateCategory(t.category);
+        }
+      } else {
+        setNewTemplateName("");
+        setNewTemplateSubject("");
+        setNewTemplateContent("");
+        setNewTemplateType("");
+        setNewTemplateCategory("");
+      }
+    }
+  }, [addTemplateDialogOpen, editingTemplateId, templates]);
+
+  function handleAddTemplateSave() {
+    if (!newTemplateName || !newTemplateSubject || !newTemplateContent || !newTemplateType || !newTemplateCategory) return;
+    if (editingTemplateId) {
+      // Update existing template
+      setTemplates(prev => prev.map(t => t.id === editingTemplateId ? {
+        ...t,
+        name: newTemplateName,
+        subject: newTemplateSubject,
+        content: newTemplateContent,
+        type: newTemplateType as 'sms' | 'email' | 'notification',
+        category: newTemplateCategory as 'attendance' | 'fees' | 'exam' | 'general',
+      } : t));
+    } else {
+      // Add new template
+      setTemplates(prev => [
+        ...prev,
+        {
+          id: `TEMPLATE_${Date.now()}`,
+          name: newTemplateName,
+          subject: newTemplateSubject,
+          content: newTemplateContent,
+          type: newTemplateType as 'sms' | 'email' | 'notification',
+          category: newTemplateCategory as 'attendance' | 'fees' | 'exam' | 'general',
+        }
+      ]);
+    }
+    setAddTemplateDialogOpen(false);
+    setEditingTemplateId(null);
+  }
   const [students, setStudents] = useState<Student[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [templates, setTemplates] = useState<NotificationTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
@@ -100,7 +168,7 @@ export function CommunicationManager() {
         ];
         setMessages(mockMessages);
 
-        // Mock templates data
+        // Mock templates data with more prefilled templates
         const mockTemplates: NotificationTemplate[] = [
           {
             id: 'TPL001',
@@ -117,6 +185,70 @@ export function CommunicationManager() {
             content: 'Your child {student_name} was absent today ({date}). Please contact the school if this is an error.',
             type: 'sms',
             category: 'attendance'
+          },
+          {
+            id: 'TPL003',
+            name: 'Exam Schedule',
+            subject: 'Upcoming Examination Schedule',
+            content: 'Dear Parent, the {exam_name} for {student_name} is scheduled from {start_date} to {end_date}. Please ensure your child is well prepared.',
+            type: 'email',
+            category: 'exam'
+          },
+          {
+            id: 'TPL004',
+            name: 'Result Announcement',
+            subject: 'Exam Results Published',
+            content: 'Dear Parent, the results for {exam_name} have been published. {student_name} scored {percentage}%. View detailed report at {link}.',
+            type: 'notification',
+            category: 'exam'
+          },
+          {
+            id: 'TPL005',
+            name: 'Parent Teacher Meeting',
+            subject: 'Parent-Teacher Meeting Invitation',
+            content: 'Dear {parent_name}, you are invited to attend the Parent-Teacher Meeting on {date} at {time}. We look forward to discussing {student_name}\'s progress.',
+            type: 'email',
+            category: 'general'
+          },
+          {
+            id: 'TPL006',
+            name: 'Fee Due Alert',
+            subject: 'Urgent: Fee Payment Overdue',
+            content: 'Dear Parent, the fee payment for {student_name} is overdue by {days} days. Amount due: ₹{amount}. Please make the payment immediately to avoid late fees.',
+            type: 'sms',
+            category: 'fees'
+          },
+          {
+            id: 'TPL007',
+            name: 'Holiday Announcement',
+            subject: 'School Holiday Notice',
+            content: 'Dear Parents, the school will remain closed on {date} on account of {occasion}. Regular classes will resume from {resume_date}.',
+            type: 'notification',
+            category: 'general'
+          },
+          {
+            id: 'TPL008',
+            name: 'Low Attendance Warning',
+            subject: 'Low Attendance Alert',
+            content: 'Dear {parent_name}, {student_name}\'s attendance is {percentage}%, which is below the required 75%. Please ensure regular attendance to avoid academic consequences.',
+            type: 'email',
+            category: 'attendance'
+          },
+          {
+            id: 'TPL009',
+            name: 'Assignment Reminder',
+            subject: 'Assignment Submission Reminder',
+            content: 'Reminder: {student_name} has pending assignments in {subject}. Submission deadline is {due_date}.',
+            type: 'notification',
+            category: 'general'
+          },
+          {
+            id: 'TPL010',
+            name: 'Event Invitation',
+            subject: 'School Event Invitation',
+            content: 'Dear Parents, you are cordially invited to {event_name} on {date} at {time}. Your presence will be highly appreciated.',
+            type: 'email',
+            category: 'general'
           }
         ];
         setTemplates(mockTemplates);
@@ -644,10 +776,48 @@ export function CommunicationManager() {
             <TabsContent value="templates" className="space-y-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold">Message Templates</h3>
-                <Button>
+                <Button onClick={() => { setAddTemplateDialogOpen(true); setEditingTemplateId(null); }}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Template
                 </Button>
+                {/* Add Template Dialog */}
+                <Dialog open={addTemplateDialogOpen} onOpenChange={setAddTemplateDialogOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Template</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <Input placeholder="Template Name" value={newTemplateName} onChange={e => setNewTemplateName(e.target.value)} />
+                      <Input placeholder="Subject" value={newTemplateSubject} onChange={e => setNewTemplateSubject(e.target.value)} />
+                      <Textarea placeholder="Content" value={newTemplateContent} onChange={e => setNewTemplateContent(e.target.value)} />
+                      <Select value={newTemplateType} onValueChange={v => setNewTemplateType(v as 'sms' | 'email' | 'notification')}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sms">SMS</SelectItem>
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="notification">Notification</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={newTemplateCategory} onValueChange={v => setNewTemplateCategory(v as 'attendance' | 'fees' | 'exam' | 'general')}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="attendance">Attendance</SelectItem>
+                          <SelectItem value="fees">Fees</SelectItem>
+                          <SelectItem value="exam">Exam</SelectItem>
+                          <SelectItem value="general">General</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setAddTemplateDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleAddTemplateSave} disabled={!newTemplateName || !newTemplateSubject || !newTemplateContent || !newTemplateType || !newTemplateCategory}>Save</Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -663,8 +833,13 @@ export function CommunicationManager() {
                       <p className="text-sm text-muted-foreground mb-2">{template.subject}</p>
                       <p className="text-sm">{template.content.substring(0, 100)}...</p>
                       <div className="flex gap-2 mt-4">
-                        <Button size="sm" variant="outline">Edit</Button>
-                        <Button size="sm" variant="outline">Use</Button>
+                        <Button size="sm" variant="outline" onClick={() => { setEditingTemplateId(template.id); setAddTemplateDialogOpen(true); }}>Edit</Button>
+                        <Button size="sm" variant="outline" onClick={() => {
+                          setMessageSubject(template.subject);
+                          setMessageContent(template.content);
+                          setMessageType(template.type);
+                          // Optionally, set category if you have a messageCategory state
+                        }}>Use</Button>
                       </div>
                     </CardContent>
                   </Card>

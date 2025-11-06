@@ -1,6 +1,5 @@
-
-import { LibraryManager } from "../components/library/LibraryManager";
+import { EnhancedLibraryManager } from "../components/library/EnhancedLibraryManager";
 
 export default function Library() {
-  return <LibraryManager />;
+  return <EnhancedLibraryManager />;
 }

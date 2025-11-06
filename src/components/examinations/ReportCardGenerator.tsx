@@ -9,6 +9,8 @@ import { FileText, Download, Printer, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { ReportCardTemplate } from "./ReportCardTemplate";
+import { generateProfessionalReportCard } from "@/utils/professionalPdfGenerator";
+import { useSchool } from "@/contexts/SchoolContext";
 
 interface Subject {
   name: string;
@@ -54,6 +56,7 @@ const mockSubjects = [
 ];
 
 export function ReportCardGenerator() {
+  const { schoolInfo } = useSchool();
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedTerm, setSelectedTerm] = useState("");
@@ -144,7 +147,32 @@ export function ReportCardGenerator() {
   };
 
   const downloadReportCard = (reportCard: ReportCard) => {
-    // Mock download functionality
+    if (!schoolInfo) return;
+    
+    const reportData = {
+      studentName: reportCard.studentName,
+      studentId: reportCard.studentId,
+      class: reportCard.class,
+      section: reportCard.section,
+      academicYear: "2024-25",
+      examName: reportCard.term,
+      rollNo: mockStudents.find(s => s.id === reportCard.studentId)?.rollNo || '',
+      subjects: reportCard.subjects.map(s => ({
+        name: s.name,
+        marks: s.marksObtained,
+        maxMarks: s.totalMarks,
+        grade: s.grade
+      })),
+      totalMarks: reportCard.totalMarks,
+      totalMaxMarks: reportCard.totalObtained,
+      percentage: reportCard.percentage,
+      overallGrade: reportCard.grade,
+      remarks: reportCard.remarks,
+      rank: reportCard.rank,
+      attendance: `${reportCard.attendance}%`
+    };
+    
+    generateProfessionalReportCard(schoolInfo, reportData);
     toast({
       title: "Download Started",
       description: `Downloading report card for ${reportCard.studentName}`

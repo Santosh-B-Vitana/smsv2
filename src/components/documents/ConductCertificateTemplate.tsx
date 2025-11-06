@@ -1,6 +1,11 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Printer } from "lucide-react";
+import { generateConductCertificate } from "@/utils/professionalCertificateGenerator";
+import { useSchool } from "@/contexts/SchoolContext";
+import { toast } from "sonner";
+import { PdfPreviewModal } from "@/components/common/PdfPreviewModal";
 
 interface ConductCertificateProps {
   studentName: string;
@@ -23,27 +28,37 @@ export function ConductCertificateTemplate({
   issueDate,
   certificateNumber
 }: ConductCertificateProps) {
-  const handleDownload = () => {
-    const printContent = document.getElementById('conduct-certificate')?.innerHTML;
-    const originalContent = document.body.innerHTML;
-    document.body.innerHTML = printContent || '';
-    window.print();
-    document.body.innerHTML = originalContent;
-    window.location.reload();
+  const { schoolInfo, loading } = useSchool();
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  
+  const handlePreview = () => {
+    if (!schoolInfo) {
+      toast.error("School information not available");
+      return;
+    }
+    
+    const url = generateConductCertificate(schoolInfo, {
+      certificateNumber,
+      studentName,
+      fatherName: "N/A",
+      class: className,
+      academicYear,
+      conduct,
+      issueDate
+    });
+    
+    setPreviewUrl(url);
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-2 justify-end mb-4">
-        <Button onClick={handleDownload} variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Download
-        </Button>
-        <Button onClick={() => window.print()} variant="outline">
-          <Printer className="h-4 w-4 mr-2" />
-          Print
-        </Button>
-      </div>
+    <>
+      <div className="space-y-4">
+        <div className="flex gap-2 justify-end mb-4">
+          <Button onClick={handlePreview} disabled={loading || !schoolInfo} variant="outline">
+            <Printer className="h-4 w-4 mr-2" />
+            Preview & Print
+          </Button>
+        </div>
 
       <Card id="conduct-certificate" className="max-w-4xl mx-auto bg-white">
         <CardContent className="p-12">
@@ -112,6 +127,14 @@ export function ConductCertificateTemplate({
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+      
+      <PdfPreviewModal
+        open={!!previewUrl}
+        onClose={() => setPreviewUrl("")}
+        pdfUrl={previewUrl}
+        fileName={`Conduct_Certificate_${studentName.replace(/\s+/g, '_')}.pdf`}
+      />
+    </>
   );
 }

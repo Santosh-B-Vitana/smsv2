@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DollarSign, CreditCard, Receipt, Download } from "lucide-react";
+import { generateProfessionalFeeReceipt } from "@/utils/professionalPdfGenerator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -132,7 +133,7 @@ export function ParentFeePayment({ studentId }: { studentId: string }) {
     const transaction = paymentTransactions.find(t => t.id === transactionId);
     const feeRecord = feeRecords.find(f => f.studentId === transaction?.studentId);
     
-    if (!transaction || !feeRecord) {
+    if (!transaction || !feeRecord || !schoolInfo) {
       toast({
         title: "Error",
         description: "Unable to generate receipt",
@@ -141,70 +142,23 @@ export function ParentFeePayment({ studentId }: { studentId: string }) {
       return;
     }
 
-    // Create receipt content
-    const receiptContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Fee Payment Receipt</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; }
-            .school-info { margin-bottom: 20px; }
-            .student-info { margin-bottom: 20px; }
-            .payment-details { border: 1px solid #ccc; padding: 10px; }
-            .footer { margin-top: 20px; text-align: center; font-size: 12px; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>${schoolInfo.name}</h1>
-            <p>${schoolInfo.address}</p>
-            <p>Phone: ${schoolInfo.phone} | Email: ${schoolInfo.email}</p>
-            <p>Affiliation No: ${schoolInfo.affiliationNo} | School Code: ${schoolInfo.schoolCode}</p>
-          </div>
-          
-          <div class="school-info">
-            <h2>Fee Payment Receipt</h2>
-            <p><strong>Receipt No:</strong> ${transaction.receiptNumber}</p>
-            <p><strong>Date:</strong> ${new Date(transaction.timestamp).toLocaleDateString()}</p>
-          </div>
-          
-          <div class="student-info">
-            <h3>Student Details</h3>
-            <p><strong>Name:</strong> ${feeRecord.studentName}</p>
-            <p><strong>Class:</strong> ${feeRecord.class}</p>
-            <p><strong>Student ID:</strong> ${feeRecord.studentId}</p>
-            <p><strong>Academic Year:</strong> ${feeRecord.academicYear}</p>
-          </div>
-          
-          <div class="payment-details">
-            <h3>Payment Details</h3>
-            <p><strong>Fee Type:</strong> ${feeRecord.feeType}</p>
-            <p><strong>Amount Paid:</strong> ₹${transaction.amount.toLocaleString()}</p>
-            <p><strong>Payment Method:</strong> ${transaction.method.toUpperCase()}</p>
-            <p><strong>Transaction ID:</strong> ${transaction.id}</p>
-            <p><strong>Status:</strong> ${transaction.status.toUpperCase()}</p>
-          </div>
-          
-          <div class="footer">
-            <p>This is a computer-generated receipt. No signature required.</p>
-            <p>For any queries, contact ${schoolInfo.phone}</p>
-          </div>
-        </body>
-      </html>
-    `;
+    const receiptData = {
+      receiptNo: transaction.receiptNumber,
+      date: new Date(transaction.timestamp).toLocaleDateString('en-IN'),
+      studentName: feeRecord.studentName,
+      studentId: feeRecord.studentId,
+      class: feeRecord.class,
+      academicYear: feeRecord.academicYear,
+      totalAmount: feeRecord.totalAmount,
+      paidAmount: transaction.amount,
+      outstandingAmount: feeRecord.pendingAmount,
+      paymentMethod: transaction.method,
+      transactionId: transaction.id,
+      paymentDate: new Date(transaction.timestamp).toLocaleDateString('en-IN'),
+      feeType: feeRecord.feeType
+    };
 
-    // Create and download receipt
-    const blob = new Blob([receiptContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Receipt_${transaction.receiptNumber}_${feeRecord.studentName}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    generateProfessionalFeeReceipt(schoolInfo, receiptData);
 
     toast({
       title: "Receipt Generated",

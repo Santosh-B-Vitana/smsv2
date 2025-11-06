@@ -1,3 +1,4 @@
+import ConfigurationSettings from "./pages/ConfigurationSettings";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
@@ -8,6 +9,7 @@ import { SchoolProvider } from "@/contexts/SchoolContext";
 import { PermissionsProvider } from "@/contexts/PermissionsContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Layout } from "@/components/layout/Layout";
+import { NetworkErrorHandler } from "@/components/common/NetworkErrorHandler";
 
 // Import all pages
 import Login from "@/pages/Login";
@@ -54,6 +56,9 @@ import ParentNotifications from "./pages/ParentNotifications";
 import StudentAttendance from "./pages/StudentAttendance";
 import Alumni from "./pages/Alumni";
 import StaffAttendanceTeacher from "./pages/StaffAttendanceTeacher";
+import Wallet from "./pages/Wallet";
+import SchoolConnect from "./pages/SchoolConnect";
+import Store from "./pages/Store";
 
 import NotFound from "./pages/NotFound";
 import ChildProfile from "./pages/ChildProfile"; // Updated import
@@ -115,11 +120,15 @@ function App() {
                   <Route path="/timetable" element={<Layout><Timetable /></Layout>} />
                   <Route path="/transport" element={<Layout><Transport /></Layout>} />
                   <Route path="/library" element={<Layout><Library /></Layout>} />
-                  <Route path="/hostel" element={<Layout><Hostel /></Layout>} />
+                  <Route path="/configuration-settings" element={<Layout><ConfigurationSettings /></Layout>} />
+                   <Route path="/hostel" element={<Layout><Hostel /></Layout>} />
                    <Route path="/health" element={<Layout><Health /></Layout>} />
                    <Route path="/visitor-management" element={<Layout><VisitorManagement /></Layout>} />
                    <Route path="/fees" element={<Layout><Fees /></Layout>} />
-                  <Route path="/communication" element={<Layout><Communication /></Layout>} />
+                   <Route path="/wallet" element={<Layout><Wallet /></Layout>} />
+                   <Route path="/school-connect" element={<Layout><SchoolConnect /></Layout>} />
+                   <Route path="/store" element={<Layout><Store /></Layout>} />
+                   <Route path="/communication" element={<Layout><Communication /></Layout>} />
                   <Route path="/announcements" element={<Layout><Announcements /></Layout>} />
                   <Route path="/documents" element={<Layout><Documents /></Layout>} />
                   <Route path="/id-cards" element={<Layout><IdCards /></Layout>} />
@@ -142,6 +151,7 @@ function App() {
                 </Routes>
               </Router>
                 <Toaster />
+                <NetworkErrorHandler />
                 </PermissionsProvider>
               </SchoolProvider>
             </AuthProvider>

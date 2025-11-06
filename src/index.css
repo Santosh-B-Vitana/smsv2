@@ -63,15 +63,15 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
     --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
+    --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 75.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 85%;
+    --accent: 217.2 32.6% 20%;
     --accent-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 217.2 32.6% 25%;
+    --input: 217.2 32.6% 20%;
     --ring: 224.3 76.3% 94.1%;
     /* Enhanced visibility for dark mode */
     --sidebar-background: 222.2 84% 4.9%;
@@ -87,9 +87,9 @@
     --attendance-absent: 0 84.2% 60.2%;
     --fee-paid: 142.1 76.2% 36.3%;
     --fee-pending: 32.2 95% 44.1%;
-    --success: 142.1 76.2% 36.3%;
+    --success: 142.1 70% 45%;
     --success-foreground: 355.7 100% 97.3%;
-    --warning: 32.2 95% 44.1%;
+    --warning: 38 92% 50%;
     --warning-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -379,6 +379,22 @@
   animation: gentleBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
+.animate-gradient-shift {
+  animation: gradient-shift 3s ease infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+.animate-spin-slow-reverse {
+  animation: spin-slow-reverse 3s linear infinite;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -424,6 +440,44 @@
   100% {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 30px rgba(251, 191, 36, 0.6);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-slow-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
   }
 }
 

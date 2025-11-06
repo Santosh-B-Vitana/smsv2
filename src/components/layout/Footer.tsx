@@ -10,6 +10,9 @@ export function Footer() {
           <p className="text-xs text-muted-foreground/70">
             Redesigned Edition v2.0 • 2025
           </p>
+          <p className="text-[10px] text-muted-foreground/60 mt-1">
+            Beta Version • Currently in Testing Phase
+          </p>
         </div>
       </div>
     </footer>

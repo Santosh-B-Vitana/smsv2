@@ -145,22 +145,93 @@ interface User {
   lastLogin?: string;
 }
 
+interface Guardian {
+  name: string;
+  relation: 'father' | 'mother' | 'guardian' | 'other';
+  occupation?: string;
+  employer?: string;
+  phone: string;
+  email?: string;
+  aadharNumber?: string;
+  panNumber?: string;
+}
+
 interface Student {
   id: string;
+  
+  // Basic Information
   name: string;
+  preferredName?: string;
+  admissionNo?: string;
   class: string;
   section: string;
   rollNo: string;
   dob: string;
-  guardianName: string;
-  guardianPhone: string;
-  address: string;
-  category: string;
-  previousSchool?: string;
+  placeOfBirth?: string;
+  gender?: 'male' | 'female' | 'other';
+  nationality?: string[];
   status: 'active' | 'inactive';
   admissionDate: string;
   photoUrl?: string;
+  
+  // Identification
+  aadharNumber?: string;
+  panNumber?: string;
+  passportNumber?: string;
+  visaType?: string;
+  visaExpiry?: string;
+  
+  // Contact Information
+  permanentAddress?: string;
+  address: string; // local/current address
+  primaryPhone?: string;
+  secondaryPhone?: string;
+  email?: string;
+  
+  // Family/Guardian (backward compatibility)
+  guardianName: string;
+  guardianPhone: string;
+  guardians?: Guardian[]; // Multiple guardians
+  
+  // Academic
+  previousSchool?: string;
+  previousClass?: string;
+  transferReason?: string;
+  category: string;
+  
+  // Medical
+  bloodGroup?: string;
+  allergies?: string;
+  chronicConditions?: string;
+  medications?: string;
+  emergencyContact?: string;
+  emergencyPhone?: string;
+  doctorName?: string;
+  doctorPhone?: string;
+  
+  // Legal/Consent
+  photoConsent?: boolean;
+  mediaConsent?: boolean;
+  medicalConsent?: boolean;
+  
+  // Additional
+  languageProficiency?: string[];
+  specialNeeds?: string;
+  transportRequired?: boolean;
+  hostelRequired?: boolean;
+  
+  // Relations
   siblings?: string[]; // Array of sibling student IDs
+  
+  // Documents (file URLs)
+  documents?: {
+    birthCertificate?: string;
+    aadharCard?: string;
+    passportCopy?: string;
+    medicalCertificates?: string[];
+    transferCertificate?: string;
+    photoId?: string;
+  };
 }
 
 interface Staff {
@@ -655,7 +726,8 @@ const mockStudents: Student[] = [
     previousSchool: "Delhi Public School",
     status: "active",
     admissionDate: "2023-04-01",
-    photoUrl: undefined
+    photoUrl: undefined,
+    siblings: ["STU002", "STU003"]
   },
   {
     id: "STU002",
@@ -670,21 +742,23 @@ const mockStudents: Student[] = [
     category: "General",
     status: "active",
     admissionDate: "2023-04-01",
-    photoUrl: undefined
+    photoUrl: undefined,
+    siblings: ["STU001", "STU003"]
   },
   {
     id: "STU003",
-  name: "Ananya Sharma",
+    name: "Ananya Sharma",
     class: "9",
     section: "B",
     rollNo: "015",
     dob: "2009-02-10",
-  guardianName: "Rekha Sharma",
+    guardianName: "Rekha Sharma",
     guardianPhone: "+1 (555) 765-4321",
-  address: "321 Civil Lines, Jaipur",
+    address: "321 Civil Lines, Jaipur",
     category: "General",
     status: "active",
-    admissionDate: "2023-04-01"
+    admissionDate: "2023-04-01",
+    siblings: ["STU001", "STU002"]
   }
 ];
 

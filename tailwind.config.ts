@@ -102,7 +102,8 @@ export default {
 					'Ubuntu',
 					'Cantarell',
 					'sans-serif'
-				]
+				],
+				brand: ['Orbitron', 'sans-serif']
 			},
 			keyframes: {
 				'accordion-down': {

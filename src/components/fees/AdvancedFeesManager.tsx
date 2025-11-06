@@ -7,10 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { DollarSign, Receipt, CreditCard, Calendar, Plus, Download, AlertCircle, Search, Edit } from "lucide-react";
+import { generateProfessionalFeeReceipt } from "@/utils/professionalPdfGenerator";
+import { useSchool } from "@/contexts/SchoolContext";
 import { useToast } from "@/hooks/use-toast";
 
 interface FeeStructure {
@@ -50,11 +52,13 @@ interface InstallmentPlan {
 
 export function AdvancedFeesManager() {
   const { toast } = useToast();
+  const { schoolInfo } = useSchool();
 
   // State for Edit/View dialogs
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedStructure, setSelectedStructure] = useState<FeeStructure | null>(null);
+  const [editingComponents, setEditingComponents] = useState<{name: string, amount: number}[]>([]);
 
   const [feeStructures, setFeeStructures] = useState<FeeStructure[]>([
     {
@@ -208,6 +212,8 @@ export function AdvancedFeesManager() {
   const [receiptData, setReceiptData] = useState<any>(null);
 
   const generateReceipt = (payment: any) => {
+    if (!schoolInfo) return;
+    
     const receipt = {
       id: `RCP${Date.now()}`,
       studentName: payment.studentName,
@@ -220,6 +226,22 @@ export function AdvancedFeesManager() {
     };
 
     setReceiptData(receipt);
+    
+    const receiptData = {
+      receiptNo: receipt.receiptNumber,
+      date: new Date().toLocaleDateString('en-IN'),
+      studentName: payment.studentName,
+      studentId: payment.studentId || 'N/A',
+      class: payment.class || 'N/A',
+      academicYear: receipt.academicYear,
+      totalAmount: payment.totalAmount || payment.amount,
+      paidAmount: payment.amount,
+      outstandingAmount: (payment.totalAmount || payment.amount) - payment.amount,
+      paymentMethod: payment.method,
+      feeType: receipt.feeType
+    };
+    
+    generateProfessionalFeeReceipt(schoolInfo, receiptData);
     
     toast({
       title: "Receipt Generated",
@@ -341,8 +363,26 @@ export function AdvancedFeesManager() {
                         <TableCell>{structure.installments.count}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => setViewDialogOpen(true)}>Edit</Button>
-                            <Button variant="outline" size="sm" onClick={() => setViewDialogOpen(true)}>View</Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => {
+                                setSelectedStructure(structure);
+                                setEditDialogOpen(true);
+                              }}
+                            >
+                              Edit
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => {
+                                setSelectedStructure(structure);
+                                setViewDialogOpen(true);
+                              }}
+                            >
+                              View
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -350,6 +390,213 @@ export function AdvancedFeesManager() {
                 </TableBody>
               </Table>
             </CardContent>
+
+            {/* View Fee Structure Dialog */}
+            <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Fee Structure Details</DialogTitle>
+                  <DialogDescription>View breakdown and installment plan for this fee structure.</DialogDescription>
+                </DialogHeader>
+                {selectedStructure && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-muted-foreground">Structure Name</Label>
+                        <p className="font-medium">{selectedStructure.name}</p>
+                      </div>
+                      <div>
+                        <Label className="text-muted-foreground">Class</Label>
+                        <p className="font-medium">{selectedStructure.class}</p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-muted-foreground mb-2">Fee Components</Label>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Component</TableHead>
+                            <TableHead className="text-right">Amount</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          <TableRow>
+                            <TableCell>Tuition Fee</TableCell>
+                            <TableCell className="text-right">₹{selectedStructure.components.tuitionFee.toLocaleString()}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>Admission Fee</TableCell>
+                            <TableCell className="text-right">₹{selectedStructure.components.admissionFee.toLocaleString()}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>Exam Fee</TableCell>
+                            <TableCell className="text-right">₹{selectedStructure.components.examFee.toLocaleString()}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>Library Fee</TableCell>
+                            <TableCell className="text-right">₹{selectedStructure.components.libraryFee.toLocaleString()}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>Lab Fee</TableCell>
+                            <TableCell className="text-right">₹{selectedStructure.components.labFee.toLocaleString()}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>Sports Fee</TableCell>
+                            <TableCell className="text-right">₹{selectedStructure.components.sportsFee.toLocaleString()}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell>Miscellaneous</TableCell>
+                            <TableCell className="text-right">₹{selectedStructure.components.miscellaneous.toLocaleString()}</TableCell>
+                          </TableRow>
+                          <TableRow className="font-bold">
+                            <TableCell>Total</TableCell>
+                            <TableCell className="text-right">₹{selectedStructure.totalAmount.toLocaleString()}</TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    <div>
+                      <Label className="text-muted-foreground mb-2">Installment Plan</Label>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Installment</TableHead>
+                            <TableHead>Amount</TableHead>
+                            <TableHead>Due Date</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {selectedStructure.installments.amounts.map((amount, idx) => (
+                            <TableRow key={idx}>
+                              <TableCell>Installment {idx + 1}</TableCell>
+                              <TableCell>₹{amount.toLocaleString()}</TableCell>
+                              <TableCell>{new Date(selectedStructure.installments.dueDates[idx]).toLocaleDateString()}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button variant="outline" onClick={() => setViewDialogOpen(false)}>Close</Button>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+
+            {/* Edit Fee Structure Dialog */}
+            <Dialog open={editDialogOpen} onOpenChange={(open) => {
+              setEditDialogOpen(open);
+              if (open && selectedStructure) {
+                // Initialize editing components from selected structure
+                const components: {name: string, amount: number}[] = [];
+                if (selectedStructure.components.tuitionFee > 0) components.push({ name: 'Tuition Fee', amount: selectedStructure.components.tuitionFee });
+                if (selectedStructure.components.admissionFee > 0) components.push({ name: 'Admission Fee', amount: selectedStructure.components.admissionFee });
+                if (selectedStructure.components.examFee > 0) components.push({ name: 'Exam Fee', amount: selectedStructure.components.examFee });
+                if (selectedStructure.components.libraryFee > 0) components.push({ name: 'Library Fee', amount: selectedStructure.components.libraryFee });
+                if (selectedStructure.components.labFee > 0) components.push({ name: 'Lab Fee', amount: selectedStructure.components.labFee });
+                if (selectedStructure.components.sportsFee > 0) components.push({ name: 'Sports Fee', amount: selectedStructure.components.sportsFee });
+                if (selectedStructure.components.miscellaneous > 0) components.push({ name: 'Miscellaneous', amount: selectedStructure.components.miscellaneous });
+                setEditingComponents(components);
+              }
+            }}>
+              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Edit Fee Structure</DialogTitle>
+                  <DialogDescription>Update fee components and totals for this structure.</DialogDescription>
+                </DialogHeader>
+                {selectedStructure && (
+                  <div className="space-y-4">
+                    <div className="text-sm text-muted-foreground">
+                      Editing: {selectedStructure.name}
+                    </div>
+                    
+                    <div>
+                      <Label>Add Fee Types</Label>
+                      <Select onValueChange={(type) => {
+                        if (!editingComponents.find(comp => comp.name === type)) {
+                          setEditingComponents(prev => [...prev, { name: type, amount: 0 }]);
+                        }
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select fee type to add" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {feeTypeOptions.filter(type => !editingComponents.find(comp => comp.name === type)).map(type => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {editingComponents.length > 0 && (
+                      <div>
+                        <Label>Fee Components</Label>
+                        <div className="space-y-2 mt-2">
+                          {editingComponents.map((component, index) => (
+                            <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                              <span className="flex-1">{component.name}</span>
+                              <Input 
+                                type="number" 
+                                value={component.amount} 
+                                onChange={e => {
+                                  const newAmount = Number(e.target.value);
+                                  setEditingComponents(prev => 
+                                    prev.map(comp => comp.name === component.name ? { ...comp, amount: newAmount } : comp)
+                                  );
+                                }}
+                                placeholder="Amount"
+                                className="w-32"
+                              />
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => {
+                                  setEditingComponents(prev => prev.filter(comp => comp.name !== component.name));
+                                }}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          ))}
+                          <div className="text-right font-bold pt-2 border-t">
+                            Total: ₹{editingComponents.reduce((sum, comp) => sum + comp.amount, 0).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+                      <Button onClick={() => {
+                        const totalAmount = editingComponents.reduce((sum, comp) => sum + comp.amount, 0);
+                        const updatedComponents = {
+                          tuitionFee: editingComponents.find(c => c.name === 'Tuition Fee')?.amount || 0,
+                          admissionFee: editingComponents.find(c => c.name === 'Admission Fee')?.amount || 0,
+                          examFee: editingComponents.find(c => c.name === 'Exam Fee')?.amount || 0,
+                          libraryFee: editingComponents.find(c => c.name === 'Library Fee')?.amount || 0,
+                          labFee: editingComponents.find(c => c.name === 'Lab Fee')?.amount || 0,
+                          sportsFee: editingComponents.find(c => c.name === 'Sports Fee')?.amount || 0,
+                          miscellaneous: editingComponents.filter(c => !['Tuition Fee', 'Admission Fee', 'Exam Fee', 'Library Fee', 'Lab Fee', 'Sports Fee'].includes(c.name)).reduce((sum, c) => sum + c.amount, 0)
+                        };
+                        
+                        setFeeStructures(prev => prev.map(structure => 
+                          structure.id === selectedStructure.id 
+                            ? { ...structure, components: updatedComponents, totalAmount }
+                            : structure
+                        ));
+                        
+                        toast({ title: "Success", description: "Fee structure updated successfully" });
+                        setEditDialogOpen(false);
+                      }}>Save Changes</Button>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
 
             {/* Add Fee Structure Dialog */}
             <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>

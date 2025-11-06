@@ -1,5 +1,5 @@
 import * as React from "react"
-import { GraduationCap, Users, UserCheck, Calendar, BookOpen, Award, FileText, Clock, Bus, Heart, DollarSign, MessageSquare, Megaphone, FileImage, CreditCard, BarChart3, Settings, User, Building } from "lucide-react"
+import { GraduationCap, Users, UserCheck, Calendar, BookOpen, Award, FileText, Clock, Bus, Heart, DollarSign, MessageSquare, Megaphone, FileImage, CreditCard, BarChart3, Settings, User, Building, Library, Wallet, School, ShoppingBag } from "lucide-react"
 import { NavMain } from "@/components/sidebar/nav-main"
 import { NavProjects } from "@/components/sidebar/nav-projects"
 import { NavUser } from "@/components/sidebar/nav-user"
@@ -14,35 +14,28 @@ import {
 import { useAuth } from "@/contexts/AuthContext"
 import { usePermissions } from "@/contexts/PermissionsContext"
 import { useLanguage } from "@/contexts/LanguageContext"
+import { shouldShowModule } from "@/config/moduleVisibility"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
   const { hasPermission } = usePermissions()
   const { t } = useLanguage()
-  const [showInfrastructure, setShowInfrastructure] = React.useState(() => {
-    const saved = localStorage.getItem('showInfrastructure');
-    return saved !== null ? JSON.parse(saved) : false;
-  });
-
-  React.useEffect(() => {
-    const handleInfrastructureToggle = (event: CustomEvent) => {
-      setShowInfrastructure(event.detail);
-    };
-
-    window.addEventListener('infrastructureToggle', handleInfrastructureToggle as EventListener);
-    return () => window.removeEventListener('infrastructureToggle', handleInfrastructureToggle as EventListener);
-  }, []);
 
   // Define navigation items based on user role
   const getNavigationItems = () => {
     if (!user) return []
 
     const baseItems = []
+    // Add Permissions Manager for admin and super_admin (insert after Settings)
+    const permissionsManagerItem = {
+      title: t('nav.permissionsManager'),
+      url: '/configuration-settings',
+      icon: Settings,
+    };
 
     // Super Admin has access to everything except Library and Health
     if (user.role === 'super_admin') {
-      return [
-        ...baseItems,
+  const items = [
         {
           title: t('nav.academics'),
           url: "/academics",
@@ -63,21 +56,42 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: "/examinations",
           icon: FileText,
         },
-        // Library and Health hidden for super_admin
-        ...(showInfrastructure ? [{
-          title: t('nav.infrastructure'),
-          url: "#",
-          icon: Building,
-          items: [
-            { title: t('nav.transport'), url: "/transport" },
-            { title: t('nav.hostel'), url: "/hostel" },
-            { title: t('nav.visitorManagement'), url: "/visitor-management" },
-          ],
+        ...(shouldShowModule('library') ? [{
+          title: t('nav.library'),
+          url: "/library",
+          icon: Library,
         }] : []),
+        {
+          title: t('nav.transport'),
+          url: "/transport",
+          icon: Bus,
+        },
+        {
+          title: t('common.store'),
+          url: "/store",
+          icon: ShoppingBag,
+        },
+        // Visitor Management as a top-level item
+        {
+          title: t('nav.visitorManagement'),
+          url: "/visitor-management",
+          icon: User,
+        },
+
         {
           title: t('nav.fees'),
           url: "/fees",
           icon: DollarSign,
+        },
+        {
+          title: t('nav.wallet'),
+          url: "/wallet",
+          icon: Wallet,
+        },
+        {
+          title: t('nav.schoolConnect'),
+          url: "/school-connect",
+          icon: School,
         },
         {
           title: t('nav.communication'),
@@ -100,18 +114,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: "/alumni",
           icon: GraduationCap,
         },
-        {
-          title: t('nav.settings'),
-          url: "/settings",
-          icon: Settings,
-        }
-      ]
+        // Settings removed from sidebar as it is now in dashboard tab
+        // Add Permissions Manager as a top-level item at the end
+        permissionsManagerItem,
+      ];
+      return items;
     }
 
     // Admin has access to most features except Library and Health
     if (user.role === 'admin') {
-      return [
-        ...baseItems,
+  const items = [
         {
           title: t('nav.academics'),
           url: "/academics",
@@ -127,24 +139,42 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: "/staff",
           icon: UserCheck,
         },
-    // Examinations hidden for admin
-        // Library and Health hidden for admin
-        ...(showInfrastructure ? [{
-          title: t('nav.infrastructure'),
-          url: "#",
-          icon: Building,
-          items: [
-            { title: t('nav.transport'), url: "/transport" },
-            { title: t('nav.library'), url: "/library" },
-            { title: t('nav.hostel'), url: "/hostel" },
-            { title: t('nav.health'), url: "/health" },
-            { title: t('nav.visitorManagement'), url: "/visitor-management" },
-          ],
+        ...(shouldShowModule('library') ? [{
+          title: t('nav.library'),
+          url: "/library",
+          icon: Library,
         }] : []),
+        {
+          title: t('nav.transport'),
+          url: "/transport",
+          icon: Bus,
+        },
+        {
+          title: t('common.store'),
+          url: "/store",
+          icon: ShoppingBag,
+        },
+        // Visitor Management as a top-level item
+        {
+          title: t('nav.visitorManagement'),
+          url: "/visitor-management",
+          icon: User,
+        },
+
         {
           title: t('nav.fees'),
           url: "/fees",
           icon: DollarSign,
+        },
+        {
+          title: t('nav.wallet'),
+          url: "/wallet",
+          icon: Wallet,
+        },
+        {
+          title: t('nav.schoolConnect'),
+          url: "/school-connect",
+          icon: School,
         },
         {
           title: t('nav.communication'),
@@ -167,12 +197,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: "/alumni",
           icon: GraduationCap,
         },
-        {
-          title: t('nav.settings'),
-          url: "/settings",
-          icon: Settings,
-        }
-      ]
+        // Settings removed from sidebar as it is now in dashboard tab
+        // Add Permissions Manager as a top-level item at the end
+        permissionsManagerItem,
+      ];
+      return items;
     }
 
     // Staff has limited access

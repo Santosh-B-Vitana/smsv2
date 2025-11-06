@@ -1,6 +1,11 @@
 
-import { forwardRef } from "react";
-import { Award, School } from "lucide-react";
+import { forwardRef, useState } from "react";
+import { Award, School, Printer } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { PdfPreviewModal } from "@/components/common/PdfPreviewModal";
+import { generateConductCertificate, SchoolInfo } from "@/utils/professionalCertificateGenerator";
+import { useSchool } from "@/contexts/SchoolContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface CertificateProps {
   type: 'bonafide' | 'conduct' | 'transfer' | 'character';
@@ -13,6 +18,37 @@ interface CertificateProps {
 
 export const CertificateTemplate = forwardRef<HTMLDivElement, CertificateProps>(
   ({ type, studentName, studentId, class: studentClass, issuedDate, certificateId }, ref) => {
+    const { schoolInfo, loading } = useSchool();
+    const [previewUrl, setPreviewUrl] = useState<string>("");
+    const { toast } = useToast();
+
+    const handlePreview = () => {
+      if (!schoolInfo) {
+        toast({ title: "School info not loaded", description: "Please try again in a moment.", variant: "destructive" });
+        return;
+      }
+      try {
+        if (type === 'character') {
+          const pdfUrl = generateConductCertificate(
+            schoolInfo as SchoolInfo,
+            {
+              studentName,
+              fatherName: "Guardian Name",
+              class: studentClass,
+              academicYear: new Date().getFullYear().toString(),
+              conduct: "Good",
+              issueDate: issuedDate,
+              certificateNumber: certificateId,
+            }
+          );
+          setPreviewUrl(pdfUrl);
+        }
+      } catch (e) {
+        console.error("Failed to generate certificate:", e);
+        toast({ title: "Failed to generate preview", description: "Please try again.", variant: "destructive" });
+      }
+    };
+
     const getCertificateTitle = () => {
       switch (type) {
         case 'bonafide':
@@ -54,8 +90,19 @@ export const CertificateTemplate = forwardRef<HTMLDivElement, CertificateProps>(
     };
 
     return (
-      <div ref={ref} className="bg-white p-12 max-w-4xl mx-auto" style={{ fontFamily: 'serif' }}>
-        {/* Header */}
+      <>
+        <div ref={ref} className="bg-white p-12 max-w-4xl mx-auto" style={{ fontFamily: 'serif' }}>
+          {/* Preview & Print Button */}
+          {type === 'character' && (
+            <div className="flex justify-end mb-4 print:hidden">
+              <Button onClick={handlePreview} variant="outline" className="gap-2" disabled={loading || !schoolInfo}>
+                <Printer className="h-4 w-4" />
+                Preview & Print
+              </Button>
+            </div>
+          )}
+
+          {/* Header */}
         <div className="text-center mb-8 border-b-2 border-gray-800 pb-6">
           <div className="flex items-center justify-center gap-4 mb-4">
             <School className="h-12 w-12 text-blue-800" />
@@ -151,13 +198,21 @@ export const CertificateTemplate = forwardRef<HTMLDivElement, CertificateProps>(
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-12 pt-6 border-t border-gray-300">
-          <p className="text-center text-xs text-gray-500">
-            This is a computer-generated certificate. For verification, please contact the school administration.
-          </p>
+          {/* Footer */}
+          <div className="mt-12 pt-6 border-t border-gray-300">
+            <p className="text-center text-xs text-gray-500">
+              This is a computer-generated certificate. For verification, please contact the school administration.
+            </p>
+          </div>
         </div>
-      </div>
+
+        <PdfPreviewModal
+          open={!!previewUrl}
+          onClose={() => setPreviewUrl("")}
+          pdfUrl={previewUrl}
+          fileName={`Character_Certificate_${studentName}_${certificateId}.pdf`}
+        />
+      </>
     );
   }
 );

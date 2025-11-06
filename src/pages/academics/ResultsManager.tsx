@@ -11,9 +11,12 @@ import {
   Save, 
   Download, 
   FileText,
-  Edit
+  Edit,
+  Upload
 } from "lucide-react";
 import { toast } from "sonner";
+import { BulkMarksImport } from "@/components/examinations/BulkMarksImport";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ResultEntry {
   student_id: string;
@@ -160,16 +163,51 @@ export default function ResultsManager() {
     toast.success("Results exported to CSV");
   };
 
+  const handleBulkImport = (importedData: any[]) => {
+    // Map imported data to results format
+    const updatedResults = results.map(result => {
+      const importedRecord = importedData.find(
+        d => d.rollNo === result.roll_no
+      );
+      
+      if (!importedRecord) return result;
+
+      const updatedSubjects: Record<string, { marks: number; grade: string }> = {};
+      subjects.forEach(subject => {
+        const marks = parseFloat(importedRecord[subject]) || 0;
+        updatedSubjects[subject] = {
+          marks,
+          grade: calculateGrade(marks)
+        };
+      });
+
+      return {
+        ...result,
+        subjects: updatedSubjects
+      };
+    });
+
+    setResults(updatedResults);
+    toast.success(`Bulk import completed for ${importedData.length} students`);
+  };
+
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" />
-            Results Management
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <Tabs defaultValue="manual" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+          <TabsTrigger value="bulk">Bulk Import</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="manual" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <GraduationCap className="h-5 w-5" />
+                Results Management
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
           {/* Selection Controls */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
@@ -331,6 +369,15 @@ export default function ResultsManager() {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="bulk">
+          <BulkMarksImport 
+            subjects={subjects.length > 0 ? subjects : mockSubjects}
+            onImportComplete={handleBulkImport}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

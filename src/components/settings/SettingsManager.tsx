@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from 'react-router-dom';
 import { Settings, User, Bell, Shield, Database, Palette, Building } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,17 +23,18 @@ export function SettingsManager() {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [pushNotifications, setPushNotifications] = useState(true);
-  const [showInfrastructure, setShowInfrastructure] = useState(() => {
-    const saved = localStorage.getItem('showInfrastructure');
-    return saved !== null ? JSON.parse(saved) : false;
-  });
+  const location = useLocation();
+  const [innerActive, setInnerActive] = useState<string | undefined>(undefined);
 
-  const handleInfrastructureToggle = (checked: boolean) => {
-    setShowInfrastructure(checked);
-    localStorage.setItem('showInfrastructure', JSON.stringify(checked));
-    // Trigger a custom event to notify the sidebar
-    window.dispatchEvent(new CustomEvent('infrastructureToggle', { detail: checked }));
-  };
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      const sub = params.get('sub');
+      if (sub) setInnerActive(sub);
+    } catch (e) {
+      // ignore
+    }
+  }, [location.search]);
 
   const handleSave = () => {
     toast({
@@ -49,7 +51,7 @@ export function SettingsManager() {
         <p className="text-muted-foreground">Manage your account and system preferences</p>
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
+  <Tabs value={innerActive || 'profile'} onValueChange={setInnerActive} className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="w-4 h-4" />
@@ -262,25 +264,7 @@ export function SettingsManager() {
                </CardContent>
              </Card>
 
-             {(user?.role === 'admin' || user?.role === 'super_admin') && (
-               <Card>
-                 <CardHeader>
-                   <CardTitle>{t('system.navigationSettings')}</CardTitle>
-                 </CardHeader>
-                 <CardContent className="space-y-4">
-                   <div className="flex items-center justify-between">
-                     <div>
-                       <h3 className="font-medium">{t('system.showInfrastructureMenu')}</h3>
-                       <p className="text-sm text-muted-foreground">{t('system.infrastructureToggleDesc')}</p>
-                     </div>
-                     <Switch 
-                       checked={showInfrastructure} 
-                       onCheckedChange={handleInfrastructureToggle}
-                     />
-                   </div>
-                 </CardContent>
-               </Card>
-             )}
+
 
            {user?.role === 'admin' && (
              <Card>

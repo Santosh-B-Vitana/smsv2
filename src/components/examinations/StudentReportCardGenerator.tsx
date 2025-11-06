@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { ReportCardTemplate } from "./ReportCardTemplate";
 import { Student } from "../../services/mockApi";
+import { generateProfessionalReportCard } from "@/utils/professionalPdfGenerator";
+import { useSchool } from "@/contexts/SchoolContext";
 
 interface Exam {
   id: string;
@@ -35,6 +37,7 @@ interface StudentReportCardGeneratorProps {
 }
 
 export function StudentReportCardGenerator({ students, exams, results }: StudentReportCardGeneratorProps) {
+  const { schoolInfo } = useSchool();
   const [selectedStudent, setSelectedStudent] = useState("");
   const [selectedTerm, setSelectedTerm] = useState("");
   const [showPreview, setShowPreview] = useState(false);
@@ -111,7 +114,31 @@ export function StudentReportCardGenerator({ students, exams, results }: Student
   };
 
   const downloadReportCard = () => {
-    if (reportCard) {
+    if (reportCard && schoolInfo) {
+      const reportData = {
+        studentName: reportCard.studentName,
+        studentId: reportCard.studentId,
+        class: reportCard.class,
+        section: reportCard.section,
+        academicYear: "2024-25",
+        examName: reportCard.term,
+        rollNo: students.find(s => s.id === reportCard.studentId)?.rollNo || '',
+        subjects: reportCard.subjects.map((s: any) => ({
+          name: s.name,
+          marks: s.marksObtained,
+          maxMarks: s.totalMarks,
+          grade: s.grade
+        })),
+        totalMarks: reportCard.totalMarks,
+        totalMaxMarks: reportCard.totalObtained,
+        percentage: reportCard.percentage,
+        overallGrade: reportCard.grade,
+        remarks: reportCard.remarks,
+        rank: reportCard.rank,
+        attendance: `${reportCard.attendance}%`
+      };
+      
+      generateProfessionalReportCard(schoolInfo, reportData);
       toast({
         title: "Download Started",
         description: `Downloading report card for ${reportCard.studentName}`

@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText } from "lucide-react";
+import { FileText, GraduationCap, CalendarDays } from "lucide-react";
 import ResultsManager from "@/pages/academics/ResultsManager";
-import ExamScheduleManager from "@/components/examinations/ExamScheduleManager";
+import ExamTimetableCreator from "@/components/examinations/ExamTimetableCreator";
+import StudentResultPortal from "@/pages/StudentResultPortal";
 
 export default function ExaminationManager() {
   return (
@@ -11,20 +12,33 @@ export default function ExaminationManager() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Examination Management
+            Examination Management System
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="exams" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="exams">Exam Schedule</TabsTrigger>
-              <TabsTrigger value="results">Results Management</TabsTrigger>
+          <Tabs defaultValue="timetable" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="timetable">
+                <CalendarDays className="h-4 w-4 mr-2" />
+                Exam Schedule
+              </TabsTrigger>
+              <TabsTrigger value="results">
+                <FileText className="h-4 w-4 mr-2" />
+                Results & Marks
+              </TabsTrigger>
+              <TabsTrigger value="portal">
+                <GraduationCap className="h-4 w-4 mr-2" />
+                Student Portal
+              </TabsTrigger>
             </TabsList>
-            <TabsContent value="exams">
-              <ExamScheduleManager />
+            <TabsContent value="timetable">
+              <ExamTimetableCreator />
             </TabsContent>
             <TabsContent value="results">
               <ResultsManager />
+            </TabsContent>
+            <TabsContent value="portal">
+              <StudentResultPortal />
             </TabsContent>
           </Tabs>
         </CardContent>

@@ -483,11 +483,11 @@ export default function StaffProfile() {
                     department={staff.department}
                     employeeId={staff.id}
                     joiningDate="01/04/2020"
-                    workDuration="4 years 5 months"
+                    relievingDate={new Date().toLocaleDateString()}
+                    workDuration="5 years"
                     responsibilities={[
-                      "Teaching mathematics to secondary classes",
-                      "Preparing lesson plans and educational materials",
-                      "Conducting assessments and examinations",
+                      "Teaching assigned subjects to students",
+                      "Conducting regular assessments and evaluations",
                       "Maintaining student records and progress reports",
                       "Participating in school events and activities"
                     ]}
@@ -495,15 +495,6 @@ export default function StaffProfile() {
                     issueDate={new Date().toLocaleDateString()}
                     certificateNumber={`EXP${Date.now().toString().slice(-6)}`}
                   />
-                </div>
-                <div className="flex justify-end gap-2 mt-4 print:hidden">
-                  <Button variant="outline" onClick={() => setShowExperienceCertDialog(false)}>
-                    Close
-                  </Button>
-                  <Button onClick={() => window.print()}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Print
-                  </Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -529,15 +520,6 @@ export default function StaffProfile() {
                     issueDate={new Date().toLocaleDateString()}
                     certificateNumber={`SAL${Date.now().toString().slice(-6)}`}
                   />
-                </div>
-                <div className="flex justify-end gap-2 mt-4 print:hidden">
-                  <Button variant="outline" onClick={() => setShowSalaryCertDialog(false)}>
-                    Close
-                  </Button>
-                  <Button onClick={() => window.print()}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Print
-                  </Button>
                 </div>
               </DialogContent>
             </Dialog>

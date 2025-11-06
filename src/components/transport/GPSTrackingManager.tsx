@@ -224,31 +224,6 @@ export function GPSTrackingManager() {
         </CardContent>
       </Card>
 
-      {/* Integration Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Integration Requirements</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="p-4 border border-orange-200 bg-orange-50 rounded-lg">
-            <div className="flex items-start space-x-3">
-              <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5" />
-              <div>
-                <h4 className="font-medium text-orange-900">Backend Integration Required</h4>
-                <p className="text-sm text-orange-700 mt-1">
-                  To enable GPS tracking, connect your project to Supabase for real-time data processing.
-                </p>
-                <ul className="text-sm text-orange-700 mt-2 space-y-1">
-                  <li>• Real-time GPS data storage and processing</li>
-                  <li>• Integration with Indian GPS providers</li>
-                  <li>• Geofencing and route optimization</li>
-                  <li>• Parent notifications and live tracking</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -4,15 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DollarSign, CreditCard, Receipt, AlertCircle, Download, Plus, Settings, Users } from "lucide-react";
+import { DollarSign, CreditCard, Receipt, AlertCircle, Download, Plus, Settings, Users, BarChart3, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PaymentGatewayManager } from "./PaymentGatewayManager";
 import { AdvancedFeesManager } from "./AdvancedFeesManager";
+import { StudentFeePaymentDialog } from "./StudentFeePaymentDialog";
+import { FeeReminderManager } from "./FeeReminderManager";
+import FeeConcessionManager from "./FeeConcessionManager";
+import PaymentDashboard from "./PaymentDashboard";
 import { mockApi } from "@/services/mockApi";
+import { generateProfessionalFeeReceipt } from "@/utils/professionalPdfGenerator";
+import { PdfPreviewModal } from "@/components/common/PdfPreviewModal";
 
 interface FeeRecord {
   id: string;
@@ -54,6 +60,10 @@ export function FeesManager() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedStudentRecord, setSelectedStudentRecord] = useState<FeeRecord | null>(null);
   const [students, setStudents] = useState<any[]>([]);
+  // PDF Preview Modal state
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState("");
+  const [pdfFileName, setPdfFileName] = useState("");
 
   // Load students with sibling info
   useState(() => {
@@ -179,86 +189,33 @@ export function FeesManager() {
       return;
     }
 
-    // Create receipt content with dynamic data
-    const receiptContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Fee Payment Receipt</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
-            .school-info { margin-bottom: 20px; }
-            .student-info { margin-bottom: 20px; }
-            .payment-details { border: 1px solid #ccc; padding: 10px; margin-bottom: 20px; }
-            .footer { margin-top: 20px; text-align: center; font-size: 12px; }
-            table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-            td, th { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>${schoolInfo.name}</h1>
-            <p>${schoolInfo.address}</p>
-            <p>Phone: ${schoolInfo.phone} | Email: ${schoolInfo.email}</p>
-            <p>Affiliation No: ${schoolInfo.affiliationNo} | School Code: ${schoolInfo.schoolCode}</p>
-          </div>
-          
-          <div class="school-info">
-            <h2>Fee Payment Receipt</h2>
-            <p><strong>Receipt No:</strong> ${transaction?.gatewayRef || 'RCP' + Date.now()}</p>
-            <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-          </div>
-          
-          <div class="student-info">
-            <h3>Student Details</h3>
-            <table>
-              <tr><td><strong>Name</strong></td><td>${student.studentName}</td></tr>
-              <tr><td><strong>Class</strong></td><td>${student.class}</td></tr>
-              <tr><td><strong>Student ID</strong></td><td>${student.studentId}</td></tr>
-              <tr><td><strong>Academic Year</strong></td><td>2023-24</td></tr>
-            </table>
-          </div>
-          
-          <div class="payment-details">
-            <h3>Fee Details</h3>
-            <table>
-              <tr><td><strong>Total Fee Amount</strong></td><td>₹${student.totalAmount.toLocaleString()}</td></tr>
-              <tr><td><strong>Amount Paid</strong></td><td>₹${student.paidAmount.toLocaleString()}</td></tr>
-              <tr><td><strong>Outstanding Amount</strong></td><td>₹${student.pendingAmount.toLocaleString()}</td></tr>
-              <tr><td><strong>Payment Status</strong></td><td>${student.status.toUpperCase()}</td></tr>
-              ${transaction ? `
-                <tr><td><strong>Last Payment Date</strong></td><td>${new Date(transaction.timestamp).toLocaleDateString()}</td></tr>
-                <tr><td><strong>Payment Method</strong></td><td>${transaction.method.toUpperCase()}</td></tr>
-                <tr><td><strong>Transaction ID</strong></td><td>${transaction.id}</td></tr>
-              ` : ''}
-            </table>
-          </div>
-          
-          <div class="footer">
-            <p>This is a computer-generated receipt. No signature required.</p>
-            <p>For any queries, contact ${schoolInfo.phone}</p>
-            <p>Generated on: ${new Date().toLocaleString()}</p>
-          </div>
-        </body>
-      </html>
-    `;
+    const receiptData = {
+      receiptNo: transaction?.gatewayRef || 'RCP' + Date.now(),
+      date: new Date().toLocaleDateString(),
+      studentName: student.studentName,
+      studentId: student.studentId,
+      class: student.class,
+      academicYear: student.academicYear,
+      totalAmount: student.totalAmount,
+      paidAmount: student.paidAmount,
+      outstandingAmount: student.pendingAmount,
+      paymentMethod: transaction?.method,
+      transactionId: transaction?.id,
+      paymentDate: transaction ? new Date(transaction.timestamp).toLocaleDateString() : undefined
+    };
 
-    // Create and download receipt
-    const blob = new Blob([receiptContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Receipt_${student.studentName}_${new Date().toISOString().split('T')[0]}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const doc = generateProfessionalFeeReceipt(schoolInfo, receiptData);
+    const fileName = `FeeReceipt_${student.studentName.replace(/\s+/g, '_')}_${receiptData.receiptNo}.pdf`;
+    const blob = doc.output('blob');
+    const blobUrl = URL.createObjectURL(blob);
+    
+    setPdfUrl(blobUrl);
+    setPdfFileName(fileName);
+    setPdfPreviewOpen(true);
 
     toast({
       title: "Receipt Generated",
-      description: `Receipt for ${student.studentName} downloaded successfully`,
+      description: `PDF receipt for ${student.studentName} ready for preview`,
     });
   };
 
@@ -350,10 +307,22 @@ export function FeesManager() {
         </Card>
       </div>
 
-      <Tabs defaultValue="structure">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="structure">Fee Overview</TabsTrigger>
-          <TabsTrigger value="overview">Student Records</TabsTrigger>
+      <Tabs defaultValue="dashboard">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="dashboard">
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="overview">
+            <Users className="h-4 w-4 mr-2" />
+            Student Records
+          </TabsTrigger>
+          <TabsTrigger value="structure">Fee Structure</TabsTrigger>
+          <TabsTrigger value="concessions">
+            <Tag className="h-4 w-4 mr-2" />
+            Concessions
+          </TabsTrigger>
+          <TabsTrigger value="reminders">Reminders</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
         </TabsList>
@@ -362,21 +331,64 @@ export function FeesManager() {
           <AdvancedFeesManager />
         </TabsContent>
 
+        <TabsContent value="dashboard">
+          <PaymentDashboard />
+        </TabsContent>
+
+        <TabsContent value="concessions">
+          <FeeConcessionManager />
+        </TabsContent>
+
+        <TabsContent value="reminders">
+          <FeeReminderManager />
+        </TabsContent>
+
         <TabsContent value="overview" className="space-y-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Student Records</CardTitle>
-              <div className="flex items-center gap-2">
+            <CardHeader>
+              <CardTitle>Student Fee Records</CardTitle>
+              <div className="flex items-center gap-2 mt-4">
                 <Input
                   type="text"
-                  placeholder="Search student by name or ID..."
+                  placeholder="Search by name or ID..."
                   value={selectedStudent}
                   onChange={e => setSelectedStudent(e.target.value)}
-                  className="w-64"
+                  className="max-w-xs"
                 />
-                <Button variant="outline">
-                  Filter
-                </Button>
+                <Select defaultValue="all-classes">
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Class" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all-classes">All Classes</SelectItem>
+                    <SelectItem value="10">Class 10</SelectItem>
+                    <SelectItem value="9">Class 9</SelectItem>
+                    <SelectItem value="8">Class 8</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select defaultValue="all-sections">
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Section" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all-sections">All Sections</SelectItem>
+                    <SelectItem value="A">Section A</SelectItem>
+                    <SelectItem value="B">Section B</SelectItem>
+                    <SelectItem value="C">Section C</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select defaultValue="all-status">
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all-status">All Status</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="overdue">Overdue</SelectItem>
+                    <SelectItem value="partial">Partial</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardHeader>
             <CardContent>
@@ -442,52 +454,13 @@ export function FeesManager() {
                           >
                             View
                           </Button>
-                          {record.pendingAmount > 0 && (
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                  <CreditCard className="h-3 w-3 mr-1" />
-                                  Pay
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Process Payment - {record.studentName}</DialogTitle>
-                                </DialogHeader>
-                                <div className="space-y-4">
-                                  <div>
-                                    <Label>Payment Amount</Label>
-                                    <Input 
-                                      type="number"
-                                      placeholder={`Max: ₹${record.pendingAmount}`}
-                                      value={paymentAmount}
-                                      onChange={(e) => setPaymentAmount(e.target.value)}
-                                    />
-                                  </div>
-                                  <div>
-                                    <Label>Payment Method</Label>
-                                    <Select>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Select payment method" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="cash">Cash</SelectItem>
-                                        <SelectItem value="razorpay">Razorpay</SelectItem>
-                                        <SelectItem value="payu">PayU</SelectItem>
-                                        <SelectItem value="paytm">Paytm</SelectItem>
-                                        <SelectItem value="cheque">Cheque</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <Button 
-                                    onClick={() => processPayment(record.studentId, Number(paymentAmount), "razorpay")}
-                                    className="w-full"
-                                  >
-                                    Process Payment
-                                  </Button>
-                                </div>
-                              </DialogContent>
-                            </Dialog>
+                           {record.pendingAmount > 0 && (
+                            <StudentFeePaymentDialog
+                              studentId={record.studentId}
+                              studentName={record.studentName}
+                              pendingAmount={record.pendingAmount}
+                              onPaymentComplete={() => processPayment(record.studentId, Number(paymentAmount), "razorpay")}
+                            />
                           )}
                           <Button 
                             variant="outline" 
@@ -506,6 +479,7 @@ export function FeesManager() {
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Student Fee Details</DialogTitle>
+                <DialogDescription>View fee status, payments and installments for the selected student.</DialogDescription>
               </DialogHeader>
               {/* Academic Year Dropdown */}
               <div className="mb-4 flex items-center gap-2">
@@ -547,22 +521,29 @@ export function FeesManager() {
                       </div>
                       <div className="space-y-2">
                         {selectedStudentRecord.siblings.map(sibling => (
-                          <div key={sibling.id} className="flex items-center justify-between p-3 bg-background rounded border">
+                          <div key={sibling.id} className={`flex items-center justify-between p-3 bg-background rounded border ${sibling.pendingAmount > 0 ? 'border-red-300 bg-red-50' : 'border-green-200 bg-green-50'}`}>
                             <div>
                               <p className="font-medium">{sibling.name}</p>
                               <p className="text-sm text-muted-foreground">Class {sibling.class}</p>
                             </div>
-                            <div className="text-right">
-                              <p className="text-sm text-muted-foreground">Pending</p>
-                              <p className={`font-semibold ${sibling.pendingAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                ₹{sibling.pendingAmount.toLocaleString()}
-                              </p>
+                            <div className="flex flex-col items-end gap-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-muted-foreground">Pending</span>
+                                <span className={`font-semibold ${sibling.pendingAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>₹{sibling.pendingAmount.toLocaleString()}</span>
+                              </div>
+                              <Button size="sm" variant="outline" className="mt-1" onClick={() => {
+                                // Find the sibling's full record and show in dialog
+                                const siblingRecord = feeRecords.find(f => f.studentId === sibling.id);
+                                if (siblingRecord) setSelectedStudentRecord(siblingRecord);
+                              }}>
+                                View Details
+                              </Button>
                             </div>
                           </div>
                         ))}
                         <div className="pt-2 border-t">
                           <p className="text-sm text-muted-foreground">
-                            <strong>Note:</strong> Fee payments can be adjusted across siblings. Please contact the fee office for sibling fee adjustments.
+                            <strong>Note:</strong> Click "View Details" to see sibling's full fee/payment history. Fee payments can be adjusted across siblings. Please contact the fee office for sibling fee adjustments.
                           </p>
                         </div>
                       </div>
@@ -720,6 +701,13 @@ export function FeesManager() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <PdfPreviewModal
+        open={pdfPreviewOpen}
+        onClose={() => setPdfPreviewOpen(false)}
+        pdfUrl={pdfUrl}
+        fileName={pdfFileName}
+      />
     </div>
   );
 }

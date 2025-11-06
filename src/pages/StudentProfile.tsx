@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,6 +22,7 @@ import {
   Award
 } from "lucide-react";
 import { ParentFeePayment } from "@/components/fees/ParentFeePayment";
+import { SiblingFeeInfoPanel } from "@/components/students/SiblingFeeInfoPanel";
 import { mockApi, Student } from "@/services/mockApi";
 
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,8 @@ import { ReportCardTemplate } from "@/components/examinations/ReportCardTemplate
 import { useToast } from "@/hooks/use-toast";
 import placeholderImg from '/placeholder.svg';
 import { useLanguage } from "@/contexts/LanguageContext";
+import { PdfPreviewModal } from "@/components/common/PdfPreviewModal";
+import { generateProfessionalReportCard, SchoolInfo } from "@/utils/professionalPdfGenerator";
 
 export default function StudentProfile() {
   // Photo upload state
@@ -125,6 +128,7 @@ export default function StudentProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [student, setStudent] = useState<Student | null>(null);
+  const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
@@ -153,7 +157,10 @@ export default function StudentProfile() {
 
   useEffect(() => {
     if (id) {
+      setStudent(null);
+      setLoading(true);
       fetchStudent();
+      fetchAllStudents();
     }
   }, [id]);
 
@@ -171,6 +178,15 @@ export default function StudentProfile() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAllStudents = async () => {
+    try {
+      const students = await mockApi.getStudents();
+      setAllStudents(students);
+    } catch (error) {
+      // ignore
     }
   };
 
@@ -198,6 +214,11 @@ export default function StudentProfile() {
   const [showCertificateDialog, setShowCertificateDialog] = useState(false);
   const [certificateType, setCertificateType] = useState<string>("");
   const [showReportCardDialog, setShowReportCardDialog] = useState(false);
+  
+  // PDF Preview Modal state for report card
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState("");
+  const [pdfFileName, setPdfFileName] = useState("");
 
   const handleDocumentGeneration = (type: string) => {
     if (type === "ID Card") {
@@ -408,6 +429,15 @@ export default function StudentProfile() {
         </CardContent>
       </Card>
 
+      {/* Sibling Fee Info Panel (if any) */}
+      {student?.siblings && student.siblings.length > 0 && (
+        <SiblingFeeInfoPanel
+          siblings={student.siblings}
+          allStudents={allStudents}
+          onSiblingClick={siblingId => navigate(`/students/${siblingId}`)}
+        />
+      )}
+
       {/* Tabs for detailed information */}
       <Tabs defaultValue="attendance" className="space-y-4">
         <div className="tabs-list-container overflow-x-auto">
@@ -605,7 +635,77 @@ export default function StudentProfile() {
                 <Button 
                   variant="outline" 
                   className="h-10 flex items-center gap-2"
-                  onClick={() => setShowReportCardDialog(true)}
+                  onClick={() => {
+                    if (!student) return;
+                    
+                    // Get marks data for selected exam and year
+                    const marksData = mockMarksApi({ exam: selectedExam, year: selectedYear });
+                    
+                    if (marksData.length === 0) {
+                      toast({
+                        title: "No Data",
+                        description: "No marks available for selected exam and year",
+                        variant: "destructive"
+                      });
+                      return;
+                    }
+                    
+                    // School info for PDF
+                    const schoolInfo: SchoolInfo = {
+                      name: "Vitana Schools",
+                      address: "123 Education Street, Delhi 110001",
+                      phone: "+91-11-12345678",
+                      email: "info@vitanaSchools.edu",
+                      affiliationNo: "DL001234",
+                      schoolCode: "VIT001",
+                      principalName: "Dr. John Smith"
+                    };
+                    
+                    // Report card data
+                    const reportCardData = {
+                      reportCardNumber: `RC${Date.now().toString().slice(-6)}`,
+                      studentId: student.id,
+                      studentName: student.name,
+                      class: student.class,
+                      section: student.section,
+                      rollNo: student.rollNo,
+                      admissionNo: student.id,
+                      examName: selectedExam,
+                      term: selectedExam,
+                      academicYear: selectedYear,
+                      subjects: marksData.map(mark => ({
+                        name: mark.subject,
+                        marks: mark.marks,
+                        maxMarks: mark.total,
+                        grade: mark.grade
+                      })),
+                      totalMaxMarks: marksData.reduce((sum, mark) => sum + mark.total, 0),
+                      totalMarks: marksData.reduce((sum, mark) => sum + mark.total, 0),
+                      marksObtained: marksData.reduce((sum, mark) => sum + mark.marks, 0),
+                      percentage: (marksData.reduce((sum, mark) => sum + mark.marks, 0) / 
+                                  marksData.reduce((sum, mark) => sum + mark.total, 0)) * 100,
+                      overallGrade: "A",
+                      grade: "A",
+                      attendance: "95%",
+                      remarks: "Excellent performance. Keep up the good work!",
+                      issueDate: new Date().toLocaleDateString()
+                    };
+                    
+                    // Generate PDF and get blob URL
+                    const pdfDoc = generateProfessionalReportCard(schoolInfo, reportCardData);
+                    const blob = pdfDoc.output('blob');
+                    const blobUrl = URL.createObjectURL(blob);
+                    const fileName = `ReportCard_${student.name.replace(/\s+/g, '_')}_${selectedExam}_${selectedYear}.pdf`;
+                    
+                    setPdfUrl(blobUrl);
+                    setPdfFileName(fileName);
+                    setPdfPreviewOpen(true);
+                    
+                    toast({
+                      title: "Report Card Generated",
+                      description: `Report card for ${student.name} is ready`,
+                    });
+                  }}
                 >
                   <Download className="h-4 w-4" />
                   <span className="hidden sm:inline">Generate Report Card</span>
@@ -783,6 +883,7 @@ export default function StudentProfile() {
               <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
                 <DialogHeader>
                   <DialogTitle>Printable Student ID Card</DialogTitle>
+                  <DialogDescription>Preview below and use your browser print.</DialogDescription>
                 </DialogHeader>
                 <div className="print-container">
                   <IdCardTemplate person={student} type="student" />
@@ -806,6 +907,7 @@ export default function StudentProfile() {
               <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
                 <DialogHeader>
                   <DialogTitle>{certificateType}</DialogTitle>
+                  <DialogDescription>Use the Preview & Print button inside the certificate.</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   {certificateType === "Bonafide Certificate" && (
@@ -834,7 +936,7 @@ export default function StudentProfile() {
                       certificateNumber={`CC${Date.now().toString().slice(-6)}`}
                     />
                   )}
-                  {certificateType === "Character Certificate" && (
+                  {certificateType === "Character Certificate" && student && (
                     <CertificateTemplate
                       type="character"
                       studentName={student.name}
@@ -866,12 +968,6 @@ export default function StudentProfile() {
                 <div className="flex justify-end gap-2 mt-4 print:hidden">
                   <Button variant="outline" onClick={() => setShowCertificateDialog(false)}>
                     Close
-                  </Button>
-                  <Button onClick={() => {
-                    window.print();
-                  }}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Print
                   </Button>
                 </div>
               </DialogContent>
@@ -1073,6 +1169,14 @@ export default function StudentProfile() {
         </TabsContent>
 
       </Tabs>
+      
+      {/* PDF Preview Modal for Report Card */}
+      <PdfPreviewModal
+        open={pdfPreviewOpen}
+        onClose={() => setPdfPreviewOpen(false)}
+        pdfUrl={pdfUrl}
+        fileName={pdfFileName}
+      />
     </div>
   );
 }

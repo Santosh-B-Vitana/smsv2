@@ -1,6 +1,11 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Printer } from "lucide-react";
+import { generateBonafideCertificate } from "@/utils/professionalCertificateGenerator";
+import { useSchool } from "@/contexts/SchoolContext";
+import { toast } from "sonner";
+import { PdfPreviewModal } from "@/components/common/PdfPreviewModal";
 
 interface BonafideCertificateProps {
   studentName: string;
@@ -27,27 +32,40 @@ export function BonafideCertificateTemplate({
   certificateNumber,
   issueDate
 }: BonafideCertificateProps) {
-  const handleDownload = () => {
-    const printContent = document.getElementById('bonafide-certificate')?.innerHTML;
-    const originalContent = document.body.innerHTML;
-    document.body.innerHTML = printContent || '';
-    window.print();
-    document.body.innerHTML = originalContent;
-    window.location.reload();
+  const { schoolInfo, loading } = useSchool();
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  
+  const handlePreview = () => {
+    if (!schoolInfo) {
+      toast.error("School information not available");
+      return;
+    }
+    
+    const [classNum, section] = className.split('-');
+    const url = generateBonafideCertificate(schoolInfo, {
+      certificateNumber,
+      studentName,
+      fatherName,
+      class: classNum || className,
+      section: section || '',
+      studentId: rollNumber,
+      academicYear,
+      purpose,
+      issueDate
+    });
+    
+    setPreviewUrl(url);
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-2 justify-end mb-4">
-        <Button onClick={handleDownload} variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Download
-        </Button>
-        <Button onClick={() => window.print()} variant="outline">
-          <Printer className="h-4 w-4 mr-2" />
-          Print
-        </Button>
-      </div>
+    <>
+      <div className="space-y-4">
+        <div className="flex gap-2 justify-end mb-4">
+          <Button onClick={handlePreview} disabled={loading || !schoolInfo} variant="outline">
+            <Printer className="h-4 w-4 mr-2" />
+            Preview & Print
+          </Button>
+        </div>
 
       <Card id="bonafide-certificate" className="max-w-4xl mx-auto bg-white">
         <CardContent className="p-12">
@@ -127,6 +145,14 @@ export function BonafideCertificateTemplate({
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+      
+      <PdfPreviewModal
+        open={!!previewUrl}
+        onClose={() => setPreviewUrl("")}
+        pdfUrl={previewUrl}
+        fileName={`Bonafide_Certificate_${studentName.replace(/\s+/g, '_')}.pdf`}
+      />
+    </>
   );
 }

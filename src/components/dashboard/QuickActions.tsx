@@ -21,7 +21,7 @@ export function QuickActions() {
           {
             label: "Take Attendance", 
             icon: Calendar,
-            onClick: () => navigate("/attendance"),
+            onClick: () => navigate("/staff-attendance"),
             variant: "secondary" as const
           },
           {
@@ -42,7 +42,7 @@ export function QuickActions() {
           {
             label: "Take Attendance",
             icon: Calendar,
-            onClick: () => navigate("/attendance"),
+            onClick: () => navigate("/staff-attendance"),
             variant: "secondary" as const
           },
           {

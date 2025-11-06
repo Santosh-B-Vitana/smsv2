@@ -20,6 +20,7 @@ import { LogOut, Settings, User, BadgeCheck, CreditCard, Bell, Sun, Moon, Monito
 import { UniversalSearch } from '@/components/search/UniversalSearch';
 import { CenteredModal } from '@/components/common/CenteredModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useNavigate } from 'react-router-dom';
 
 export function Header() {
   const { toggleSidebar } = useSidebar();
@@ -27,6 +28,7 @@ export function Header() {
   const { language, setLanguage, t } = useLanguage();
   const { theme, setTheme } = useTheme();
   const { schoolInfo } = useSchool();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
@@ -74,23 +76,24 @@ export function Header() {
         <span className="block w-5 h-0.5 bg-foreground mb-1 rounded-full transition-all group-hover:bg-primary"></span>
         <span className="block w-5 h-0.5 bg-foreground rounded-full transition-all group-hover:bg-primary"></span>
       </button>
-      {/* Modern school info with enhanced styling */}
-      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 header-school-info">
+      {/* Professional school branding with modern design */}
+      <div className="flex items-center gap-3 flex-1 min-w-0 header-school-info">
         {schoolInfo?.logoUrl && (
-          <div className="relative">
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl blur-md group-hover:blur-lg transition-all opacity-0 group-hover:opacity-100"></div>
             <img 
               src={schoolInfo.logoUrl} 
               alt={`${schoolInfo.name} Logo`}
-              className="w-6 h-6 sm:w-7 sm:h-7 lg:w-9 lg:h-9 object-contain rounded-lg shadow-sm flex-shrink-0 transition-transform hover:scale-105"
+              className="relative w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 object-contain rounded-xl shadow-lg flex-shrink-0 transition-all duration-300 group-hover:scale-110 ring-2 ring-border group-hover:ring-primary/50"
             />
           </div>
         )}
         <div className="min-w-0 flex-1 overflow-hidden">
-          <h1 className="font-bold text-sm sm:text-base lg:text-lg text-foreground truncate bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text">
+          <h1 className="font-bold text-base sm:text-lg lg:text-xl bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent truncate">
             {schoolInfo?.name || 'School Management System'}
           </h1>
-          <p className="text-xs text-muted-foreground hidden sm:block">
-            Academic Excellence • Innovation • Growth
+          <p className="text-[10px] sm:text-xs text-muted-foreground/80 hidden sm:block tracking-wide">
+            Excellence • Innovation • Growth
           </p>
         </div>
       </div>
@@ -160,7 +163,7 @@ export function Header() {
             </DropdownMenuItem>
             <DropdownMenuItem className="cursor-pointer" onClick={() => setSettingsOpen(true)}>
               <Settings className="mr-2 h-4 w-4" />
-              <span>{t('nav.settings')}</span>
+              <span>{t('nav.preferences')}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem 
@@ -177,7 +180,18 @@ export function Header() {
         {profileOpen && (
           <CenteredModal open={profileOpen} onClose={() => setProfileOpen(false)} ariaLabel="Profile dialog">
             <div className="bg-background border rounded-xl shadow-2xl p-8 w-full max-w-md mx-auto animate-enter relative">
-              <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><User className="text-purple-500" /> {t('nav.profile')}</h2>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-xl font-bold flex items-center gap-2"><User className="text-purple-500" /> {t('nav.profile')}</h2>
+                <div>
+                  <Button size="sm" variant="ghost" onClick={() => {
+                    // Close profile modal and open the dashboard settings (profile subtab)
+                    setProfileOpen(false);
+                    navigate('/admin-dashboard?tab=settings&sub=profile');
+                  }}>
+                    Edit
+                  </Button>
+                </div>
+              </div>
               <p className="text-muted-foreground mb-4">{t('profile.profileDescription')}</p>
               <div className="mb-4 space-y-3">
                 <div>
@@ -201,8 +215,8 @@ export function Header() {
         {settingsOpen && (
           <CenteredModal open={settingsOpen} onClose={() => setSettingsOpen(false)} ariaLabel="Settings dialog">
             <div className="bg-background border rounded-xl shadow-2xl p-8 w-full max-w-md mx-auto animate-enter relative">
-              <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><Settings className="text-muted-foreground" /> {t('settings.title')}</h2>
-              <p className="text-muted-foreground mb-4">{t('settings.description')}</p>
+              <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><Settings className="text-muted-foreground" /> {t('nav.preferences')}</h2>
+              <p className="text-muted-foreground mb-4">{t('nav.preferencesDesc')}</p>
               <div className="mb-4 space-y-3">
                 <div>
                   <div className="font-semibold text-sm text-muted-foreground">{t('settings.theme')}</div>
@@ -253,6 +267,20 @@ export function Header() {
                   </Select>
                 </div>
               </div>
+              {(user?.role === 'admin' || user?.role === 'super_admin') && (
+                <Button 
+                  variant="default" 
+                  className="w-full mb-2" 
+                  onClick={() => {
+                    // Close the modal and navigate to admin dashboard with settings tab active
+                    setSettingsOpen(false);
+                    navigate('/admin-dashboard?tab=settings');
+                  }}
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  View Full Settings
+                </Button>
+              )}
               <Button variant="outline" className="w-full" onClick={() => setSettingsOpen(false)}>{t('common.close')}</Button>
             </div>
           </CenteredModal>
