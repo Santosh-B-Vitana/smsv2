@@ -1,471 +1,589 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { mockRoleApi, Role, Permission } from '@/services/mockRoleApi';
-import { PERMISSION_MODULES } from '@/services/permissionModules';
-import { Edit, Trash2, Plus, Save, Shield, ChevronDown } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
+import { Shield, Edit, Trash2, ArrowLeft, Eye, Edit2, Users, DollarSign, BookOpen, MessageSquare, TrendingUp, Building } from 'lucide-react';
+import { AnimatedBackground } from "@/components/common/AnimatedBackground";
+import { AnimatedWrapper } from "@/components/common/AnimatedWrapper";
+import { ModernCard } from "@/components/common/ModernCard";
+import { useToast } from '@/hooks/use-toast';
+import { mockRoleApi, Role, Permission } from '@/services/mockRoleApi';
+
+// Module categories matching the feature permissions
+const MODULE_CATEGORIES = {
+  overview: {
+    label: 'Overview',
+    icon: TrendingUp,
+    modules: ['Dashboard']
+  },
+  people: {
+    label: 'People Management',
+    icon: Users,
+    modules: ['Students', 'Staff', 'Attendance']
+  },
+  operations: {
+    label: 'Operations',
+    icon: DollarSign,
+    modules: ['Fees', 'Payroll', 'Wallet', 'Store']
+  },
+  academic: {
+    label: 'Academic',
+    icon: BookOpen,
+    modules: ['Timetable', 'Examinations', 'Admissions', 'Library', 'Certificates', 'Academics', 'Class Management', 'Assignments', 'Grades']
+  },
+  communication: {
+    label: 'Communication',
+    icon: MessageSquare,
+    modules: ['Announcements', 'Communication', 'Documents']
+  },
+  analytics: {
+    label: 'Reports & Analytics',
+    icon: TrendingUp,
+    modules: ['Reports', 'Analytics']
+  },
+  facilities: {
+    label: 'Facilities & Services',
+    icon: Building,
+    modules: ['Transport', 'Hostel', 'Health']
+  }
+};
+
+type PermissionLevel = 'none' | 'view' | 'edit';
+
+interface RolePermissions {
+  [module: string]: PermissionLevel;
+}
+
+interface RoleFormData {
+  name: string;
+  description: string;
+  permissions: RolePermissions;
+}
 
 export default function ConfigurationSettings() {
   const [roles, setRoles] = useState<Role[]>([]);
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [loading, setLoading] = useState(false);
-  const [newRoleName, setNewRoleName] = useState('');
-  const [newRoleDesc, setNewRoleDesc] = useState('');
-  const [addError, setAddError] = useState('');
-  const [showNewRoleDialog, setShowNewRoleDialog] = useState(false);
-  const [editingRole, setEditingRole] = useState<Role | null>(null);
-  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [formData, setFormData] = useState<RoleFormData>({
+    name: '',
+    description: '',
+    permissions: {}
+  });
   const { toast } = useToast();
 
   useEffect(() => {
-    setLoading(true);
-    mockRoleApi.getRoles().then((data) => {
-      setRoles(data);
-      setLoading(false);
-    });
+    loadRoles();
   }, []);
 
-  const handleRoleSelect = (role: Role) => {
-    setSelectedRole(role);
+  const loadRoles = async () => {
+    setLoading(true);
+    try {
+      const data = await mockRoleApi.getRoles();
+      setRoles(data);
+    } catch (error) {
+      console.error('Error loading roles:', error);
+    }
+    setLoading(false);
   };
 
-  const handlePermissionChange = (permName: string, key: keyof Permission, value: boolean) => {
-    if (!selectedRole) return;
-    setSelectedRole({
-      ...selectedRole,
-      permissions: selectedRole.permissions.map((p) =>
-        p.name === permName ? { ...p, [key]: value } : p
-      ),
+  // Convert old permission format to new format
+  const convertPermissionsToLevels = (permissions: Permission[]): RolePermissions => {
+    const result: RolePermissions = {};
+    permissions.forEach(perm => {
+      if (perm.canEdit || perm.canAdd || perm.canDelete) {
+        result[perm.name] = 'edit';
+      } else if (perm.canView) {
+        result[perm.name] = 'view';
+      } else {
+        result[perm.name] = 'none';
+      }
     });
+    return result;
+  };
+
+  const handleViewPermissions = (role: Role) => {
+    setSelectedRole(role);
+    setIsEditing(false);
+    setAddDialogOpen(false);
+    setFormData({
+      name: role.name,
+      description: role.description || '',
+      permissions: convertPermissionsToLevels(role.permissions)
+    });
+  };
+
+  const handleEditPermissions = (role: Role) => {
+    setSelectedRole(role);
+    setIsEditing(true);
+    setAddDialogOpen(false);
+    setFormData({
+      name: role.name,
+      description: role.description || '',
+      permissions: convertPermissionsToLevels(role.permissions)
+    });
+  };
+
+  const handleDelete = async (roleId: string) => {
+    if (confirm('Are you sure you want to delete this role?')) {
+      try {
+        await mockRoleApi.deleteRole(roleId);
+        loadRoles();
+        toast({
+          title: "Success",
+          description: "Role deleted successfully",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete role",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handlePermissionChange = (module: string, level: PermissionLevel) => {
+    setFormData(prev => ({
+      ...prev,
+      permissions: {
+        ...prev.permissions,
+        [module]: level
+      }
+    }));
   };
 
   const handleSave = async () => {
-    if (!selectedRole) return;
-    setLoading(true);
-    await mockRoleApi.updateRole(selectedRole.id, selectedRole);
-    setRoles((prev) => prev.map((r) => (r.id === selectedRole.id ? selectedRole : r)));
-    setLoading(false);
-    toast({
-      title: "Success",
-      description: "Permissions updated successfully",
-    });
-  };
-
-  const handleEditRole = (role: Role, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setEditingRole(role);
-    setNewRoleName(role.name);
-    setNewRoleDesc(role.description || '');
-    setShowNewRoleDialog(true);
-  };
-
-  const handleDeleteRole = async (role: Role) => {
-    setLoading(true);
     try {
-      await mockRoleApi.deleteRole(role.id);
-      setRoles((prev) => prev.filter((r) => r.id !== role.id));
-      if (selectedRole?.id === role.id) {
-        setSelectedRole(null);
+      if (addDialogOpen) {
+        // Adding or editing role name/description only
+        if (selectedRole) {
+          // Update existing role name/description
+          await mockRoleApi.updateRole(selectedRole.id, {
+            ...selectedRole,
+            name: formData.name,
+            description: formData.description
+          });
+          toast({
+            title: "Success",
+            description: "Role updated successfully",
+          });
+        } else {
+          // Create new role
+          const allModules = Object.values(MODULE_CATEGORIES).flatMap(cat => cat.modules);
+          const permissions: Permission[] = allModules.map(name => ({
+            name,
+            canView: name === 'Dashboard',
+            canAdd: false,
+            canEdit: false,
+            canDelete: false
+          }));
+
+          await mockRoleApi.addRole({
+            id: Date.now().toString(),
+            name: formData.name,
+            description: formData.description,
+            permissions,
+            active: true
+          });
+          toast({
+            title: "Success",
+            description: "Role created successfully",
+          });
+        }
+      } else {
+        // Saving permissions changes
+        const permissions: Permission[] = Object.entries(formData.permissions).map(([name, level]) => ({
+          name,
+          canView: level === 'view' || level === 'edit',
+          canAdd: level === 'edit',
+          canEdit: level === 'edit',
+          canDelete: level === 'edit'
+        }));
+
+        await mockRoleApi.updateRole(selectedRole!.id, {
+          ...selectedRole!,
+          permissions
+        });
+        toast({
+          title: "Success",
+          description: "Permissions updated successfully",
+        });
       }
-      toast({
-        title: "Success",
-        description: `Role "${role.name}" deleted successfully`,
-      });
+
+      loadRoles();
+      setSelectedRole(null);
+      setAddDialogOpen(false);
+      setFormData({ name: '', description: '', permissions: {} });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete role",
+        description: "Failed to save changes",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
-      setRoleToDelete(null);
     }
   };
 
-  // All modules for permissions (flattened)
-  const ALL_MODULES = PERMISSION_MODULES.flatMap(g => g.modules);
-
-  // Ensure every role has all modules as permissions
-  const ensureAllPermissions = (role: Role): Role => {
-    const perms = [...role.permissions];
-    ALL_MODULES.forEach((mod) => {
-      if (!perms.find((p) => p.name === mod)) {
-        perms.push({ name: mod, canView: false, canAdd: false, canEdit: false, canDelete: false });
-      }
+  const handleAddRole = () => {
+    // Get all modules from categories
+    const allModules = Object.values(MODULE_CATEGORIES).flatMap(cat => cat.modules);
+    const permissions: RolePermissions = {};
+    allModules.forEach(module => {
+      permissions[module] = 'none';
     });
-    return { ...role, permissions: perms };
+    setFormData({
+      name: '',
+      description: '',
+      permissions
+    });
+    setSelectedRole(null);
+    setAddDialogOpen(true);
+    setIsEditing(true);
   };
 
-  // On roles load, ensure all permissions
-  React.useEffect(() => {
-    if (roles.length) {
-      setRoles(roles.map(ensureAllPermissions));
-    }
-    // eslint-disable-next-line
-  }, [roles.length]);
-
-  const handleAddRole = async () => {
-    setAddError('');
-    if (!newRoleName.trim()) {
-      setAddError('Role name is required');
-      return;
-    }
-    setLoading(true);
-    
-    if (editingRole) {
-      // Update existing role
-      const updatedRole = {
-        ...editingRole,
-        name: newRoleName,
-        description: newRoleDesc,
-      };
-      await mockRoleApi.updateRole(editingRole.id, updatedRole);
-      setRoles((prev) => prev.map((r) => (r.id === editingRole.id ? updatedRole : r)));
-      if (selectedRole?.id === editingRole.id) {
-        setSelectedRole(updatedRole);
-      }
-      toast({
-        title: "Success",
-        description: `Role "${newRoleName}" updated successfully`,
-      });
-    } else {
-      // Add new role
-      const newRole: Role = {
-        id: Date.now().toString(),
-        name: newRoleName,
-        description: newRoleDesc,
-        active: true,
-        permissions: ALL_MODULES.map((mod) => ({
-          name: mod,
-          canView: mod === 'Dashboard',
-          canAdd: false,
-          canEdit: false,
-          canDelete: false,
-        })),
-      };
-      await mockRoleApi.addRole(newRole);
-      setRoles((prev) => [...prev, newRole]);
-      setSelectedRole(newRole);
-      toast({
-        title: "Success",
-        description: `Role "${newRoleName}" created successfully`,
-      });
-    }
-    
-    setNewRoleName('');
-    setNewRoleDesc('');
-    setEditingRole(null);
-    setShowNewRoleDialog(false);
-    setLoading(false);
+  const handleEditRole = (role: Role) => {
+    setFormData({
+      name: role.name,
+      description: role.description || '',
+      permissions: {}
+    });
+    setSelectedRole(role);
+    setAddDialogOpen(true);
+    setIsEditing(true);
   };
 
-  return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Shield className="h-8 w-8 text-primary" />
-            Role & Permissions Management
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Configure roles and their associated permissions
-          </p>
-        </div>
+  if (loading) {
+    return (
+      <div className="space-y-4 p-6">
+        <div className="h-8 bg-muted rounded animate-pulse"></div>
+        <div className="h-64 bg-muted rounded animate-pulse"></div>
       </div>
+    );
+  }
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Roles List */}
-        <Card className="w-full lg:w-1/3 border-border">
-          <CardHeader className="space-y-1">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-xl">Roles</CardTitle>
-              <Button 
-                size="sm" 
+  // Show add/edit role dialog
+  if (addDialogOpen) {
+    return (
+      <div className="p-6">
+        <AnimatedBackground variant="gradient" />
+        <div className="space-y-4 sm:space-y-6">
+          <AnimatedWrapper variant="fadeInUp">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => {
-                  setEditingRole(null);
-                  setNewRoleName('');
-                  setNewRoleDesc('');
-                  setShowNewRoleDialog(true);
+                  setAddDialogOpen(false);
+                  setSelectedRole(null);
                 }}
-                className="gap-2"
               >
-                <Plus className="h-4 w-4" />
-                New Role
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Roles
               </Button>
             </div>
-            <CardDescription>Select a role to manage permissions</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {roles.map((role) => {
-              const activePermissions = role.permissions.filter(p => p.canView || p.canAdd || p.canEdit || p.canDelete).length;
-              return (
-                <div
-                  key={role.id}
-                  className={`group p-4 rounded-lg cursor-pointer transition-all border ${
-                    selectedRole?.id === role.id 
-                      ? 'bg-primary/5 border-primary shadow-sm' 
-                      : 'hover:bg-muted/50 border-border'
-                  }`}
-                  onClick={() => handleRoleSelect(role)}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-foreground flex items-center gap-2">
-                        {role.name}
-                        <Badge variant="secondary" className="text-xs">
-                          {activePermissions} active
-                        </Badge>
-                      </div>
-                      {role.description && (
-                        <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                          {role.description}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 p-0"
-                        onClick={(e) => handleEditRole(role, e)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setRoleToDelete(role);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+          </AnimatedWrapper>
+
+          <AnimatedWrapper variant="fadeInUp" delay={0.1}>
+            <ModernCard variant="glass" className="max-w-2xl mx-auto">
+              <CardHeader className="p-6">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Shield className="w-6 h-6 text-primary" />
+                  {selectedRole ? 'Edit Role' : 'Add New Role'}
+                </CardTitle>
+                <CardDescription>
+                  {selectedRole ? 'Update the role name and description' : 'Create a new role with a name and description'}
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="p-6 pt-0 space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="roleName">Role Name</Label>
+                  <Input
+                    id="roleName"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g., School Admin, Teacher, Librarian"
+                  />
                 </div>
-              );
-            })}
-          </CardContent>
-        </Card>
 
-        {/* Add/Edit Role Dialog */}
-        <Dialog open={showNewRoleDialog} onOpenChange={(open) => {
-          setShowNewRoleDialog(open);
-          if (!open) {
-            setEditingRole(null);
-            setNewRoleName('');
-            setNewRoleDesc('');
-            setAddError('');
-          }
-        }}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>{editingRole ? 'Edit Role' : 'Add New Role'}</DialogTitle>
-              <DialogDescription>
-                {editingRole ? 'Update the role details' : 'Create a new role with custom permissions'}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Role Name</label>
-                <input
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder="Enter role name"
-                  value={newRoleName}
-                  onChange={e => setNewRoleName(e.target.value)}
-                  disabled={loading}
-                  autoFocus
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Description (Optional)</label>
-                <input
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder="Enter description"
-                  value={newRoleDesc}
-                  onChange={e => setNewRoleDesc(e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-              {addError && <div className="text-sm text-destructive">{addError}</div>}
-            </div>
-            <DialogFooter>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowNewRoleDialog(false)}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleAddRole} 
-                disabled={loading || !newRoleName.trim()}
-                className="gap-2"
-              >
-                <Save className="h-4 w-4" />
-                {editingRole ? 'Update Role' : 'Create Role'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                <div className="space-y-2">
+                  <Label htmlFor="roleDesc">Description</Label>
+                  <Textarea
+                    id="roleDesc"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Describe what this role is for..."
+                    rows={3}
+                  />
+                </div>
 
-        {/* Delete Confirmation Dialog */}
-        <AlertDialog open={!!roleToDelete} onOpenChange={(open) => !open && setRoleToDelete(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will permanently delete the role "{roleToDelete?.name}". This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => roleToDelete && handleDeleteRole(roleToDelete)}
-                disabled={loading}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        {/* Permissions Panel */}
-        <Card className="w-full lg:w-2/3 border-border">
-          <CardHeader>
-            <CardTitle className="text-xl">
-              {selectedRole ? `Permissions for ${selectedRole.name}` : 'Permissions'}
-            </CardTitle>
-            <CardDescription>
-              {selectedRole 
-                ? 'Configure module access and actions for this role' 
-                : 'Select a role to configure permissions'
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {selectedRole ? (
-              <div className="space-y-4">
-                <Accordion type="multiple" defaultValue={PERMISSION_MODULES.map((_, i) => `group-${i}`)} className="space-y-3">
-                  {PERMISSION_MODULES.map((group, groupIndex) => {
-                    const groupPermissions = selectedRole.permissions.filter(p => 
-                      group.modules.includes(p.name)
-                    );
-                    const activeCount = groupPermissions.filter(p => 
-                      p.canView || p.canAdd || p.canEdit || p.canDelete
-                    ).length;
-                    
-                    return (
-                      <AccordionItem 
-                        key={group.group} 
-                        value={`group-${groupIndex}`}
-                        className="border border-border rounded-lg overflow-hidden"
-                      >
-                        <AccordionTrigger className="px-4 py-3 bg-muted/50 hover:bg-muted hover:no-underline">
-                          <div className="flex items-center justify-between w-full pr-2">
-                            <span className="font-semibold text-foreground">{group.group}</span>
-                            <Badge variant="secondary" className="text-xs">
-                              {activeCount} / {group.modules.length} active
-                            </Badge>
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="p-0">
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                              <thead>
-                                <tr className="border-b border-border bg-muted/30">
-                                  <th className="text-left p-3 font-medium text-muted-foreground">Module</th>
-                                  <th className="p-3 font-medium text-muted-foreground">View</th>
-                                  <th className="p-3 font-medium text-muted-foreground">Add</th>
-                                  <th className="p-3 font-medium text-muted-foreground">Edit</th>
-                                  <th className="p-3 font-medium text-muted-foreground">Delete</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {group.modules.map((mod) => {
-                                  const perm = selectedRole.permissions.find((p) => p.name === mod) || { 
-                                    name: mod, 
-                                    canView: false, 
-                                    canAdd: false, 
-                                    canEdit: false, 
-                                    canDelete: false 
-                                  };
-                                  const hasAnyPermission = perm.canView || perm.canAdd || perm.canEdit || perm.canDelete;
-                                  
-                                  return (
-                                    <tr 
-                                      key={mod} 
-                                      className={`border-b border-border last:border-0 hover:bg-muted/30 transition-colors ${
-                                        hasAnyPermission ? 'bg-primary/5' : ''
-                                      }`}
-                                    >
-                                      <td className="p-3 font-medium">{mod}</td>
-                                      {(['canView', 'canAdd', 'canEdit', 'canDelete'] as (keyof Permission)[]).map((key) => (
-                                        <td key={key} className="text-center p-3">
-                                          <div className="flex justify-center">
-                                            <Switch
-                                              checked={!!perm[key]}
-                                              onCheckedChange={(val) => handlePermissionChange(mod, key, val as boolean)}
-                                            />
-                                          </div>
-                                        </td>
-                                      ))}
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    );
-                  })}
-                </Accordion>
-                
-                <div className="flex justify-end pt-4 border-t border-border">
-                  <Button 
-                    onClick={handleSave} 
-                    disabled={loading}
-                    className="gap-2"
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setAddDialogOpen(false);
+                      setSelectedRole(null);
+                    }}
                   >
-                    <Save className="h-4 w-4" />
-                    Save Permissions
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSave} disabled={!formData.name.trim()}>
+                    {selectedRole ? 'Update Role' : 'Create Role'}
                   </Button>
                 </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Shield className="h-16 w-16 text-muted-foreground/50 mb-4" />
-                <p className="text-muted-foreground text-lg">Select a role to configure permissions</p>
-                <p className="text-muted-foreground text-sm mt-1">Choose a role from the list to get started</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </ModernCard>
+          </AnimatedWrapper>
+        </div>
+      </div>
+    );
+  }
+
+  // Show permission detail/edit view
+  if (selectedRole) {
+    return (
+      <div className="p-6">
+        <AnimatedBackground variant="gradient" />
+        <div className="space-y-4 sm:space-y-6">
+          <AnimatedWrapper variant="fadeInUp">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedRole(null);
+                  setAddDialogOpen(false);
+                }}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Roles
+              </Button>
+            </div>
+          </AnimatedWrapper>
+
+          <AnimatedWrapper variant="fadeInUp" delay={0.1}>
+            <ModernCard variant="glass">
+              <CardHeader className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Shield className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-xl">{formData.name}</CardTitle>
+                      <CardDescription>{formData.description || 'No description'}</CardDescription>
+                    </div>
+                  </div>
+                  {!isEditing ? (
+                    <Button onClick={() => setIsEditing(true)}>
+                      Edit Permissions
+                    </Button>
+                  ) : (
+                    <Button onClick={handleSave}>
+                      Save Permissions
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-6 pt-0 space-y-6">
+                {Object.entries(MODULE_CATEGORIES).map(([categoryKey, category]) => {
+                  const CategoryIcon = category.icon;
+                  
+                  return (
+                    <div key={categoryKey} className="space-y-4">
+                      <div className="flex items-center justify-between pb-2 border-b">
+                        <div className="flex items-center gap-2">
+                          <CategoryIcon className="w-5 h-5 text-primary" />
+                          <h3 className="font-semibold text-foreground">{category.label}</h3>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {category.modules.length} modules
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-3">
+                        {category.modules.map((module) => {
+                          const currentPermission = formData.permissions[module] || 'none';
+                          
+                          return (
+                            <div key={module} className="grid grid-cols-[1fr_auto] gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors">
+                              <div>
+                                <p className="font-medium text-sm">{module}</p>
+                                {!isEditing && (
+                                  <Badge variant="secondary" className="mt-1 text-xs">
+                                    Current Access: {currentPermission.charAt(0).toUpperCase() + currentPermission.slice(1)}
+                                  </Badge>
+                                )}
+                              </div>
+
+                              <div className="flex items-center">
+                                {isEditing ? (
+                                  <RadioGroup
+                                    value={currentPermission}
+                                    onValueChange={(value) => handlePermissionChange(module, value as PermissionLevel)}
+                                    className="flex gap-4"
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="none" id={`${module}-none`} />
+                                      <Label htmlFor={`${module}-none`} className="text-sm cursor-pointer font-medium">
+                                        <span className="text-muted-foreground">🚫 None</span>
+                                      </Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="view" id={`${module}-view`} />
+                                      <Label htmlFor={`${module}-view`} className="text-sm cursor-pointer font-medium flex items-center gap-1">
+                                        <Eye className="w-3 h-3 text-blue-600" /> View Only
+                                      </Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="edit" id={`${module}-edit`} />
+                                      <Label htmlFor={`${module}-edit`} className="text-sm cursor-pointer font-medium flex items-center gap-1">
+                                        <Edit2 className="w-3 h-3 text-green-600" /> Full Access
+                                      </Label>
+                                    </div>
+                                  </RadioGroup>
+                                ) : (
+                                  <div className="flex gap-4">
+                                    <Badge variant={currentPermission === 'none' ? 'default' : 'outline'} className="text-xs">
+                                      ✕ None
+                                    </Badge>
+                                    <Badge variant={currentPermission === 'view' ? 'default' : 'outline'} className="text-xs">
+                                      <Eye className="w-3 h-3 mr-1" /> View
+                                    </Badge>
+                                    <Badge variant={currentPermission === 'edit' ? 'default' : 'outline'} className="text-xs">
+                                      <Edit2 className="w-3 h-3 mr-1" /> Edit
+                                    </Badge>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </ModernCard>
+          </AnimatedWrapper>
+        </div>
+      </div>
+    );
+  }
+
+  // Main roles list view
+  return (
+    <div className="p-6">
+      <AnimatedBackground variant="gradient" />
+      <div className="space-y-4 sm:space-y-6">
+        <AnimatedWrapper variant="fadeInUp">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold flex items-center gap-2">
+                <Shield className="h-8 w-8 text-primary" />
+                Role & Permissions Management
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Create roles and control what each role can access in your school
+              </p>
+            </div>
+            <Button onClick={handleAddRole} size="lg">
+              <Shield className="w-4 h-4 mr-2" />
+              Add Role
+            </Button>
+          </div>
+        </AnimatedWrapper>
+
+        <AnimatedWrapper variant="fadeInUp" delay={0.1}>
+          <ModernCard variant="glass">
+            <CardHeader className="p-6">
+              <CardTitle>Roles</CardTitle>
+              <CardDescription>
+                Each role determines what users can see and do. Click the shield icon to manage permissions.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Role Name</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Last Modified</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {roles.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                        No roles found. Create a new role to get started.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    roles.map((role) => (
+                      <TableRow key={role.id} className="hover:bg-muted/50">
+                        <TableCell className="font-medium">{role.name}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {role.description || 'No description provided'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          12/20/2024
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewPermissions(role);
+                              }}
+                              title="Manage Permissions"
+                              className="hover:bg-primary/10"
+                            >
+                              <Shield className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditRole(role);
+                              }}
+                              title="Edit Role Name"
+                              className="hover:bg-blue-500/10"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(role.id);
+                              }}
+                              title="Delete Role"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </ModernCard>
+        </AnimatedWrapper>
       </div>
     </div>
   );

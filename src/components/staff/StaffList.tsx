@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Filter, Eye, Users, BadgeCheck, Car } from "lucide-react";
+import { Plus, Eye, Users, BadgeCheck, Car } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card as UICard, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,18 +13,13 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 export function StaffList({ staff, refreshStaff }: { staff: Staff[]; refreshStaff: () => void }) {
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useLanguage();
 
-  const filteredStaff = staff.filter(member =>
-    member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.designation.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStaff = staff;
 
   const handleEdit = (staffMember: Staff) => {
     setEditingStaff(staffMember);
@@ -96,21 +91,6 @@ export function StaffList({ staff, refreshStaff }: { staff: Staff[]; refreshStaf
   <UICard>
         <CardHeader>
           <CardTitle>{t('staffList.directory')}</CardTitle>
-          <div className="flex gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={t('staffList.searchPlaceholder')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              {t('staffList.filter')}
-            </Button>
-          </div>
         </CardHeader>
         <CardContent>
           <Table>

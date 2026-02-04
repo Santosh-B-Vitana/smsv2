@@ -24,7 +24,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import AttendanceRoster from "@/components/attendance/AttendanceRoster";
-import { SubjectsTab } from "@/components/academics/SubjectsTab";
 
 interface ClassInfo {
   id: string;
@@ -69,11 +68,39 @@ export default function ClassProfile() {
   function getTimetableEntry(day: string, period: number) {
     return timetableEntries.find(e => e.day === day && e.period === period);
   }
+
+  // Mock attendance history data
+  const attendanceHistory = [
+    { date: "Dec 30, 2025", total: 30, present: 28, absent: 2, late: 0, percentage: 93.3 },
+    { date: "Dec 29, 2025", total: 30, present: 30, absent: 0, late: 0, percentage: 100 },
+    { date: "Dec 28, 2025", total: 30, present: 27, absent: 3, late: 0, percentage: 90 },
+    { date: "Dec 27, 2025", total: 30, present: 29, absent: 1, late: 0, percentage: 96.7 },
+    { date: "Dec 26, 2025", total: 30, present: 28, absent: 1, late: 1, percentage: 93.3 },
+    { date: "Dec 23, 2025", total: 30, present: 30, absent: 0, late: 0, percentage: 100 },
+    { date: "Dec 22, 2025", total: 30, present: 29, absent: 1, late: 0, percentage: 96.7 },
+    { date: "Dec 21, 2025", total: 30, present: 27, absent: 2, late: 1, percentage: 90 },
+    { date: "Dec 20, 2025", total: 30, present: 28, absent: 2, late: 0, percentage: 93.3 },
+    { date: "Dec 19, 2025", total: 30, present: 30, absent: 0, late: 0, percentage: 100 },
+    { date: "Dec 16, 2025", total: 30, present: 26, absent: 4, late: 0, percentage: 86.7 },
+    { date: "Dec 15, 2025", total: 30, present: 29, absent: 1, late: 0, percentage: 96.7 },
+    { date: "Dec 14, 2025", total: 30, present: 28, absent: 2, late: 0, percentage: 93.3 },
+    { date: "Dec 13, 2025", total: 30, present: 30, absent: 0, late: 0, percentage: 100 },
+    { date: "Dec 12, 2025", total: 30, present: 27, absent: 3, late: 0, percentage: 90 },
+  ];
+
+  const handleLoadMore = () => {
+    setVisibleRecords(prev => Math.min(prev + 5, attendanceHistory.length));
+  };
   const { classId } = useParams();
   const navigate = useNavigate();
   const [classInfo, setClassInfo] = useState<ClassInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("attendance");
+  const [timetableEditMode, setTimetableEditMode] = useState(false);
+  const [attendanceDetailsOpen, setAttendanceDetailsOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [visibleRecords, setVisibleRecords] = useState(5);
   const [editForm, setEditForm] = useState({
     standard: "",
     section: "",
@@ -148,7 +175,7 @@ export default function ClassProfile() {
               {classInfo.standard} - {classInfo.section}
             </h1>
             <p className="text-muted-foreground">
-              Class Profile • {classInfo.academicYear}
+              Section Profile • {classInfo.academicYear}
             </p>
           </div>
         </div>
@@ -157,12 +184,12 @@ export default function ClassProfile() {
             <DialogTrigger asChild>
               <Button variant="outline">
                 <Settings className="h-4 w-4 mr-2" />
-                Edit Class
+                Edit Section
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Edit Class Details</DialogTitle>
+                <DialogTitle>Edit Section Details</DialogTitle>
               </DialogHeader>
               <form
                 className="space-y-4"
@@ -232,9 +259,20 @@ export default function ClassProfile() {
                     onChange={e => setEditForm(f => ({ ...f, classTeacher: e.target.value }))}
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   <Button type="submit" className="flex-1">Update</Button>
                   <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+                  <Button 
+                    type="button" 
+                    variant="secondary" 
+                    onClick={() => {
+                      setEditDialogOpen(false);
+                      setActiveTab("settings");
+                    }}
+                    title="Go to class settings"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
                 </div>
               </form>
             </DialogContent>
@@ -290,35 +328,125 @@ export default function ClassProfile() {
       </Card>
 
       {/* Tabs */}
-      <Tabs defaultValue="attendance" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <div className="overflow-x-auto">
-          <TabsList className="grid w-full grid-cols-5 min-w-[500px]">
+          <TabsList className="grid w-full grid-cols-4 min-w-[400px]">
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
-            <TabsTrigger value="subjects">Subjects</TabsTrigger>
             <TabsTrigger value="students">Students</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="timetable">Timetable</TabsTrigger>
           </TabsList>
         </div>
 
         <TabsContent value="attendance">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Daily Attendance
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AttendanceRoster classId={classInfo.id} students={classInfo.students} />
+            <CardContent className="pt-6">
+              <Tabs defaultValue="mark-today" className="space-y-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="mark-today">Mark Today's Attendance</TabsTrigger>
+                  <TabsTrigger value="view-history">View Past Attendance</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="mark-today">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold">Today's Attendance</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-200">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          28 Present
+                        </Badge>
+                        <Badge variant="outline" className="bg-red-500/10 text-red-700 border-red-200">
+                          <XCircle className="h-3 w-3 mr-1" />
+                          2 Absent
+                        </Badge>
+                      </div>
+                    </div>
+                    <AttendanceRoster classId={classInfo.id} students={classInfo.students} />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="view-history">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold">Attendance History</h3>
+                        <p className="text-sm text-muted-foreground">View past attendance records</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Input 
+                          type="date" 
+                          className="w-40"
+                          defaultValue={new Date().toISOString().split('T')[0]}
+                        />
+                        <Button variant="outline" size="sm">
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Filter
+                        </Button>
+                      </div>
+                    </div>
+
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Total Students</TableHead>
+                          <TableHead>Present</TableHead>
+                          <TableHead>Absent</TableHead>
+                          <TableHead>Late</TableHead>
+                          <TableHead>Attendance %</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {attendanceHistory.slice(0, visibleRecords).map((record, index) => (
+                          <TableRow key={index}>
+                            <TableCell className="font-medium">{record.date}</TableCell>
+                            <TableCell>{record.total}</TableCell>
+                            <TableCell><Badge className="bg-green-500">{record.present}</Badge></TableCell>
+                            <TableCell><Badge variant="destructive">{record.absent}</Badge></TableCell>
+                            <TableCell><Badge variant="secondary">{record.late}</Badge></TableCell>
+                            <TableCell>{record.percentage}%</TableCell>
+                            <TableCell className="text-right">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedDate(record.date);
+                                  setAttendanceDetailsOpen(true);
+                                }}
+                              >
+                                View Details
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+
+                    <div className="flex justify-between items-center pt-4">
+                      <p className="text-sm text-muted-foreground">
+                        Showing {visibleRecords} of {attendanceHistory.length} records
+                      </p>
+                      {visibleRecords < attendanceHistory.length ? (
+                        <Button variant="outline" onClick={handleLoadMore}>
+                          Load More
+                        </Button>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">All records loaded</p>
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="subjects">
-          <SubjectsTab classId={classInfo.id} />
-        </TabsContent>
-
 
         <TabsContent value="students">
           <Card>
@@ -394,23 +522,155 @@ export default function ClassProfile() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="settings">
+        <TabsContent value="timetable">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Class Settings
+                <Clock className="h-5 w-5" />
+                Section Timetable
               </CardTitle>
+              <Button 
+                size="sm" 
+                variant={timetableEditMode ? "default" : "outline"}
+                onClick={() => {
+                  setTimetableEditMode(!timetableEditMode);
+                  toast.success(timetableEditMode ? "Edit mode disabled" : "Edit mode enabled - Click on any cell to edit");
+                }}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                {timetableEditMode ? "Save Timetable" : "Edit Timetable"}
+              </Button>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Class settings management coming soon</p>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-32">Time</TableHead>
+                      {days.map((day) => (
+                        <TableHead key={day} className="text-center min-w-[120px]">{day}</TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {timeSlots.map((slot) => (
+                      <TableRow key={slot.period}>
+                        <TableCell className="font-medium">
+                          <div className="text-xs text-muted-foreground">Period {slot.period}</div>
+                          <div className="text-sm">{slot.start} - {slot.end}</div>
+                        </TableCell>
+                        {days.map((day) => {
+                          const entry = getTimetableEntry(day, slot.period);
+                          return (
+                            <TableCell key={`${day}-${slot.period}`} className="text-center p-2">
+                              {entry ? (
+                                <div 
+                                  className={`bg-primary/10 rounded p-2 transition-colors ${
+                                    timetableEditMode ? 'hover:bg-primary/30 cursor-pointer' : 'hover:bg-primary/20'
+                                  }`}
+                                  onClick={() => {
+                                    if (timetableEditMode) {
+                                      toast.info(`Edit ${entry.subject} - ${day} Period ${slot.period}`);
+                                    }
+                                  }}
+                                >
+                                  <div className="font-medium text-sm">{entry.subject}</div>
+                                  <div className="text-xs text-muted-foreground mt-1">{entry.teacher}</div>
+                                </div>
+                              ) : (
+                                <div 
+                                  className={`text-xs text-muted-foreground ${
+                                    timetableEditMode ? 'hover:bg-primary/10 cursor-pointer rounded p-2' : ''
+                                  }`}
+                                  onClick={() => {
+                                    if (timetableEditMode) {
+                                      toast.info(`Add class for ${day} Period ${slot.period}`);
+                                    }
+                                  }}
+                                >
+                                  {timetableEditMode ? '+ Add' : '-'}
+                                </div>
+                              )}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Attendance Details Dialog */}
+      <Dialog open={attendanceDetailsOpen} onOpenChange={setAttendanceDetailsOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Attendance Details - {selectedDate}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex gap-4">
+              <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-200">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                28 Present
+              </Badge>
+              <Badge variant="outline" className="bg-red-500/10 text-red-700 border-red-200">
+                <XCircle className="h-3 w-3 mr-1" />
+                2 Absent
+              </Badge>
+              <Badge variant="outline" className="bg-yellow-500/10 text-yellow-700 border-yellow-200">
+                <Timer className="h-3 w-3 mr-1" />
+                0 Late
+              </Badge>
+            </div>
+
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Roll No</TableHead>
+                  <TableHead>Student Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Remarks</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {classInfo?.students.slice(0, 10).map((student, index) => (
+                  <TableRow key={student.id}>
+                    <TableCell>{student.rollNo}</TableCell>
+                    <TableCell className="font-medium">{student.name}</TableCell>
+                    <TableCell>
+                      {index < 8 ? (
+                        <Badge className="bg-green-500">Present</Badge>
+                      ) : (
+                        <Badge variant="destructive">Absent</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>{index < 8 ? "9:15 AM" : "-"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {index < 8 ? "On time" : "No reason provided"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => setAttendanceDetailsOpen(false)}>
+                Close
+              </Button>
+              <Button onClick={() => {
+                toast.success("Attendance exported successfully");
+                setAttendanceDetailsOpen(false);
+              }}>
+                Export to PDF
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

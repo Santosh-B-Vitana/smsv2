@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedBackground, AnimatedWrapper, ModernCard } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,13 +10,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Book, BookOpen, AlertCircle, Plus, Search, Download, Upload, Filter, X, BookMarked, Calendar, FileText, Receipt } from "lucide-react";
+import { Book, BookOpen, AlertCircle, Plus, Search, Download, Upload, Filter, X, BookMarked, Calendar, FileText, Receipt, DollarSign, BookmarkCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { mockApi } from "@/services/mockApi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PdfPreviewModal } from "@/components/common/PdfPreviewModal";
 import { generateBookIssueReceipt, generateBookReturnReceipt } from "@/utils/libraryReceiptGenerator";
 import { useSchool } from "@/contexts/SchoolContext";
+import { LoadingState, EmptyState, ExportButton, ImportButton, ErrorBoundary } from "@/components/common";
+import { FineCalculationManager } from "./FineCalculationManager";
+import { BookReservationSystem } from "./BookReservationSystem";
 
 interface LibraryBook {
   id: string;
@@ -446,7 +450,7 @@ export function EnhancedLibraryManager() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-12 w-full" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
         </div>
         <Skeleton className="h-96 w-full" />
@@ -455,25 +459,27 @@ export function EnhancedLibraryManager() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Library Management</h2>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Upload className="h-4 w-4 mr-2" />
-            Import Books
-          </Button>
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Dialog open={addBookDialogOpen} onOpenChange={setAddBookDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Book
-              </Button>
-            </DialogTrigger>
+    <div className="space-y-6 relative">
+      <AnimatedBackground variant="mesh" className="fixed inset-0 -z-10 opacity-30" />
+      <AnimatedWrapper variant="fadeInUp">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Library Management</h2>
+          <div className="flex gap-2">
+            <Button variant="outline">
+              <Upload className="h-4 w-4 mr-2" />
+              Import Books
+            </Button>
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+            <Dialog open={addBookDialogOpen} onOpenChange={setAddBookDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Book
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Book</DialogTitle>
@@ -558,11 +564,12 @@ export function EnhancedLibraryManager() {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
-      </div>
+      </AnimatedWrapper>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Books</CardTitle>
@@ -611,11 +618,18 @@ export function EnhancedLibraryManager() {
       </div>
 
       <Tabs defaultValue="catalog">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="catalog">Book Catalog</TabsTrigger>
-          <TabsTrigger value="issues">Current Issues</TabsTrigger>
-          <TabsTrigger value="reservations">Reservations</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+        <TabsList className="w-full h-auto flex flex-wrap sm:flex-nowrap gap-1 p-1">
+          <TabsTrigger value="catalog" className="flex-1 min-w-[80px] text-xs sm:text-sm">Book Catalog</TabsTrigger>
+          <TabsTrigger value="issues" className="flex-1 min-w-[90px] text-xs sm:text-sm">Current Issues</TabsTrigger>
+          <TabsTrigger value="reservations" className="flex-1 min-w-[90px] text-xs sm:text-sm">
+            <BookmarkCheck className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            Reservations
+          </TabsTrigger>
+          <TabsTrigger value="fines" className="flex-1 min-w-[60px] text-xs sm:text-sm">
+            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            Fines
+          </TabsTrigger>
+          <TabsTrigger value="history" className="flex-1 min-w-[60px] text-xs sm:text-sm">History</TabsTrigger>
         </TabsList>
 
         <TabsContent value="catalog" className="space-y-4">
@@ -1089,6 +1103,14 @@ export function EnhancedLibraryManager() {
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="fines">
+          <FineCalculationManager />
+        </TabsContent>
+
+        <TabsContent value="reservations">
+          <BookReservationSystem />
         </TabsContent>
 
         <TabsContent value="history" className="space-y-4">

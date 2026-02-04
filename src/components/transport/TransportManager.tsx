@@ -1,6 +1,6 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedBackground, AnimatedWrapper, ModernCard } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,9 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bus, MapPin, Route, Users, Clock, Phone, Navigation, Plus, Settings } from "lucide-react";
+import { Bus, MapPin, Route as RouteIcon, Users, Clock, Phone, Navigation, Plus, Settings, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { GPSTrackingManager } from "./GPSTrackingManager";
+import { RouteOptimizationManager } from "./RouteOptimizationManager";
 
 interface BusRoute {
   id: string;
@@ -210,9 +211,11 @@ export function TransportManager() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Transport Management System</h2>
+    <div className="space-y-6 relative">
+      <AnimatedBackground variant="mesh" className="fixed inset-0 -z-10 opacity-30" />
+      <AnimatedWrapper variant="fadeInUp">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Transport Management System</h2>
         <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -274,59 +277,67 @@ export function TransportManager() {
         </Dialog>
       </div>
 
+      </AnimatedWrapper>
+
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Routes</CardTitle>
-            <Route className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{busRoutes.length}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Buses</CardTitle>
-            <Bus className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {busRoutes.filter(r => r.status === 'active').length}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Students Using Transport</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{transportStudents.length}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">GPS Enabled</CardTitle>
-            <Navigation className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {busRoutes.filter(r => r.gpsEnabled).length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <AnimatedWrapper variant="fadeInUp" delay={0.1}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <ModernCard variant="glass">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Routes</CardTitle>
+              <RouteIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{busRoutes.length}</div>
+            </CardContent>
+          </ModernCard>
+          
+          <ModernCard variant="glass">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Buses</CardTitle>
+              <Bus className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {busRoutes.filter(r => r.status === 'active').length}
+              </div>
+            </CardContent>
+          </ModernCard>
+          
+          <ModernCard variant="glass">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Students Using Transport</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{transportStudents.length}</div>
+            </CardContent>
+          </ModernCard>
+          
+          <ModernCard variant="glass">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">GPS Enabled</CardTitle>
+              <Navigation className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">
+                {busRoutes.filter(r => r.gpsEnabled).length}
+              </div>
+            </CardContent>
+          </ModernCard>
+        </div>
+      </AnimatedWrapper>
 
       <Tabs defaultValue="routes">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="routes">Bus Routes</TabsTrigger>
-          <TabsTrigger value="students">Students</TabsTrigger>
-          <TabsTrigger value="gps">GPS Tracking</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+        <TabsList className="w-full flex overflow-x-auto scrollbar-hide">
+          <TabsTrigger value="routes" className="flex-shrink-0">Bus Routes</TabsTrigger>
+          <TabsTrigger value="students" className="flex-shrink-0">Students</TabsTrigger>
+          <TabsTrigger value="gps" className="flex-shrink-0">GPS Tracking</TabsTrigger>
+          <TabsTrigger value="optimization" className="flex-shrink-0">
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Route Optimization
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex-shrink-0">Notifications</TabsTrigger>
         </TabsList>
 
         <TabsContent value="routes" className="space-y-4">
@@ -654,6 +665,10 @@ export function TransportManager() {
 
         <TabsContent value="gps">
           <GPSTrackingManager />
+        </TabsContent>
+
+        <TabsContent value="optimization">
+          <RouteOptimizationManager />
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-4">

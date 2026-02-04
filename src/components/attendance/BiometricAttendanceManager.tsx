@@ -148,7 +148,7 @@ export function BiometricAttendanceManager() {
       </div>
 
       <Tabs defaultValue="devices">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="w-full flex">
           <TabsTrigger value="devices">Devices</TabsTrigger>
           <TabsTrigger value="attendance">Live Attendance</TabsTrigger>
           <TabsTrigger value="enrollment">User Enrollment</TabsTrigger>

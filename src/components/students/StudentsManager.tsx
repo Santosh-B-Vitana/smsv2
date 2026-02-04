@@ -8,9 +8,17 @@ import { useToast } from "@/hooks/use-toast";
 import { StudentForm } from "./StudentForm";
 import { StudentList } from "./StudentList";
 import { mockApi, Student } from "../../services/mockApi";
+import { LoadingState, EmptyState, ExportButton, ImportButton, ErrorBoundary, useConfirmDialog } from "@/components/common";
+import { useKeyboardShortcuts, CommonShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { BulkPromotionDialog } from "./BulkPromotionDialog";
+import { ArrowUpCircle } from "lucide-react";
+import { AnimatedBackground } from "@/components/common/AnimatedBackground";
+import { AnimatedWrapper } from "@/components/common/AnimatedWrapper";
+import { ModernCard } from "@/components/common/ModernCard";
 
 export function StudentsManager() {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -19,7 +27,13 @@ export function StudentsManager() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const [promotionDialogOpen, setPromotionDialogOpen] = useState(false);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    CommonShortcuts.new(() => setIsAddDialogOpen(true)),
+    CommonShortcuts.search(() => document.querySelector<HTMLInputElement>('input[type="search"]')?.focus()),
+  ]);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -92,54 +106,105 @@ export function StudentsManager() {
 
   const stats = getStudentStats();
 
+  const handleBulkPromotion = async (fromClass: string, toClass: string) => {
+    // Simulate bulk promotion
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    const studentsData = await mockApi.getStudents();
+    setStudents(studentsData);
+    setFilteredStudents(studentsData);
+  };
+
   if (loading) {
-    return (
-      <div className="animate-pulse space-y-6">
-        <div className="h-8 bg-muted rounded w-48"></div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-muted rounded-lg"></div>
-          ))}
-        </div>
-      </div>
-    );
+    return <LoadingState variant="cards" message="Loading students..." />;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{t('studentMgmt.title')}</h1>
-          <p className="text-muted-foreground">{t('studentMgmt.subtitle')}</p>
-        </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              {t('studentMgmt.addStudent')}
+    <ErrorBoundary>
+      <div className="relative min-h-screen">
+        <AnimatedBackground variant="mesh" className="fixed inset-0 -z-10 opacity-30" />
+        
+        <div className="space-y-6 relative z-10">
+        <AnimatedWrapper variant="fadeInUp" delay={0.1}>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-display gradient-text">{t('studentMgmt.title')}</h1>
+            <p className="text-muted-foreground mt-2">{t('studentMgmt.subtitle')}</p>
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setPromotionDialogOpen(true)}
+            >
+              <ArrowUpCircle className="w-4 h-4 mr-2" />
+              {t('students.bulkPromotion')}
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
-                {selectedStudent ? t('studentMgmt.editStudent') : t('studentMgmt.addStudent')}
-              </DialogTitle>
-            </DialogHeader>
-            <StudentForm
-              student={selectedStudent}
-              onClose={() => {
-                setIsAddDialogOpen(false);
-                setSelectedStudent(null);
+            <ImportButton
+              columns={[
+                { key: 'name', label: 'Name', required: true },
+                { key: 'rollNo', label: 'Roll No', required: true },
+                { key: 'class', label: 'Class', required: true },
+                { key: 'section', label: 'Section', required: true },
+                { key: 'dob', label: 'Date of Birth', required: true },
+                { key: 'guardianName', label: 'Guardian Name', required: true },
+                { key: 'guardianPhone', label: 'Guardian Phone', required: true },
+                { key: 'address', label: 'Address', required: false },
+              ]}
+              onImport={async (data) => {
+                toast({
+                  title: "Import Complete",
+                  description: `Successfully imported ${data.length} student records`,
+                });
+                const studentsData = await mockApi.getStudents();
+                setStudents(studentsData);
+                setFilteredStudents(studentsData);
               }}
-              onSuccess={handleStudentSuccess}
+              templateFilename="students_import_template"
             />
-          </DialogContent>
-        </Dialog>
-      </div>
+            <ExportButton
+              data={filteredStudents}
+              filename="students"
+              columns={[
+                { key: 'name', label: 'Name' },
+                { key: 'rollNo', label: 'Roll No' },
+                { key: 'class', label: 'Class' },
+                { key: 'section', label: 'Section' },
+                { key: 'guardianName', label: 'Guardian Name' },
+                { key: 'guardianPhone', label: 'Guardian Phone' },
+                { key: 'status', label: 'Status' },
+              ]}
+            />
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full sm:w-auto">
+                  <Plus className="w-4 h-4 mr-2" />
+                  {t('studentMgmt.addStudent')}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>
+                    {selectedStudent ? t('studentMgmt.editStudent') : t('studentMgmt.addStudent')}
+                  </DialogTitle>
+                </DialogHeader>
+                <StudentForm
+                  student={selectedStudent}
+                  onClose={() => {
+                    setIsAddDialogOpen(false);
+                    setSelectedStudent(null);
+                  }}
+                  onSuccess={handleStudentSuccess}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+        </AnimatedWrapper>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+      <AnimatedWrapper variant="fadeInUp" delay={0.2}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <ModernCard variant="glass">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 rounded-lg">
@@ -151,8 +216,8 @@ export function StudentsManager() {
               </div>
             </div>
           </CardContent>
-        </Card>
-        <Card>
+        </ModernCard>
+        <ModernCard variant="glass">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-green-100 rounded-lg">
@@ -164,8 +229,8 @@ export function StudentsManager() {
               </div>
             </div>
           </CardContent>
-        </Card>
-        <Card>
+        </ModernCard>
+        <ModernCard variant="glass">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-red-100 rounded-lg">
@@ -177,8 +242,8 @@ export function StudentsManager() {
               </div>
             </div>
           </CardContent>
-        </Card>
-        <Card>
+        </ModernCard>
+        <ModernCard variant="glass">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-purple-100 rounded-lg">
@@ -190,11 +255,36 @@ export function StudentsManager() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </ModernCard>
       </div>
+      </AnimatedWrapper>
 
-      {/* Students List */}
-      <StudentList />
-    </div>
+        {/* Students list (single view, tabs removed) */}
+        <AnimatedWrapper variant="fadeInUp" delay={0.3}>
+          <div className="w-full">
+            {filteredStudents.length === 0 ? (
+              <EmptyState
+                title={t('students.noStudentsFound')}
+                description={t('students.noStudentsDesc')}
+                action={{
+                  label: t('students.addStudent'),
+                  onClick: () => setIsAddDialogOpen(true)
+                }}
+              />
+            ) : (
+              <StudentList />
+            )}
+          </div>
+
+        {/* Dialogs */}
+        <BulkPromotionDialog
+          open={promotionDialogOpen}
+          onOpenChange={setPromotionDialogOpen}
+          onPromote={handleBulkPromotion}
+        />
+        </AnimatedWrapper>
+        </div>
+      </div>
+    </ErrorBoundary>
   );
 }

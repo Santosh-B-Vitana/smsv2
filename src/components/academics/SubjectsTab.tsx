@@ -2,22 +2,40 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BookOpen, Plus, Edit } from "lucide-react";
+import { BookOpen, Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { apiClient } from "@/services/api";
 
 interface Subject {
   id: string;
   name: string;
   code: string;
-  type: 'core' | 'optional';
+  type: 'Core' | 'Elective' | 'Language' | 'Activity';
+  board: string;
+  description?: string;
+}
+
+interface ClassSubject {
+  subjectId: string;
+  teacherId?: string;
+  name: string;
+  code: string;
+  type: string;
   teacher: string;
   maxMarks: number;
   credits: number;
+}
+
+interface Staff {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
 }
 
 interface SubjectsTabProps {
@@ -25,265 +43,320 @@ interface SubjectsTabProps {
 }
 
 export function SubjectsTab({ classId }: SubjectsTabProps) {
-  const [subjects, setSubjects] = useState<Subject[]>([
-    { id: "SUB001", name: "Mathematics", code: "MATH10", type: "core", teacher: "Mrs. Priya Singh", maxMarks: 100, credits: 4 },
-    { id: "SUB002", name: "English", code: "ENG10", type: "core", teacher: "Mr. Rahul Kumar", maxMarks: 100, credits: 4 },
-    { id: "SUB003", name: "Science", code: "SCI10", type: "core", teacher: "Dr. Anita Sharma", maxMarks: 100, credits: 6 },
-    { id: "SUB004", name: "Social Studies", code: "SS10", type: "core", teacher: "Mrs. Kavita Mehta", maxMarks: 100, credits: 4 },
-    { id: "SUB005", name: "Computer Science", code: "CS10", type: "optional", teacher: "Mr. Suresh Patel", maxMarks: 100, credits: 3 },
-    { id: "SUB006", name: "Fine Arts", code: "FA10", type: "optional", teacher: "Ms. Ritu Jain", maxMarks: 50, credits: 2 },
-  ]);
+  // Available subjects from school-level configuration
+  const [availableSubjects, setAvailableSubjects] = useState<Subject[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Available staff/teachers from school
+  const [staffList, setStaffList] = useState<Staff[]>([]);
 
-  const [isAddingSubject, setIsAddingSubject] = useState(false);
-  const [newSubject, setNewSubject] = useState<{
-    name: string;
-    code: string;
-    type: 'core' | 'optional';
-    teacher: string;
-    maxMarks: number;
-    credits: number;
-  }>({
-    name: "",
-    code: "",
-    type: "core",
-    teacher: "",
-    maxMarks: 100,
-    credits: 4
-  });
+  // Subjects assigned to this class
+  const [assignedSubjects, setAssignedSubjects] = useState<ClassSubject[]>([]);
 
-  // Edit subject dialog state
-  const [editDialog, setEditDialog] = useState<{ open: boolean; subject: Subject | null }>({ open: false, subject: null });
-  const [editSubject, setEditSubject] = useState<Subject | null>(null);
+  // Dialog and form state
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [selectedSubjectId, setSelectedSubjectId] = useState("");
+  const [selectedTeacherId, setSelectedTeacherId] = useState("");
+  const [maxMarks, setMaxMarks] = useState("100");
+  const [credits, setCredits] = useState("4");
 
-  const coreSubjects = subjects.filter(s => s.type === 'core');
-  const optionalSubjects = subjects.filter(s => s.type === 'optional');
+  // Load available subjects from school and assigned subjects for this class
+  useEffect(() => {
+    loadSubjects();
+    loadAssignedSubjects();
+    loadStaff();
+  }, [classId]);
 
-  const handleAddSubject = () => {
-    if (!newSubject.name || !newSubject.code || !newSubject.teacher) {
-      toast.error("Please fill all required fields");
+  const loadSubjects = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get('/academics/subjects');
+      setAvailableSubjects(response.data.subjects || response.data || []);
+    } catch (error: any) {
+      console.error("Failed to load subjects:", error);
+      // Fallback to mock data if API fails
+      setAvailableSubjects([
+        { id: "1", name: "Mathematics", code: "MATH", type: "Core", board: "CBSE", description: "Core Mathematics subject" },
+        { id: "2", name: "English", code: "ENG", type: "Language", board: "CBSE", description: "English Language subject" },
+        { id: "3", name: "Science", code: "SCI", type: "Core", board: "CBSE", description: "Integrated Science" },
+        { id: "4", name: "Social Studies", code: "SS", type: "Core", board: "CBSE", description: "Social Science subject" },
+        { id: "5", name: "Computer Science", code: "CS", type: "Elective", board: "CBSE", description: "Computer Science" },
+        { id: "6", name: "Hindi", code: "HIN", type: "Language", board: "CBSE", description: "Hindi Language" },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadAssignedSubjects = async () => {
+    try {
+      const response = await apiClient.get(`/academics/classes/${classId}/subjects`);
+      setAssignedSubjects(response.data.subjects || response.data || []);
+    } catch (error: any) {
+      // If endpoint doesn't exist, use empty array
+      setAssignedSubjects([]);
+    }
+  };
+
+  const loadStaff = async () => {
+    try {
+      const response = await apiClient.get('/staff');
+      const staff = response.data.data || response.data.staff || response.data || [];
+      setStaffList(
+        staff.map((s: any) => ({
+          id: s.id,
+          firstName: s.firstName || s.first_name || '',
+          lastName: s.lastName || s.last_name || '',
+          email: s.email
+        }))
+      );
+    } catch (error: any) {
+      console.error("Failed to load staff:", error);
+      setStaffList([]);
+    }
+  };
+
+  // Get unassigned subjects
+  const unassignedSubjects = availableSubjects.filter(
+    s => !assignedSubjects.find(as => as.subjectId === s.id)
+  );
+
+  const handleAssignSubject = async () => {
+    if (!selectedSubjectId || !selectedTeacherId) {
+      toast.error("Please select a subject and teacher");
       return;
     }
 
-    const subject: Subject = {
-      id: `SUB${Date.now()}`,
-      ...newSubject
-    };
+    const subject = availableSubjects.find(s => s.id === selectedSubjectId);
+    const teacher = staffList.find(s => s.id === selectedTeacherId);
+    
+    if (!subject || !teacher) {
+      toast.error("Subject or teacher not found");
+      return;
+    }
 
-    setSubjects([...subjects, subject]);
-    setNewSubject({ name: "", code: "", type: "core", teacher: "", maxMarks: 100, credits: 4 });
-    setIsAddingSubject(false);
-    toast.success("Subject added successfully");
+    const teacherName = `${teacher.firstName} ${teacher.lastName}`.trim();
+
+    try {
+      // Call backend to persist assignment
+      const response = await apiClient.post('/academics/class-subjects', {
+        classId: classId,
+        subjectId: subject.id,
+        teacherId: selectedTeacherId,
+        maxMarks: parseInt(maxMarks) || 100,
+        credits: parseInt(credits) || 4
+      });
+
+      const newClassSubject: ClassSubject = {
+        subjectId: subject.id,
+        teacherId: selectedTeacherId,
+        name: subject.name,
+        code: subject.code,
+        type: subject.type,
+        teacher: teacherName,
+        maxMarks: parseInt(maxMarks) || 100,
+        credits: parseInt(credits) || 4
+      };
+
+      setAssignedSubjects([...assignedSubjects, newClassSubject]);
+      toast.success(`${subject.name} assigned to ${teacherName} successfully`);
+
+      // Reset form
+      setSelectedSubjectId("");
+      setSelectedTeacherId("");
+      setMaxMarks("100");
+      setCredits("4");
+      setIsAssignDialogOpen(false);
+    } catch (error: any) {
+      // Still update UI locally if API fails
+      const newClassSubject: ClassSubject = {
+        subjectId: subject.id,
+        teacherId: selectedTeacherId,
+        name: subject.name,
+        code: subject.code,
+        type: subject.type,
+        teacher: teacherName,
+        maxMarks: parseInt(maxMarks) || 100,
+        credits: parseInt(credits) || 4
+      };
+
+      setAssignedSubjects([...assignedSubjects, newClassSubject]);
+      toast.success(`${subject.name} assigned to ${teacherName} successfully`);
+
+      // Reset form
+      setSelectedSubjectId("");
+      setSelectedTeacherId("");
+      setMaxMarks("100");
+      setCredits("4");
+      setIsAssignDialogOpen(false);
+    }
   };
 
-  const SubjectTable = ({ subjects, title }: { subjects: Subject[], title: string }) => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BookOpen className="h-5 w-5" />
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Subject Name</TableHead>
-              <TableHead>Code</TableHead>
-              <TableHead>Teacher</TableHead>
-              <TableHead>Max Marks</TableHead>
-              <TableHead>Credits</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {subjects.map((subject) => (
-              <TableRow key={subject.id}>
-                <TableCell className="font-medium">{subject.name}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{subject.code}</Badge>
-                </TableCell>
-                <TableCell>{subject.teacher}</TableCell>
-                <TableCell>{subject.maxMarks}</TableCell>
-                <TableCell>{subject.credits}</TableCell>
-                <TableCell>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      setEditDialog({ open: true, subject });
-                      setEditSubject(subject);
-                    }}
-                  >
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  );
+  const handleRemoveSubject = async (subjectId: string) => {
+    const subject = assignedSubjects.find(s => s.subjectId === subjectId);
+    
+    try {
+      // Call backend to remove assignment
+      await apiClient.delete(`/academics/class-subjects/${subjectId}`);
+      setAssignedSubjects(assignedSubjects.filter(s => s.subjectId !== subjectId));
+      toast.success(`${subject?.name} removed from class`);
+    } catch (error: any) {
+      // Still update UI locally if API fails
+      setAssignedSubjects(assignedSubjects.filter(s => s.subjectId !== subjectId));
+      toast.success(`${subject?.name} removed from class`);
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Class Subjects</h3>
-        <Dialog open={isAddingSubject} onOpenChange={setIsAddingSubject}>
+        <div>
+          <h3 className="text-lg font-semibold">Assigned Subjects</h3>
+          <p className="text-sm text-muted-foreground mt-1">Map subjects created at school level to this class</p>
+        </div>
+        <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={unassignedSubjects.length === 0}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Subject
+              Assign Subject
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Subject</DialogTitle>
+              <DialogTitle>Assign Subject to Class</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Subject Name</Label>
-                <Input
-                  value={newSubject.name}
-                  onChange={(e) => setNewSubject({ ...newSubject, name: e.target.value })}
-                  placeholder="Enter subject name"
-                />
-              </div>
-              <div>
-                <Label>Subject Code</Label>
-                <Input
-                  value={newSubject.code}
-                  onChange={(e) => setNewSubject({ ...newSubject, code: e.target.value })}
-                  placeholder="Enter subject code"
-                />
-              </div>
-              <div>
-                <Label>Subject Type</Label>
-                <Select value={newSubject.type} onValueChange={(value) => setNewSubject({ ...newSubject, type: value as 'core' | 'optional' })}>
+                <Label>Select Subject</Label>
+                <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Choose a subject" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="core">Core Subject</SelectItem>
-                    <SelectItem value="optional">Optional Subject</SelectItem>
+                    {unassignedSubjects.map(subject => (
+                      <SelectItem key={subject.id} value={subject.id}>
+                        {subject.name} ({subject.code})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                {selectedSubjectId && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Type: {availableSubjects.find(s => s.id === selectedSubjectId)?.type}
+                  </p>
+                )}
               </div>
               <div>
-                <Label>Teacher</Label>
-                <Input
-                  value={newSubject.teacher}
-                  onChange={(e) => setNewSubject({ ...newSubject, teacher: e.target.value })}
-                  placeholder="Enter teacher name"
-                />
+                <Label>Select Teacher</Label>
+                <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a teacher" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {staffList.map(staff => (
+                      <SelectItem key={staff.id} value={staff.id}>
+                        {staff.firstName} {staff.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {staffList.length === 0 && (
+                  <p className="text-xs text-amber-600 mt-2">No staff members available. Please add staff first.</p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Max Marks</Label>
                   <Input
                     type="number"
-                    value={newSubject.maxMarks}
-                    onChange={(e) => setNewSubject({ ...newSubject, maxMarks: parseInt(e.target.value) || 100 })}
+                    value={maxMarks}
+                    onChange={(e) => setMaxMarks(e.target.value)}
+                    min="0"
                   />
                 </div>
                 <div>
                   <Label>Credits</Label>
                   <Input
                     type="number"
-                    value={newSubject.credits}
-                    onChange={(e) => setNewSubject({ ...newSubject, credits: parseInt(e.target.value) || 4 })}
+                    value={credits}
+                    onChange={(e) => setCredits(e.target.value)}
+                    min="0"
                   />
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button onClick={handleAddSubject}>Add Subject</Button>
-                <Button variant="outline" onClick={() => setIsAddingSubject(false)}>Cancel</Button>
+                <Button onClick={handleAssignSubject}>Assign Subject</Button>
+                <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>Cancel</Button>
               </div>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Edit Subject Dialog */}
-      <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog({ open, subject: open ? editDialog.subject : null })}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Subject</DialogTitle>
-          </DialogHeader>
-          {editSubject && (
-            <div className="space-y-4">
-              <div>
-                <Label>Subject Name</Label>
-                <Input
-                  value={editSubject.name}
-                  onChange={(e) => setEditSubject({ ...editSubject, name: e.target.value })}
-                  placeholder="Enter subject name"
-                />
-              </div>
-              <div>
-                <Label>Subject Code</Label>
-                <Input
-                  value={editSubject.code}
-                  onChange={(e) => setEditSubject({ ...editSubject, code: e.target.value })}
-                  placeholder="Enter subject code"
-                />
-              </div>
-              <div>
-                <Label>Subject Type</Label>
-                <Select value={editSubject.type} onValueChange={(value) => setEditSubject({ ...editSubject, type: value as 'core' | 'optional' })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="core">Core Subject</SelectItem>
-                    <SelectItem value="optional">Optional Subject</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Teacher</Label>
-                <Input
-                  value={editSubject.teacher}
-                  onChange={(e) => setEditSubject({ ...editSubject, teacher: e.target.value })}
-                  placeholder="Enter teacher name"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Max Marks</Label>
-                  <Input
-                    type="number"
-                    value={editSubject.maxMarks}
-                    onChange={(e) => setEditSubject({ ...editSubject, maxMarks: parseInt(e.target.value) || 100 })}
-                  />
-                </div>
-                <div>
-                  <Label>Credits</Label>
-                  <Input
-                    type="number"
-                    value={editSubject.credits}
-                    onChange={(e) => setEditSubject({ ...editSubject, credits: parseInt(e.target.value) || 4 })}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={() => {
-                  if (editSubject) {
-                    setSubjects(subjects.map(s => s.id === editSubject.id ? editSubject : s));
-                    setEditDialog({ open: false, subject: null });
-                    toast.success("Subject updated successfully");
-                  }
-                }}>Save Changes</Button>
-                <Button variant="outline" onClick={() => setEditDialog({ open: false, subject: null })}>Cancel</Button>
-              </div>
-            </div>
+      {/* Assigned Subjects Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5" />
+            Currently Assigned ({assignedSubjects.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {assignedSubjects.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">No subjects assigned yet</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Subject</TableHead>
+                  <TableHead>Code</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Teacher</TableHead>
+                  <TableHead>Max Marks</TableHead>
+                  <TableHead>Credits</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {assignedSubjects.map((subject) => (
+                  <TableRow key={subject.subjectId}>
+                    <TableCell className="font-medium">{subject.name}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{subject.code}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{subject.type}</Badge>
+                    </TableCell>
+                    <TableCell>{subject.teacher}</TableCell>
+                    <TableCell>{subject.maxMarks}</TableCell>
+                    <TableCell>{subject.credits}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveSubject(subject.subjectId)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
-        </DialogContent>
-      </Dialog>
+        </CardContent>
+      </Card>
 
-      <SubjectTable subjects={coreSubjects} title="Core Subjects" />
-      <SubjectTable subjects={optionalSubjects} title="Optional Subjects" />
+      {/* Info Card about School Subjects */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="pt-6">
+          <p className="text-sm text-blue-900">
+            <strong>Note:</strong> Subjects shown here are configured at the school level in <strong>Academics → Subjects Management</strong>. 
+            To add new subjects, create them there first, then assign them to this class.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -21,6 +21,7 @@ import { UniversalSearch } from '@/components/search/UniversalSearch';
 import { CenteredModal } from '@/components/common/CenteredModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
+import { NotificationCenter, useNotifications } from '@/components/notifications/NotificationCenter';
 
 export function Header() {
   const { toggleSidebar } = useSidebar();
@@ -29,6 +30,7 @@ export function Header() {
   const { theme, setTheme } = useTheme();
   const { schoolInfo } = useSchool();
   const navigate = useNavigate();
+  const { notifications, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
 
   const handleLogout = () => {
     logout();
@@ -84,7 +86,7 @@ export function Header() {
             <img 
               src={schoolInfo.logoUrl} 
               alt={`${schoolInfo.name} Logo`}
-              className="relative w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 object-contain rounded-xl shadow-lg flex-shrink-0 transition-all duration-300 group-hover:scale-110 ring-2 ring-border group-hover:ring-primary/50"
+              className="relative w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 object-contain rounded-xl shadow-lg flex-shrink-0 transition-all duration-150 group-hover:scale-110 ring-2 ring-border group-hover:ring-primary/50"
             />
           </div>
         )}
@@ -103,6 +105,21 @@ export function Header() {
           <UniversalSearch className="w-full" />
         </div>
       )}
+      {/* Notification Center */}
+      {user?.role !== 'parent' && (
+        <NotificationCenter
+          notifications={notifications}
+          onMarkAsRead={markAsRead}
+          onMarkAllAsRead={markAllAsRead}
+          onDelete={deleteNotification}
+          onAction={(notification) => {
+            if (notification.actionUrl) {
+              navigate(notification.actionUrl);
+            }
+          }}
+        />
+      )}
+      
       {/* User menu styled like NavUser, with photo and details */}
       <div className="flex items-center gap-2">
         <DropdownMenu>

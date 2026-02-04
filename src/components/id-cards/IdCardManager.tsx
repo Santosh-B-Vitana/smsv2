@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { mockApi, Student, Staff } from "../../services/mockApi";
 import { IdCardTemplate } from "./IdCardTemplate";
 import { IndividualIdCardGenerator } from "./IndividualIdCardGenerator";
+import { ErrorBoundary, LoadingState, EmptyState } from "@/components/common";
 
 interface IdCardRecord {
   id: string;
@@ -138,19 +139,11 @@ export function IdCardManager() {
   };
 
   if (loading) {
-    return (
-      <div className="animate-pulse space-y-6">
-        <div className="h-8 bg-muted rounded w-48"></div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-32 bg-muted rounded-lg"></div>
-          ))}
-        </div>
-      </div>
-    );
+    return <LoadingState variant="cards" rows={3} message="Loading ID card data..." />;
   }
 
   return (
+    <ErrorBoundary>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -317,5 +310,6 @@ export function IdCardManager() {
         </DialogContent>
       </Dialog>
     </div>
+    </ErrorBoundary>
   );
 }

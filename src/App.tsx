@@ -45,6 +45,7 @@ import IdCards from "@/pages/IdCards";
 import Analytics from "@/pages/Analytics";
 import Settings from "@/pages/Settings";
 import ClassManager from "@/pages/academics/ClassManager";
+import ClassDetail from "@/pages/academics/ClassDetail";
 import ClassProfile from "@/pages/ClassProfile";
 import StaffClassProfile from "@/pages/StaffClassProfile";
 import StudentFeeDetails from "./pages/StudentFeeDetails";
@@ -59,6 +60,11 @@ import StaffAttendanceTeacher from "./pages/StaffAttendanceTeacher";
 import Wallet from "./pages/Wallet";
 import SchoolConnect from "./pages/SchoolConnect";
 import Store from "./pages/Store";
+import CCEManagement from "./pages/CCEManagement";
+import FeeConcession from "./pages/FeeConcession";
+import PaymentGateway from "./pages/PaymentGateway";
+import PFESIManagement from "./pages/PFESIManagement";
+import OfflineAttendance from "./pages/OfflineAttendance";
 
 import NotFound from "./pages/NotFound";
 import ChildProfile from "./pages/ChildProfile"; // Updated import
@@ -66,6 +72,12 @@ import LeaveManagement from "./pages/LeaveManagement";
 import VisitorManagement from "./pages/VisitorManagement";
 
 import SchoolManagement from "@/pages/superadmin/SchoolManagement";
+import ExamSummary from "@/pages/reports/ExamSummary";
+import ExamPerformance from "@/pages/reports/ExamPerformance";
+import StudentMarks from "@/pages/reports/StudentMarks";
+import ClassAnalysis from "@/pages/reports/ClassAnalysis";
+import GradeDistribution from "@/pages/reports/GradeDistribution";
+import SubjectPerformance from "@/pages/reports/SubjectPerformance";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -114,8 +126,19 @@ function App() {
                   <Route path="/grades" element={<Layout><Grades /></Layout>} />
                    <Route path="/my-classes" element={<Layout><MyClasses /></Layout>} />
                    <Route path="/my-classes/:classId" element={<Layout><MyClassDetail /></Layout>} />
-                  <Route path="/assignments" element={<Layout><Assignments /></Layout>} />
+                   <Route path="/assignments" element={<Layout><Assignments /></Layout>} />
                   <Route path="/examinations" element={<Layout><Examinations /></Layout>} />
+                   <Route path="/reports/exam-summary" element={<Layout><ExamSummary /></Layout>} />
+                   <Route path="/reports/exam-performance" element={<Layout><ExamPerformance /></Layout>} />
+                   <Route path="/reports/student-marks" element={<Layout><StudentMarks /></Layout>} />
+                   <Route path="/reports/class-analysis" element={<Layout><ClassAnalysis /></Layout>} />
+                   <Route path="/reports/grade-distribution" element={<Layout><GradeDistribution /></Layout>} />
+                   <Route path="/reports/subject-performance" element={<Layout><SubjectPerformance /></Layout>} />
+                   <Route path="/cce-management" element={<Layout><CCEManagement /></Layout>} />
+                   <Route path="/fee-concession" element={<Layout><FeeConcession /></Layout>} />
+                   <Route path="/payment-gateway" element={<Layout><PaymentGateway /></Layout>} />
+                   <Route path="/pf-esi" element={<Layout><PFESIManagement /></Layout>} />
+                   <Route path="/offline-attendance" element={<Layout><OfflineAttendance /></Layout>} />
                   <Route path="/reports" element={<Layout><Reports /></Layout>} />
                   <Route path="/timetable" element={<Layout><Timetable /></Layout>} />
                   <Route path="/transport" element={<Layout><Transport /></Layout>} />
@@ -137,6 +160,7 @@ function App() {
                    <Route path="/child-profile" element={<Layout><ChildProfile /></Layout>} />
                    <Route path="/leave-management" element={<Layout><LeaveManagement /></Layout>} />
                     <Route path="/academics/classes/manage" element={<Layout><ClassManager /></Layout>} />
+                    <Route path="/academics/classes/:classId" element={<Layout><ClassDetail /></Layout>} />
                     <Route path="/class/:classId" element={<Layout><ClassProfile /></Layout>} />
                     <Route path="/staff-class/:classId" element={<Layout><StaffClassProfile /></Layout>} />
                     <Route path="/student-fee-details/:studentId" element={<StudentFeeDetails />} />

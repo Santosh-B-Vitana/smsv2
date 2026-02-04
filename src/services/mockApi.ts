@@ -249,6 +249,51 @@ interface Staff {
   qualification?: string;
   salary?: number;
   photoUrl?: string;
+  // Additional Personal Information
+  dob?: string;
+  gender?: string;
+  nationality?: string;
+  religion?: string;
+  maritalStatus?: string;
+  // Contact Information
+  primaryPhone?: string;
+  secondaryPhone?: string;
+  personalEmail?: string;
+  permanentAddress?: string;
+  // Identification
+  aadharNumber?: string;
+  panNumber?: string;
+  passportNumber?: string;
+  licenseNumber?: string;
+  // Medical Information
+  bloodGroup?: string;
+  allergies?: string;
+  chronicConditions?: string;
+  emergencyContact?: string;
+  emergencyContactPhone?: string;
+  doctorName?: string;
+  doctorPhone?: string;
+  // Professional Details
+  bankAccountNumber?: string;
+  bankName?: string;
+  ifscCode?: string;
+  accountHolderName?: string;
+  panCard?: string;
+  // Qualification Details
+  highestQualification?: string;
+  university?: string;
+  passingYear?: number;
+  additionalCertifications?: string[];
+  // Employment Details
+  employmentType?: string;
+  confirmationDate?: string;
+  workingDays?: string;
+  leaveEntitlement?: number;
+  // Documents & Consent
+  backgroundVerified?: boolean;
+  policeClearance?: boolean;
+  medicalCheckup?: boolean;
+  documentConsent?: boolean;
 }
 
 // Payroll
@@ -727,7 +772,38 @@ const mockStudents: Student[] = [
     status: "active",
     admissionDate: "2023-04-01",
     photoUrl: undefined,
-    siblings: ["STU002", "STU003"]
+    siblings: ["STU002", "STU003"],
+    // Additional Medical Information
+    bloodGroup: "O+",
+    allergies: "Peanut allergy",
+    chronicConditions: "None",
+    medications: "None",
+    emergencyContact: "Raj Gupta (Uncle)",
+    emergencyPhone: "+1 (555) 111-1111",
+    doctorName: "Dr. Sharma",
+    doctorPhone: "+1 (555) 999-8888",
+    // Additional Identification
+    aadharNumber: "1234-5678-9101",
+    panNumber: "ABCDE1234F",
+    passportNumber: "H8765432",
+    visaType: "Not applicable",
+    visaExpiry: "N/A",
+    // Additional Contact
+    primaryPhone: "+1 (555) 987-6543",
+    secondaryPhone: "+1 (555) 987-6544",
+    email: "aarav.gupta@email.com",
+    permanentAddress: "123 Main St, Delhi",
+    // Personal Details
+    placeOfBirth: "Delhi",
+    nationality: ["Indian"],
+    languageProficiency: ["English", "Hindi", "Sanskrit"],
+    specialNeeds: "None",
+    // Facilities
+    transportRequired: true,
+    hostelRequired: false,
+    photoConsent: true,
+    mediaConsent: true,
+    medicalConsent: true
   },
   {
     id: "STU002",
@@ -743,7 +819,38 @@ const mockStudents: Student[] = [
     status: "active",
     admissionDate: "2023-04-01",
     photoUrl: undefined,
-    siblings: ["STU001", "STU003"]
+    siblings: ["STU001", "STU003"],
+    // Additional Medical Information
+    bloodGroup: "A+",
+    allergies: "None",
+    chronicConditions: "Mild asthma",
+    medications: "Inhaler as needed",
+    emergencyContact: "Vikram Mehra (Father)",
+    emergencyPhone: "+1 (555) 222-2222",
+    doctorName: "Dr. Patel",
+    doctorPhone: "+1 (555) 888-7777",
+    // Additional Identification
+    aadharNumber: "2345-6789-0112",
+    panNumber: "FGHIJ5678K",
+    passportNumber: "K9876543",
+    visaType: "Not applicable",
+    visaExpiry: "N/A",
+    // Additional Contact
+    primaryPhone: "+1 (555) 876-5432",
+    secondaryPhone: "+1 (555) 876-5433",
+    email: "rohan.mehra@email.com",
+    permanentAddress: "456 Oak Ave, Lucknow",
+    // Personal Details
+    placeOfBirth: "Lucknow",
+    nationality: ["Indian"],
+    languageProficiency: ["English", "Hindi"],
+    specialNeeds: "None",
+    // Facilities
+    transportRequired: false,
+    hostelRequired: true,
+    photoConsent: false,
+    mediaConsent: true,
+    medicalConsent: true
   },
   {
     id: "STU003",
@@ -758,7 +865,38 @@ const mockStudents: Student[] = [
     category: "General",
     status: "active",
     admissionDate: "2023-04-01",
-    siblings: ["STU001", "STU002"]
+    siblings: ["STU001", "STU002"],
+    // Additional Medical Information
+    bloodGroup: "B-",
+    allergies: "Shellfish allergy",
+    chronicConditions: "None",
+    medications: "None",
+    emergencyContact: "Arjun Sharma (Brother)",
+    emergencyPhone: "+1 (555) 333-3333",
+    doctorName: "Dr. Verma",
+    doctorPhone: "+1 (555) 777-6666",
+    // Additional Identification
+    aadharNumber: "3456-7890-1234",
+    panNumber: "KLMNO9012P",
+    passportNumber: "L1234567",
+    visaType: "Not applicable",
+    visaExpiry: "N/A",
+    // Additional Contact
+    primaryPhone: "+1 (555) 765-4321",
+    secondaryPhone: "+1 (555) 765-4322",
+    email: "ananya.sharma@email.com",
+    permanentAddress: "789 Pink Lane, Jaipur",
+    // Personal Details
+    placeOfBirth: "Jaipur",
+    nationality: ["Indian"],
+    languageProficiency: ["English", "Hindi", "Marathi"],
+    specialNeeds: "Hearing aid",
+    // Facilities
+    transportRequired: true,
+    hostelRequired: false,
+    photoConsent: true,
+    mediaConsent: false,
+    medicalConsent: true
   }
 ];
 
@@ -782,7 +920,55 @@ function getInitialStaff() {
       email: "admin@vitanaSchools.edu",
       address: "567 Sector 21, Noida",
       joiningDate: "2020-01-15",
-      status: "active"
+      status: "active",
+      experience: 25,
+      qualification: "M.Ed, Ph.D",
+      salary: 75000,
+      // Personal Information
+      dob: "1978-05-15",
+      gender: "Male",
+      nationality: "Indian",
+      religion: "Hindu",
+      maritalStatus: "Married",
+      // Contact
+      primaryPhone: "+1 (555) 111-2222",
+      secondaryPhone: "+1 (555) 111-2223",
+      personalEmail: "rajesh.sharma@personal.com",
+      permanentAddress: "123 Oak Street, New Delhi",
+      // Identification
+      aadharNumber: "1234-5678-9012",
+      panNumber: "ABCD1234E",
+      passportNumber: "G1234567",
+      licenseNumber: "DL01-12345-2015",
+      // Medical
+      bloodGroup: "O+",
+      allergies: "Peanut allergy",
+      chronicConditions: "Hypertension",
+      emergencyContact: "Priya Sharma (Spouse)",
+      emergencyContactPhone: "+1 (555) 111-2224",
+      doctorName: "Dr. Arun Gupta",
+      doctorPhone: "+1 (555) 999-8888",
+      // Professional
+      bankAccountNumber: "1234567890123456",
+      bankName: "ICICI Bank",
+      ifscCode: "ICIC0000001",
+      accountHolderName: "Dr. Rajesh Sharma",
+      panCard: "ABCD1234E",
+      // Qualification
+      highestQualification: "Ph.D in Education",
+      university: "Delhi University",
+      passingYear: 2005,
+      additionalCertifications: ["Certified Trainer", "Quality Assurance Manager"],
+      // Employment
+      employmentType: "Full-time Permanent",
+      confirmationDate: "2020-07-15",
+      workingDays: "Monday to Friday",
+      leaveEntitlement: 30,
+      // Compliance
+      backgroundVerified: true,
+      policeClearance: true,
+      medicalCheckup: true,
+      documentConsent: true
     },
     {
       id: "STAFF002",
@@ -794,7 +980,55 @@ function getInitialStaff() {
       email: "anil.kumar@vitanaSchools.edu",
       address: "890 Model Town, Chandigarh",
       joiningDate: "2019-08-20",
-      status: "active"
+      status: "active",
+      experience: 12,
+      qualification: "M.Sc Mathematics, B.Ed",
+      salary: 45000,
+      // Personal Information
+      dob: "1992-03-22",
+      gender: "Male",
+      nationality: "Indian",
+      religion: "Hindu",
+      maritalStatus: "Unmarried",
+      // Contact
+      primaryPhone: "+1 (555) 222-3333",
+      secondaryPhone: "+1 (555) 222-3334",
+      personalEmail: "anil.kumar@personal.com",
+      permanentAddress: "456 Maple Avenue, Chandigarh",
+      // Identification
+      aadharNumber: "2345-6789-0123",
+      panNumber: "EFGH5678I",
+      passportNumber: "H2345678",
+      licenseNumber: "CH01-54321-2015",
+      // Medical
+      bloodGroup: "A+",
+      allergies: "Dairy intolerant",
+      chronicConditions: "None",
+      emergencyContact: "Rajesh Kumar (Brother)",
+      emergencyContactPhone: "+1 (555) 222-3335",
+      doctorName: "Dr. Kavita Sharma",
+      doctorPhone: "+1 (555) 888-7777",
+      // Professional
+      bankAccountNumber: "9876543210123456",
+      bankName: "HDFC Bank",
+      ifscCode: "HDFC0000123",
+      accountHolderName: "Anil Kumar",
+      panCard: "EFGH5678I",
+      // Qualification
+      highestQualification: "M.Sc Mathematics",
+      university: "Panjab University",
+      passingYear: 2014,
+      additionalCertifications: ["Advanced Mathematics Trainer", "Math Olympiad Coordinator"],
+      // Employment
+      employmentType: "Full-time Permanent",
+      confirmationDate: "2020-02-20",
+      workingDays: "Monday to Friday",
+      leaveEntitlement: 28,
+      // Compliance
+      backgroundVerified: true,
+      policeClearance: true,
+      medicalCheckup: true,
+      documentConsent: true
     },
     {
       id: "STAFF003",
@@ -806,7 +1040,55 @@ function getInitialStaff() {
       email: "priya.singh@vitanaSchools.edu",
       address: "234 Ashok Vihar, Kanpur",
       joiningDate: "2021-06-10",
-      status: "active"
+      status: "active",
+      experience: 8,
+      qualification: "M.A English, B.Ed",
+      salary: 42000,
+      // Personal Information
+      dob: "1995-08-18",
+      gender: "Female",
+      nationality: "Indian",
+      religion: "Sikh",
+      maritalStatus: "Married",
+      // Contact
+      primaryPhone: "+1 (555) 333-4444",
+      secondaryPhone: "+1 (555) 333-4445",
+      personalEmail: "priya.singh@personal.com",
+      permanentAddress: "789 Elm Street, Kanpur",
+      // Identification
+      aadharNumber: "3456-7890-1234",
+      panNumber: "IJKL9012J",
+      passportNumber: "I3456789",
+      licenseNumber: "UP01-98765-2017",
+      // Medical
+      bloodGroup: "B+",
+      allergies: "None",
+      chronicConditions: "Migraine susceptibility",
+      emergencyContact: "Rajveer Singh (Spouse)",
+      emergencyContactPhone: "+1 (555) 333-4446",
+      doctorName: "Dr. Monica Patel",
+      doctorPhone: "+1 (555) 777-6666",
+      // Professional
+      bankAccountNumber: "5555666677778888",
+      bankName: "Axis Bank",
+      ifscCode: "AXIS0000456",
+      accountHolderName: "Priya Singh",
+      panCard: "IJKL9012J",
+      // Qualification
+      highestQualification: "M.A English Literature",
+      university: "Kanpur University",
+      passingYear: 2017,
+      additionalCertifications: ["Certified ESL Instructor", "Content Writing Expert"],
+      // Employment
+      employmentType: "Full-time Permanent",
+      confirmationDate: "2021-12-10",
+      workingDays: "Monday to Friday",
+      leaveEntitlement: 28,
+      // Compliance
+      backgroundVerified: true,
+      policeClearance: true,
+      medicalCheckup: true,
+      documentConsent: true
     }
   ];
 }

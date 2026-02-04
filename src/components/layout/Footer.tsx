@@ -1,7 +1,7 @@
 
 export function Footer() {
   return (
-    <footer className="bg-background border-t border-border py-3 px-4 sm:px-6">
+    <footer id="footer" className="bg-background border-t border-border py-3 px-4 sm:px-6">
       <div className="container mx-auto max-w-7xl">
         <div className="flex flex-col items-center justify-center space-y-1 text-center">
           <p className="text-xs text-muted-foreground">

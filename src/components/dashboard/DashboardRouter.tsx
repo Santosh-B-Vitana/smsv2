@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import SuperAdminDashboard from '../../pages/dashboards/SuperAdminDashboard';
 import AdminDashboard from '../../pages/dashboards/AdminDashboard';
 import StaffDashboard from '../../pages/dashboards/StaffDashboard';
-import ParentDashboard from '../../pages/dashboards/ParentDashboard';
+import UpdatedParentDashboard from '../../pages/dashboards/UpdatedParentDashboard';
 
 export const DashboardRouter: React.FC = () => {
   const { user } = useAuth();
@@ -21,7 +21,7 @@ export const DashboardRouter: React.FC = () => {
     case 'staff':
       return <StaffDashboard />;
     case 'parent':
-      return <ParentDashboard />;
+      return <UpdatedParentDashboard />;
     default:
       return <AdminDashboard />;
   }

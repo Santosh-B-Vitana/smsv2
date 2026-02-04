@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedBackground } from "@/components/common/AnimatedBackground";
+import { AnimatedWrapper } from "@/components/common/AnimatedWrapper";
+import { ModernCard } from "@/components/common/ModernCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -187,200 +190,211 @@ export default function Alumni() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-display">Alumni Management</h1>
-          <p className="text-muted-foreground">Manage alumni profiles and organize alumni meets</p>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Alumni</p>
-                <p className="text-2xl font-bold">{alumni.length}</p>
-              </div>
-              <GraduationCap className="h-8 w-8 text-primary" />
+    <>
+      <AnimatedBackground variant="gradient" />
+      <div className="space-y-6">
+        <AnimatedWrapper variant="fadeInUp">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-display">Alumni Management</h1>
+              <p className="text-muted-foreground">Manage alumni profiles and organize alumni meets</p>
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Star Alumni</p>
-                <p className="text-2xl font-bold">{alumni.filter(a => a.isStarAlumni).length}</p>
-              </div>
-              <Star className="h-8 w-8 text-yellow-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">This Year</p>
-                <p className="text-2xl font-bold">
-                  {alumni.filter(a => a.graduationYear === new Date().getFullYear().toString()).length}
-                </p>
-              </div>
-              <Users className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-4">
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Manual Add
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Add New Alumni</DialogTitle>
-            </DialogHeader>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Alumni name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="graduationYear">Graduation Year</Label>
-                <Input
-                  id="graduationYear"
-                  value={formData.graduationYear}
-                  onChange={(e) => setFormData(prev => ({ ...prev, graduationYear: e.target.value }))}
-                  placeholder="2024"
-                />
-              </div>
-              <div>
-                <Label htmlFor="class">Class</Label>
-                <Input
-                  id="class"
-                  value={formData.class}
-                  onChange={(e) => setFormData(prev => ({ ...prev, class: e.target.value }))}
-                  placeholder="12-A"
-                />
-              </div>
-              <div>
-                <Label htmlFor="currentOccupation">Current Occupation</Label>
-                <Input
-                  id="currentOccupation"
-                  value={formData.currentOccupation}
-                  onChange={(e) => setFormData(prev => ({ ...prev, currentOccupation: e.target.value }))}
-                  placeholder="Software Engineer"
-                />
-              </div>
-              <div>
-                <Label htmlFor="company">Company</Label>
-                <Input
-                  id="company"
-                  value={formData.company}
-                  onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
-                  placeholder="Company name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                  placeholder="City, Country"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="email@example.com"
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Phone number"
-                />
-              </div>
-              <div className="col-span-2">
-                <Label htmlFor="achievements">Achievements</Label>
-                <Textarea
-                  id="achievements"
-                  value={formData.achievements}
-                  onChange={(e) => setFormData(prev => ({ ...prev, achievements: e.target.value }))}
-                  placeholder="Notable achievements and accomplishments"
-                />
-              </div>
-              <div className="col-span-2 flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="isStarAlumni"
-                  checked={formData.isStarAlumni}
-                  onChange={(e) => setFormData(prev => ({ ...prev, isStarAlumni: e.target.checked }))}
-                />
-                <Label htmlFor="isStarAlumni">Mark as Star Alumni</Label>
-              </div>
-            </div>
-            <div className="flex gap-2 justify-end mt-4">
-              <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancel</Button>
-              <Button onClick={handleAddAlumni}>Add Alumni</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Search and Filter */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search alumni by name, company, or occupation..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8"
-            />
           </div>
-        </div>
-        <Select value={yearFilter} onValueChange={setYearFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by year" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Years</SelectItem>
-            {getUniqueYears().map(year => (
-              <SelectItem key={year} value={year}>{year}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+        </AnimatedWrapper>
 
-      {/* Alumni Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Alumni Directory</CardTitle>
-        </CardHeader>
+        {/* Stats Cards */}
+        <AnimatedWrapper variant="fadeInUp" delay={0.1}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <ModernCard variant="glass">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Alumni</p>
+                    <p className="text-2xl font-bold">{alumni.length}</p>
+                  </div>
+                  <GraduationCap className="h-8 w-8 text-primary" />
+                </div>
+              </CardContent>
+            </ModernCard>
+            
+            <ModernCard variant="glass">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Star Alumni</p>
+                    <p className="text-2xl font-bold">{alumni.filter(a => a.isStarAlumni).length}</p>
+                  </div>
+                  <Star className="h-8 w-8 text-yellow-500" />
+                </div>
+              </CardContent>
+            </ModernCard>
+            
+            <ModernCard variant="glass">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">This Year</p>
+                    <p className="text-2xl font-bold">
+                      {alumni.filter(a => a.graduationYear === new Date().getFullYear().toString()).length}
+                    </p>
+                  </div>
+                  <Users className="h-8 w-8 text-blue-500" />
+                </div>
+              </CardContent>
+            </ModernCard>
+          </div>
+        </AnimatedWrapper>
+
+        {/* Action Buttons */}
+        <AnimatedWrapper variant="fadeInUp" delay={0.2}>
+          <div className="flex gap-4">
+            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Manual Add
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Add New Alumni</DialogTitle>
+                </DialogHeader>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name">Name</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Alumni name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="graduationYear">Graduation Year</Label>
+                    <Input
+                      id="graduationYear"
+                      value={formData.graduationYear}
+                      onChange={(e) => setFormData(prev => ({ ...prev, graduationYear: e.target.value }))}
+                      placeholder="2024"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="class">Class</Label>
+                    <Input
+                      id="class"
+                      value={formData.class}
+                      onChange={(e) => setFormData(prev => ({ ...prev, class: e.target.value }))}
+                      placeholder="12-A"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="currentOccupation">Current Occupation</Label>
+                    <Input
+                      id="currentOccupation"
+                      value={formData.currentOccupation}
+                      onChange={(e) => setFormData(prev => ({ ...prev, currentOccupation: e.target.value }))}
+                      placeholder="Software Engineer"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="company">Company</Label>
+                    <Input
+                      id="company"
+                      value={formData.company}
+                      onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+                      placeholder="Company name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                      placeholder="City, Country"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="email@example.com"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="Phone number"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label htmlFor="achievements">Achievements</Label>
+                    <Textarea
+                      id="achievements"
+                      value={formData.achievements}
+                      onChange={(e) => setFormData(prev => ({ ...prev, achievements: e.target.value }))}
+                      placeholder="Notable achievements and accomplishments"
+                    />
+                  </div>
+                  <div className="col-span-2 flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="isStarAlumni"
+                      checked={formData.isStarAlumni}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isStarAlumni: e.target.checked }))}
+                    />
+                    <Label htmlFor="isStarAlumni">Mark as Star Alumni</Label>
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end mt-4">
+                  <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancel</Button>
+                  <Button onClick={handleAddAlumni}>Add Alumni</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </AnimatedWrapper>
+
+        {/* Search and Filter */}
+        <AnimatedWrapper variant="fadeInUp" delay={0.3}>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search alumni by name, company, or occupation..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+            </div>
+            <Select value={yearFilter} onValueChange={setYearFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by year" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Years</SelectItem>
+                {getUniqueYears().map(year => (
+                  <SelectItem key={year} value={year}>{year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </AnimatedWrapper>
+
+        {/* Alumni Table */}
+        <AnimatedWrapper variant="fadeInUp" delay={0.4}>
+          <ModernCard variant="glass">
+            <CardHeader>
+              <CardTitle>Alumni Directory</CardTitle>
+            </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
@@ -436,7 +450,9 @@ export default function Alumni() {
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
-    </div>
+      </ModernCard>
+        </AnimatedWrapper>
+      </div>
+    </>
   );
 }

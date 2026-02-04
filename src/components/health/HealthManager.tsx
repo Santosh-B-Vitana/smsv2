@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedBackground, AnimatedWrapper, ModernCard } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Heart, Shield, Thermometer, AlertTriangle, Search, Plus, Calendar, Activity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { mockApi, Student } from "../../services/mockApi";
+import { ErrorBoundary, LoadingState, EmptyState } from "@/components/common";
 
 interface HealthRecord {
   id: string;
@@ -175,87 +176,84 @@ export function HealthManager() {
   };
 
   if (loading) {
-    return (
-      <div className="animate-pulse space-y-6">
-        <div className="h-8 bg-muted rounded w-48"></div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-32 bg-muted rounded-lg"></div>
-          ))}
-        </div>
-      </div>
-    );
+    return <LoadingState variant="cards" rows={3} message="Loading health records..." />;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-display">Health Management</h1>
-          <p className="text-muted-foreground">Track student health records and vaccinations</p>
+    <ErrorBoundary>
+    <div className="space-y-6 relative">
+      <AnimatedBackground variant="mesh" className="fixed inset-0 -z-10 opacity-30" />
+      <AnimatedWrapper variant="fadeInUp">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-display bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Health Management</h1>
+            <p className="text-muted-foreground">Track student health records and vaccinations</p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowAddRecord(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Record
+            </Button>
+            <Button onClick={() => setShowAddVaccination(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Vaccination
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setShowAddRecord(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Record
-          </Button>
-          <Button onClick={() => setShowAddVaccination(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Vaccination
-          </Button>
-        </div>
-      </div>
+      </AnimatedWrapper>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Records</p>
-                <p className="text-2xl font-bold">{healthRecords.length}</p>
+      <AnimatedWrapper variant="fadeInUp" delay={0.1}>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <ModernCard variant="glass">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Records</p>
+                  <p className="text-2xl font-bold">{healthRecords.length}</p>
+                </div>
+                <Heart className="h-8 w-8 text-primary" />
               </div>
-              <Heart className="h-8 w-8 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Issues</p>
-                <p className="text-2xl font-bold">{activeIssues.length}</p>
+            </CardContent>
+          </ModernCard>
+          
+          <ModernCard variant="glass">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Active Issues</p>
+                  <p className="text-2xl font-bold">{activeIssues.length}</p>
+                </div>
+                <Activity className="h-8 w-8 text-orange-500" />
               </div>
-              <Activity className="h-8 w-8 text-orange-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">High Priority</p>
-                <p className="text-2xl font-bold">{highPriorityIssues.length}</p>
+            </CardContent>
+          </ModernCard>
+          
+          <ModernCard variant="glass">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">High Priority</p>
+                  <p className="text-2xl font-bold">{highPriorityIssues.length}</p>
+                </div>
+                <AlertTriangle className="h-8 w-8 text-red-500" />
               </div>
-              <AlertTriangle className="h-8 w-8 text-red-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Due Vaccinations</p>
-                <p className="text-2xl font-bold">{dueVaccinations.length}</p>
+            </CardContent>
+          </ModernCard>
+          
+          <ModernCard variant="glass">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Due Vaccinations</p>
+                  <p className="text-2xl font-bold">{dueVaccinations.length}</p>
+                </div>
+                <Shield className="h-8 w-8 text-green-500" />
               </div>
-              <Shield className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </ModernCard>
+        </div>
+      </AnimatedWrapper>
 
       <Card>
         <CardHeader>
@@ -483,5 +481,6 @@ export function HealthManager() {
         </DialogContent>
       </Dialog>
     </div>
+    </ErrorBoundary>
   );
 }

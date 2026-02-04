@@ -14,6 +14,11 @@ import { StudentReportCardGenerator } from "./StudentReportCardGenerator";
 import { useToast } from "@/hooks/use-toast";
 import { Student } from "../../services/mockApi";
 import { mockApi } from "../../services/mockApi";
+import { ExportButton, ImportButton, EmptyState, ErrorBoundary } from "@/components/common";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { AnimatedBackground } from "@/components/common/AnimatedBackground";
+import { AnimatedWrapper } from "@/components/common/AnimatedWrapper";
+import { ModernCard } from "@/components/common/ModernCard";
 
 interface Exam {
   id: string;
@@ -127,6 +132,7 @@ const mockStudents: Student[] = [
 ];
 
 export function ExaminationManager() {
+  const { t } = useLanguage();
   // State for schedule exam dialog
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [scheduleForm, setScheduleForm] = useState<{ name: string; class: string; subject: string; date: string; time: string; duration: string; maxMarks: number }>({ name: "", class: "", subject: "", date: "", time: "", duration: "", maxMarks: 100 });
@@ -174,8 +180,8 @@ export function ExaminationManager() {
     setShowEditDialog(false);
     setEditExam(null);
     toast({
-      title: "Exam Updated",
-      description: "The exam details have been updated successfully."
+      title: t('examinations.examUpdated'),
+      description: t('examinations.examUpdated')
     });
   };
 
@@ -186,31 +192,68 @@ export function ExaminationManager() {
         : exam
     ));
     toast({
-      title: newStatus === 'paused' ? "Exam Paused" : "Exam Enabled",
+      title: newStatus === 'paused' ? t('examinations.examPaused') : t('examinations.examEnabled'),
       description: newStatus === 'paused'
-        ? "The exam has been paused."
-        : "The exam has been enabled."
+        ? t('examinations.examPaused')
+        : t('examinations.examEnabled')
     });
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Examination Management</h1>
-        {/* Schedule Exam button removed */}
-      </div>
+    <ErrorBoundary>
+    <div className="relative min-h-screen">
+      <AnimatedBackground variant="mesh" className="fixed inset-0 -z-10 opacity-30" />
+      
+      <div className="space-y-6 relative z-10">
+        <AnimatedWrapper variant="fadeInUp" delay={0.1}>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-display gradient-text">{t('examinations.title')}</h1>
+            <p className="text-muted-foreground mt-2">Manage exams, schedules, and student results</p>
+          </div>
+          <div className="flex gap-2">
+            <ImportButton
+              columns={[
+                { key: 'studentId', label: 'Student ID', required: true },
+                { key: 'examId', label: 'Exam ID', required: true },
+                { key: 'subject', label: 'Subject', required: true },
+                { key: 'marks', label: 'Marks', required: true },
+                { key: 'grade', label: 'Grade', required: false },
+              ]}
+              onImport={async (data) => {
+                toast({
+                  title: t('examinations.marksImportComplete'),
+                  description: `${t('examinations.marksImported')}: ${data.length}`,
+                });
+              }}
+              templateFilename="examination_marks_template"
+            />
+            <ExportButton
+              data={results}
+              filename="examination-results"
+              columns={[
+                { key: 'studentName', label: 'Student Name' },
+                { key: 'examId', label: 'Exam ID' },
+                { key: 'marks', label: 'Marks' },
+                { key: 'grade', label: 'Grade' },
+              ]}
+            />
+          </div>
+        </div>
+        </AnimatedWrapper>
 
+      <AnimatedWrapper variant="fadeInUp" delay={0.2}>
       <Tabs defaultValue="schedule" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="schedule">Exam Schedule</TabsTrigger>
-          <TabsTrigger value="results">Results</TabsTrigger>
+          <TabsTrigger value="schedule">{t('examinations.examSchedule')}</TabsTrigger>
+          <TabsTrigger value="results">{t('examinations.results')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="schedule">
           <div className="flex justify-end mb-4">
             <Button onClick={() => setShowScheduleDialog(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Schedule Exam
+              {t('examinations.scheduleExam')}
             </Button>
           </div>
           <ExamList
@@ -223,15 +266,15 @@ export function ExaminationManager() {
           <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Schedule New Exam</DialogTitle>
+                <DialogTitle>{t('examinations.scheduleNewExam')}</DialogTitle>
               </DialogHeader>
               <ExamForm
                 onSubmit={(examData) => {
                   handleCreateExam(examData);
                   setShowScheduleDialog(false);
                   toast({
-                    title: "Success",
-                    description: "Exam scheduled successfully"
+                    title: t('common.success'),
+                    description: t('examinations.examScheduled')
                   });
                 }}
                 onCancel={() => setShowScheduleDialog(false)}
@@ -241,7 +284,7 @@ export function ExaminationManager() {
           <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Edit Exam</DialogTitle>
+                <DialogTitle>{t('examinations.editExam')}</DialogTitle>
               </DialogHeader>
               {editExam && (
                 <ExamForm
@@ -255,26 +298,28 @@ export function ExaminationManager() {
         </TabsContent>
 
         <TabsContent value="results">
-          <Card>
+          <ModernCard variant="glass">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="h-5 w-5" />
-                Examination Results
-              </CardTitle>
-              <Button onClick={handleOpenMarksDialog}>
-                <Plus className="h-4 w-4 mr-2" />
-                Enter Marks
-              </Button>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="h-5 w-5" />
+                  {t('examinations.examinationResults')}
+                </CardTitle>
+                <Button onClick={handleOpenMarksDialog}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t('examinations.enterMarks')}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Student Name</TableHead>
-                    <TableHead>Exam</TableHead>
-                    <TableHead>Marks Obtained</TableHead>
-                    <TableHead>Grade</TableHead>
-                    <TableHead>Percentage</TableHead>
+                    <TableHead>{t('examinations.studentName')}</TableHead>
+                    <TableHead>{t('examinations.exam')}</TableHead>
+                    <TableHead>{t('examinations.marksObtained')}</TableHead>
+                    <TableHead>{t('examinations.grade')}</TableHead>
+                    <TableHead>{t('examinations.percentage')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -296,12 +341,12 @@ export function ExaminationManager() {
                 </TableBody>
               </Table>
             </CardContent>
-          </Card>
+          </ModernCard>
           {/* Marks Entry Dialog */}
           <Dialog open={showMarksDialog} onOpenChange={setShowMarksDialog}>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Enter Marks</DialogTitle>
+                <DialogTitle>{t('examinations.enterMarks')}</DialogTitle>
               </DialogHeader>
               <form
                 onSubmit={async e => {
@@ -312,7 +357,7 @@ export function ExaminationManager() {
               >
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Roll No</label>
+                    <label className="block text-sm font-medium mb-1">{t('examinations.rollNo')}</label>
                     <input
                       type="text"
                       className="border rounded px-2 py-1 w-full"
@@ -342,7 +387,7 @@ export function ExaminationManager() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Student Name</label>
+                    <label className="block text-sm font-medium mb-1">{t('examinations.studentName')}</label>
                     <input
                       type="text"
                       className="border rounded px-2 py-1 w-full bg-gray-100"
@@ -351,7 +396,7 @@ export function ExaminationManager() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Class</label>
+                    <label className="block text-sm font-medium mb-1">{t('fees.class')}</label>
                     <input
                       type="text"
                       className="border rounded px-2 py-1 w-full bg-gray-100"
@@ -360,7 +405,7 @@ export function ExaminationManager() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Section</label>
+                    <label className="block text-sm font-medium mb-1">{t('examinations.section')}</label>
                     <input
                       type="text"
                       className="border rounded px-2 py-1 w-full bg-gray-100"
@@ -370,9 +415,9 @@ export function ExaminationManager() {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <label className="block text-sm font-medium mb-2">Subjects & Marks</label>
+                  <label className="block text-sm font-medium mb-2">{t('examinations.subjectsMarks')}</label>
                   {dialogSubjects.length === 0 ? (
-                    <div className="text-muted-foreground">No subjects found for this class/section.</div>
+                    <div className="text-muted-foreground">{t('examinations.noSubjectsFound')}</div>
                   ) : (
                     dialogSubjects.map(subject => {
                       const marks = dialogMarks[subject] ?? 0;
@@ -409,10 +454,10 @@ export function ExaminationManager() {
                 </div>
                 <div className="flex justify-end gap-2 mt-4">
                   <Button variant="outline" type="button" onClick={() => setShowMarksDialog(false)}>
-                    Cancel
+                    {t('common.cancel')}
                   </Button>
                   <Button type="submit">
-                    Save Marks
+                    {t('examinations.saveMarks')}
                   </Button>
                 </div>
               </form>
@@ -420,6 +465,9 @@ export function ExaminationManager() {
           </Dialog>
           </TabsContent>
       </Tabs>
+      </AnimatedWrapper>
+      </div>
     </div>
+    </ErrorBoundary>
   );
 }

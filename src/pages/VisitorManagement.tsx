@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedBackground } from "@/components/common/AnimatedBackground";
+import { AnimatedWrapper } from "@/components/common/AnimatedWrapper";
+import { ModernCard } from "@/components/common/ModernCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -99,71 +102,77 @@ export default function VisitorManagement() {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{t('visitor.title') || 'Visitor Management'}</h1>
-          <p className="text-muted-foreground">Manage and track all school visitors</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export Report
-          </Button>
-        </div>
-      </div>
+    <>
+      <AnimatedBackground variant="gradient" />
+      <div className="space-y-6">
+        {/* Header */}
+        <AnimatedWrapper variant="fadeInUp">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">{t('visitor.title') || 'Visitor Management'}</h1>
+              <p className="text-muted-foreground">Manage and track all school visitors</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export Report
+              </Button>
+            </div>
+          </div>
+        </AnimatedWrapper>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Users className="h-5 w-5 text-blue-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Today's Visitors</p>
-                <p className="text-2xl font-bold">12</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-orange-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Currently Inside</p>
-                <p className="text-2xl font-bold">3</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Completed Today</p>
-                <p className="text-2xl font-bold">9</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <UserPlus className="h-5 w-5 text-purple-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">This Week</p>
-                <p className="text-2xl font-bold">45</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        {/* Quick Stats */}
+        <AnimatedWrapper variant="fadeInUp" delay={0.1}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <ModernCard variant="glass">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-2">
+                  <Users className="h-5 w-5 text-blue-500" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Today's Visitors</p>
+                    <p className="text-2xl font-bold">12</p>
+                  </div>
+                </div>
+              </CardContent>
+            </ModernCard>
+            
+            <ModernCard variant="glass">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-5 w-5 text-orange-500" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Currently Inside</p>
+                    <p className="text-2xl font-bold">3</p>
+                  </div>
+                </div>
+              </CardContent>
+            </ModernCard>
+            
+            <ModernCard variant="glass">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Completed Today</p>
+                    <p className="text-2xl font-bold">9</p>
+                  </div>
+                </div>
+              </CardContent>
+            </ModernCard>
+            
+            <ModernCard variant="glass">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-2">
+                  <UserPlus className="h-5 w-5 text-purple-500" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">This Week</p>
+                    <p className="text-2xl font-bold">45</p>
+                  </div>
+                </div>
+              </CardContent>
+            </ModernCard>
+          </div>
+        </AnimatedWrapper>
 
       {/* Main Content */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-4">
@@ -503,6 +512,7 @@ export default function VisitorManagement() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Plus, Edit, Trash2, GraduationCap } from "lucide-react";
+import { Plus, Edit, Trash2, GraduationCap, Settings } from "lucide-react";
 import { toast } from "sonner";
 
 interface Class {
@@ -19,8 +20,18 @@ interface Class {
   classTeacher?: string;
 }
 
+interface GroupedClass {
+  standard: string;
+  sections: number;
+  totalStudents: number;
+  classIds: string[];
+}
+
 export default function ClassManager() {
+  const navigate = useNavigate();
   const [classes, setClasses] = useState<Class[]>([]);
+  const [groupedClasses, setGroupedClasses] = useState<GroupedClass[]>([]);
+  
   // Always load classes from API on mount
   useEffect(() => {
     (async () => {
@@ -30,6 +41,27 @@ export default function ClassManager() {
       } catch {}
     })();
   }, []);
+
+  // Group classes by standard
+  useEffect(() => {
+    const grouped: Record<string, GroupedClass> = {};
+    
+    classes.forEach((cls) => {
+      if (!grouped[cls.standard]) {
+        grouped[cls.standard] = {
+          standard: cls.standard,
+          sections: 0,
+          totalStudents: 0,
+          classIds: []
+        };
+      }
+      grouped[cls.standard].sections++;
+      grouped[cls.standard].totalStudents += cls.totalStudents;
+      grouped[cls.standard].classIds.push(cls.id);
+    });
+
+    setGroupedClasses(Object.values(grouped));
+  }, [classes]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [formData, setFormData] = useState({
@@ -230,56 +262,65 @@ export default function ClassManager() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Standard</TableHead>
-              <TableHead>Section</TableHead>
-              <TableHead>Academic Year</TableHead>
-              <TableHead>Total Students</TableHead>
-              <TableHead>Class Teacher</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>Class Name</TableHead>
+              <TableHead>Sections</TableHead>
+              <TableHead>Students</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {classes.map((cls) => (
-              <TableRow key={cls.id}>
-                <TableCell className="font-medium">{cls.standard}</TableCell>
-                <TableCell>{cls.section}</TableCell>
-                <TableCell>{cls.academicYear}</TableCell>
-                <TableCell>{cls.totalStudents}</TableCell>
-                <TableCell>{cls.classTeacher || "Not assigned"}</TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="default"
-                      onClick={() => {
-                        // Defensive: ensure id is in CLSxxx format
-                        let classId = cls.id;
-                        if (!/^CLS\d{3}$/.test(classId)) {
-                          classId = `CLS${String(classId).padStart(3, '0')}`;
-                        }
-                        window.location.href = `/class/${classId}`;
-                      }}
-                    >
-                      Manage Class
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleEdit(cls)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDelete(cls.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+            {groupedClasses.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                  No classes created yet. Click "Add Class" to get started.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              groupedClasses.map((group) => (
+                <TableRow key={group.standard}>
+                  <TableCell className="font-medium">{group.standard}</TableCell>
+                  <TableCell>{group.sections} {group.sections === 1 ? 'section' : 'sections'}</TableCell>
+                  <TableCell>{group.totalStudents}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={() => {
+                          // Navigate to class detail page with first class ID
+                          const firstClassId = group.classIds[0];
+                          navigate(`/academics/classes/${firstClassId}`);
+                        }}
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Manage
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          if (confirm(`Are you sure you want to delete ${group.standard}? This will delete all ${group.sections} sections.`)) {
+                            // Delete all classes in this group
+                            Promise.all(group.classIds.map(id => mockApi.deleteClass(id)))
+                              .then(async () => {
+                                const updated = await mockApi.getClasses();
+                                setClasses(updated);
+                                toast.success(`${group.standard} deleted successfully`);
+                              })
+                              .catch(() => {
+                                toast.error("Failed to delete class");
+                              });
+                          }
+                        }}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </CardContent>

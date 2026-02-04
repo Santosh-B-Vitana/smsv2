@@ -1,11 +1,6 @@
-
-
-// --- imports remain unchanged ---
-
-// Place dialog state and handler hooks here, after imports, inside the component
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedBackground, AnimatedWrapper, ModernCard } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -434,70 +429,75 @@ export function CommunicationManager() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-display">Communication Center</h1>
-          <p className="text-muted-foreground">Manage SMS, email notifications and announcements</p>
+    <div className="space-y-6 relative">
+      <AnimatedBackground variant="mesh" className="fixed inset-0 -z-10 opacity-30" />
+      <AnimatedWrapper variant="fadeInUp">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-display bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Communication Center</h1>
+            <p className="text-muted-foreground">Manage SMS, email notifications and announcements</p>
+          </div>
         </div>
-      </div>
+      </AnimatedWrapper>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Messages</p>
-                <p className="text-2xl font-bold">{messages.length}</p>
+      <AnimatedWrapper variant="fadeInUp" delay={0.1}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <ModernCard variant="glass">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Messages</p>
+                  <p className="text-2xl font-bold">{messages.length}</p>
+                </div>
+                <MessageSquare className="h-8 w-8 text-primary" />
               </div>
-              <MessageSquare className="h-8 w-8 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Sent Today</p>
-                <p className="text-2xl font-bold">
-                  {messages.filter(m => 
-                    new Date(m.sentAt).toDateString() === new Date().toDateString()
-                  ).length}
-                </p>
+            </CardContent>
+          </ModernCard>
+          
+          <ModernCard variant="glass">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Sent Today</p>
+                  <p className="text-2xl font-bold">
+                    {messages.filter(m => 
+                      new Date(m.sentAt).toDateString() === new Date().toDateString()
+                    ).length}
+                  </p>
+                </div>
+                <Send className="h-8 w-8 text-green-500" />
               </div>
-              <Send className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Scheduled</p>
-                <p className="text-2xl font-bold">
-                  {messages.filter(m => m.status === 'scheduled').length}
-                </p>
+            </CardContent>
+          </ModernCard>
+          
+          <ModernCard variant="glass">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Scheduled</p>
+                  <p className="text-2xl font-bold">
+                    {messages.filter(m => m.status === 'scheduled').length}
+                  </p>
+                </div>
+                <Timer className="h-8 w-8 text-orange-500" />
               </div>
-              <Timer className="h-8 w-8 text-orange-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Templates</p>
-                <p className="text-2xl font-bold">{templates.length}</p>
+            </CardContent>
+          </ModernCard>
+          
+          <ModernCard variant="glass">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Templates</p>
+                  <p className="text-2xl font-bold">{templates.length}</p>
+                </div>
+                <AlertCircle className="h-8 w-8 text-blue-500" />
               </div>
-              <AlertCircle className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </ModernCard>
+        </div>
+      </AnimatedWrapper>
 
       <Card>
         <CardHeader>
@@ -636,7 +636,7 @@ export function CommunicationManager() {
                     )}
 
                     <Tabs defaultValue="individuals" className="space-y-4">
-                      <TabsList className="grid w-full grid-cols-2">
+                      <TabsList className="w-full flex">
                         <TabsTrigger value="individuals">Individuals</TabsTrigger>
                         <TabsTrigger value="classes">Classes</TabsTrigger>
                       </TabsList>

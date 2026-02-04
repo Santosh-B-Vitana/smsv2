@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedBackground, AnimatedWrapper, ModernCard } from "@/components/common";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Building, Users, Bed, AlertTriangle, Plus, Edit, Eye, UserCheck, Calendar, DollarSign } from "lucide-react";
 import { mockApi } from "@/services/mockApi";
+import { ErrorBoundary, LoadingState, EmptyState, useConfirmDialog } from "@/components/common";
 
 interface HostelBlock {
   id: string;
@@ -243,73 +245,79 @@ export function HostelManager() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-96">Loading hostel data...</div>;
+    return <LoadingState variant="cards" rows={4} message="Loading hostel data..." />;
   }
 
   return (
-    <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Hostel Management</h2>
-          <p className="text-muted-foreground">
-            Manage hostel blocks, rooms, student accommodations, and expenses
-          </p>
+    <ErrorBoundary>
+    <div className="flex-1 space-y-6 p-4 md:p-8 pt-6 relative">
+      <AnimatedBackground variant="mesh" className="fixed inset-0 -z-10 opacity-30" />
+      <AnimatedWrapper variant="fadeInUp">
+        <div className="flex items-center justify-between space-y-2">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Hostel Management</h2>
+            <p className="text-muted-foreground">
+              Manage hostel blocks, rooms, student accommodations, and expenses
+            </p>
+          </div>
         </div>
-      </div>
+      </AnimatedWrapper>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Blocks</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{hostelBlocks.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {hostelBlocks.filter(b => b.status === 'active').length} active
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Occupancy Rate</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{occupancyRate}%</div>
-            <p className="text-xs text-muted-foreground">
-              {totalOccupancy} / {totalCapacity} students
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available Rooms</CardTitle>
-            <Bed className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {hostelRooms.filter(r => r.status === 'available').length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Out of {hostelRooms.length} total rooms
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Fees</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pendingFees}</div>
-            <p className="text-xs text-muted-foreground">
-              Students with pending payments
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <AnimatedWrapper variant="fadeInUp" delay={0.1}>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <ModernCard variant="glass">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Blocks</CardTitle>
+              <Building className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{hostelBlocks.length}</div>
+              <p className="text-xs text-muted-foreground">
+                {hostelBlocks.filter(b => b.status === 'active').length} active
+              </p>
+            </CardContent>
+          </ModernCard>
+          <ModernCard variant="glass">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Occupancy Rate</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{occupancyRate}%</div>
+              <p className="text-xs text-muted-foreground">
+                {totalOccupancy} / {totalCapacity} students
+              </p>
+            </CardContent>
+          </ModernCard>
+          <ModernCard variant="glass">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Available Rooms</CardTitle>
+              <Bed className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {hostelRooms.filter(r => r.status === 'available').length}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Out of {hostelRooms.length} total rooms
+              </p>
+            </CardContent>
+          </ModernCard>
+          <ModernCard variant="glass">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending Fees</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{pendingFees}</div>
+              <p className="text-xs text-muted-foreground">
+                Students with pending payments
+              </p>
+            </CardContent>
+          </ModernCard>
+        </div>
+      </AnimatedWrapper>
 
       <Tabs defaultValue="blocks" className="space-y-4">
         <TabsList>
@@ -706,5 +714,6 @@ export function HostelManager() {
         </DialogContent>
       </Dialog>
     </div>
+    </ErrorBoundary>
   );
 }

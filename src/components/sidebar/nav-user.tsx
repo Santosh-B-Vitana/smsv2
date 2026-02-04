@@ -7,9 +7,6 @@ import {
   LogOut,
   Settings,
   Sparkles,
-  Sun,
-  Moon,
-  Monitor,
 } from "lucide-react"
 import {
   Avatar,
@@ -32,30 +29,14 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/contexts/AuthContext"
-import { useLanguage, Language } from "@/contexts/LanguageContext"
-import { useTheme } from "@/contexts/ThemeContext"
+import { useLanguage } from "@/contexts/LanguageContext"
 import { useNavigate } from "react-router-dom"
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
 
 export function NavUser() {
   const { isMobile } = useSidebar()
   const { user, logout } = useAuth()
-  const { language, setLanguage, t } = useLanguage()
-  const { theme, setTheme } = useTheme()
+  const { t } = useLanguage()
   const navigate = useNavigate()
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-
-  // Language change handler with immediate UI update
-  const handleLanguageChange = (newLanguage: Language) => {
-    setLanguage(newLanguage);
-    // Force close the dialog after a short delay to show the change
-    setTimeout(() => {
-      setIsSettingsOpen(false);
-    }, 500);
-  };
 
   const handleLogout = () => {
     logout()
@@ -127,62 +108,6 @@ export function NavUser() {
                 <Bell />
                 {t('notifications.title')}
               </DropdownMenuItem>
-              <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                <DialogTrigger asChild>
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                    <Settings />
-                    {t('nav.settings')}
-                  </DropdownMenuItem>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>{t('settings.title')}</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="language">{t('settings.language')}</Label>
-                      <Select value={language} onValueChange={handleLanguageChange}>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('settings.selectLanguage')} />
-                        </SelectTrigger>
-                        <SelectContent className="z-[10001] bg-popover text-popover-foreground border border-border shadow-md">
-                          <SelectItem value="en">{t('settings.english')}</SelectItem>
-                          <SelectItem value="hi">{t('settings.hindi')}</SelectItem>
-                        </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">{t('settings.theme')}</label>
-                        <Select value={theme} onValueChange={setTheme}>
-                          <SelectTrigger>
-                            <SelectValue placeholder={t('settings.selectTheme')} />
-                          </SelectTrigger>
-                          <SelectContent className="z-[10001] bg-popover text-popover-foreground border border-border shadow-md">
-                            <SelectItem value="light">
-                              <div className="flex items-center gap-2">
-                                <Sun className="h-4 w-4" />
-                                {t('settings.light')}
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="dark">
-                              <div className="flex items-center gap-2">
-                                <Moon className="h-4 w-4" />
-                                {t('settings.dark')}
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="system">
-                              <div className="flex items-center gap-2">
-                                <Monitor className="h-4 w-4" />
-                                {t('settings.system')}
-                              </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedBackground, AnimatedWrapper, ModernCard } from "@/components/common";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -160,19 +161,21 @@ const SchoolConnectManager = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">School Connect</h1>
-          <p className="text-muted-foreground">Community feed and discussions</p>
-        </div>
-        <Dialog open={showCreatePost} onOpenChange={setShowCreatePost}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Post
-            </Button>
-          </DialogTrigger>
+    <div className="container mx-auto p-6 space-y-6 relative">
+      <AnimatedBackground variant="mesh" className="fixed inset-0 -z-10 opacity-30" />
+      <AnimatedWrapper variant="fadeInUp">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">School Connect</h1>
+            <p className="text-muted-foreground">Community feed and discussions</p>
+          </div>
+          <Dialog open={showCreatePost} onOpenChange={setShowCreatePost}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Post
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Create New Post</DialogTitle>
@@ -267,7 +270,8 @@ const SchoolConnectManager = () => {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+        </div>
+      </AnimatedWrapper>
 
       <Tabs defaultValue="feed" className="space-y-4">
         <TabsList>

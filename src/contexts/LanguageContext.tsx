@@ -50,6 +50,12 @@ const translations = {
     'nav.preferences': 'Preferences',
     'nav.preferencesDesc': 'Customize your personal preferences and appearance.',
     'nav.permissionsManager': 'Permissions Manager',
+    'nav.schools': 'Schools',
+    'nav.roleManagement': 'Role Management',
+    'nav.academicSetup': 'Academic Setup',
+    'nav.parents': 'Parents',
+    'nav.finance': 'Finance',
+    'nav.timetableHolidays': 'Timetable & Holidays',
     
     // Login & Auth
     'auth.signIn': 'Sign In',
@@ -246,7 +252,7 @@ const translations = {
     'studentProfilePage.documents': 'Documents',
     'studentProfilePage.awards': 'Awards & Achievements',
     'studentProfilePage.fee': 'Fee',
-
+    
     // Staff Profile Page
     'staffProfilePage.title': 'Staff Profile',
     'staffProfilePage.completeInfo': 'Complete staff information and records',
@@ -451,6 +457,11 @@ const translations = {
     'settings.backup': 'Backup',
     'settings.biometric': 'Biometric Management',
     'settings.import': 'Data Import',
+    'settings.export': 'Data Export',
+    'settings.permissions': 'Permissions',
+    'settings.exportData': 'Export Data',
+    'settings.exportDesc': 'Export module data to Excel format for backup or external analysis.',
+    'settings.exportToExcel': 'Export to Excel',
     
     // Students
     'students.title': 'Students Management',
@@ -481,6 +492,11 @@ const translations = {
     'students.caste': 'Caste',
     'students.religion': 'Religion',
     'students.nationality': 'Nationality',
+    'students.bulkPromotion': 'Bulk Promotion',
+    'students.studentRecords': 'Student Records',
+    'students.documentManagement': 'Document Management',
+    'students.noStudentsFound': 'No Students Found',
+    'students.noStudentsDesc': 'No students match your filters. Try adjusting your search or add new students.',
     
     // Staff
     'staff.title': 'Staff Management',
@@ -873,6 +889,12 @@ const translations = {
     'nav.preferences': 'प्राथमिकताएं',
     'nav.preferencesDesc': 'अपनी व्यक्तिगत प्राथमिकताओं और उपस्थिति को अनुकूलित करें।',
     'nav.permissionsManager': 'अनुमति प्रबंधक',
+    'nav.schools': 'स्कूल',
+    'nav.roleManagement': 'भूमिका प्रबंधन',
+    'nav.academicSetup': 'शैक्षणिक सेटअप',
+    'nav.parents': 'अभिभावक',
+    'nav.finance': 'वित्त',
+    'nav.timetableHolidays': 'समय सारणी और छुट्टियां',
     
     // Login & Auth
     'auth.signIn': 'साइन इन',
@@ -991,6 +1013,7 @@ const translations = {
     'permissions.viewAccess': 'पहुंच देखें',
     'permissions.editAccess': 'पहुंच संपादित करें',
     'permissions.deleteAccess': 'पहुंच हटाएं',
+    'permissions.Permissions': 'अनुमतियां',
     
     // Store Manager
     'store.title': 'स्टोर प्रबंधन',
@@ -1274,9 +1297,19 @@ const translations = {
     'settings.backup': 'बैकअप',
     'settings.biometric': 'बायोमेट्रिक प्रबंधन',
     'settings.import': 'डेटा आयात',
+    'settings.export': 'डेटा निर्यात',
+    'settings.permissions': 'अनुमतियां',
+    'settings.exportData': 'डेटा निर्यात करें',
+    'settings.exportDesc': 'बैकअप या बाहरी विश्लेषण के लिए मॉड्यूल डेटा को एक्सेल प्रारूप में निर्यात करें।',
+    'settings.exportToExcel': 'एक्सेल में निर्यात करें',
     
     // Students
     'students.title': 'छात्र प्रबंधन',
+    'students.bulkPromotion': 'थोक पदोन्नति',
+    'students.studentRecords': 'छात्र रिकॉर्ड',
+    'students.documentManagement': 'दस्तावेज़ प्रबंधन',
+    'students.noStudentsFound': 'कोई छात्र नहीं मिला',
+    'students.noStudentsDesc': 'आपके फ़िल्टर से मेल खाने वाले कोई छात्र नहीं हैं। अपनी खोज समायोजित करने का प्रयास करें या नए छात्र जोड़ें।',
     'students.addStudent': 'छात्र जोड़ें',
     'students.studentList': 'छात्र सूची',
     'students.rollNo': 'रोल नंबर',
@@ -1307,10 +1340,14 @@ const translations = {
     
     // Staff
     'staff.title': 'कर्मचारी प्रबंधन',
+    'staff.noStaffFound': 'कोई स्टाफ सदस्य नहीं मिला',
+    'staff.noStaffDesc': 'आपके फ़िल्टर से मेल खाने वाले कोई स्टाफ सदस्य नहीं हैं। अपनी खोज समायोजित करने का प्रयास करें या नए स्टाफ जोड़ें।',
     'staff.addStaff': 'कर्मचारी जोड़ें',
     'staff.staffList': 'कर्मचारी सूची',
     'staff.designation': 'पदनाम',
     'staff.department': 'विभाग',
+    'staff.departments': 'विभाग',
+    'staff.teachers': 'शिक्षक',
     'staff.joiningDate': 'ज्वाइनिंग दिनांक',
     'staff.totalStaff': 'कुल कर्मचारी',
     'staff.staffDetails': 'कर्मचारी विवरण',
@@ -1624,7 +1661,6 @@ const translations = {
     'staff.classes': 'कक्षाएं',
     'staff.payroll': 'वेतन',
     'staff.performance': 'प्रदर्शन',
-    'staff.teachers': 'शिक्षक',
     
     // Student Management
     'studentMgmt.title': 'छात्र प्रबंधन',

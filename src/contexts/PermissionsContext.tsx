@@ -12,7 +12,17 @@ export type ModuleName =
   | 'announcements' 
   | 'reports' 
   | 'documents'
-  | 'admissions';
+  | 'admissions'
+  | 'library'
+  | 'transport'
+  | 'hostel'
+  | 'health'
+  | 'payroll'
+  | 'communication'
+  | 'analytics'
+  | 'certificates'
+  | 'store'
+  | 'wallet';
 
 export type PermissionLevel = 'read' | 'write' | 'delete';
 
@@ -82,6 +92,16 @@ const createSchoolPermissions = (schoolId: string, schoolName: string, isRestric
       reports: isRestricted ? readOnlyPermissions : fullPermissions,
       documents: fullPermissions,
       admissions: isRestricted ? disabledPermissions : fullPermissions,
+      library: fullPermissions,
+      transport: isRestricted ? disabledPermissions : fullPermissions,
+      hostel: isRestricted ? disabledPermissions : fullPermissions,
+      health: isRestricted ? disabledPermissions : fullPermissions,
+      payroll: isRestricted ? readOnlyPermissions : fullPermissions,
+      communication: fullPermissions,
+      analytics: fullPermissions,
+      certificates: fullPermissions,
+      store: isRestricted ? disabledPermissions : fullPermissions,
+      wallet: fullPermissions,
     }
   };
 };

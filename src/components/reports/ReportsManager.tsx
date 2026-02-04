@@ -1,12 +1,16 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Download, Eye, Calendar, TrendingUp, Users, DollarSign } from "lucide-react";
 import { ReportGenerator } from "./ReportGenerator";
+import { ErrorBoundary, LoadingState } from "@/components/common";
+import { AnimatedBackground } from "@/components/common/AnimatedBackground";
+import { AnimatedWrapper } from "@/components/common/AnimatedWrapper";
+import { ModernCard } from "@/components/common/ModernCard";
 
 interface Report {
   id: string;
@@ -74,82 +78,90 @@ export function ReportsManager() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-display">Reports</h1>
-          <p className="text-muted-foreground">Generate and manage school reports</p>
-        </div>
-      </div>
+    <ErrorBoundary>
+    <div className="relative min-h-screen">
+      <AnimatedBackground variant="mesh" className="fixed inset-0 -z-10 opacity-30" />
+      
+      <div className="space-y-6 relative z-10">
+        <AnimatedWrapper variant="fadeInUp" delay={0.05}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-display gradient-text">Reports</h1>
+              <p className="text-muted-foreground mt-2">Generate and manage school reports</p>
+            </div>
+          </div>
+        </AnimatedWrapper>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Reports</p>
-                <p className="text-2xl font-bold">{reports.length}</p>
-              </div>
-              <FileText className="h-8 w-8 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">This Month</p>
-                <p className="text-2xl font-bold">12</p>
-              </div>
-              <Calendar className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Most Popular</p>
-                <p className="text-sm font-bold">Attendance</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Automated</p>
-                <p className="text-2xl font-bold">5</p>
-              </div>
-              <Users className="h-8 w-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        <AnimatedWrapper variant="fadeInUp" delay={0.1}>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <ModernCard variant="glass">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Reports</p>
+                    <p className="text-2xl font-bold">{reports.length}</p>
+                  </div>
+                  <FileText className="h-8 w-8 text-primary" />
+                </div>
+              </CardContent>
+            </ModernCard>
+            
+            <ModernCard variant="glass">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">This Month</p>
+                    <p className="text-2xl font-bold">12</p>
+                  </div>
+                  <Calendar className="h-8 w-8 text-blue-500" />
+                </div>
+              </CardContent>
+            </ModernCard>
+            
+            <ModernCard variant="glass">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Most Popular</p>
+                    <p className="text-sm font-bold">Attendance</p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-green-500" />
+                </div>
+              </CardContent>
+            </ModernCard>
+            
+            <ModernCard variant="glass">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Automated</p>
+                    <p className="text-2xl font-bold">5</p>
+                  </div>
+                  <Users className="h-8 w-8 text-purple-500" />
+                </div>
+              </CardContent>
+            </ModernCard>
+          </div>
+        </AnimatedWrapper>
 
-      <Tabs defaultValue="generate">
-        <TabsList>
-          <TabsTrigger value="generate">Generate Report</TabsTrigger>
-          <TabsTrigger value="history">Report History</TabsTrigger>
-          <TabsTrigger value="scheduled">Scheduled Reports</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="generate">
-          <ReportGenerator onGenerate={handleGenerateReport} />
-        </TabsContent>
-        
-        <TabsContent value="history">
-          <Card>
-            <CardHeader>
-              <CardTitle>Report History</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <AnimatedWrapper variant="fadeInUp" delay={0.15}>
+          <Tabs defaultValue="generate">
+            <TabsList>
+              <TabsTrigger value="generate">Generate Report</TabsTrigger>
+              <TabsTrigger value="history">Report History</TabsTrigger>
+              <TabsTrigger value="scheduled">Scheduled Reports</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="generate">
+              <ReportGenerator onGenerate={handleGenerateReport} />
+            </TabsContent>
+            
+            <TabsContent value="history">
+              <ModernCard variant="glass">
+                <CardHeader>
+                  <CardTitle>Report History</CardTitle>
+                </CardHeader>
+                <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -194,11 +206,11 @@ export function ReportsManager() {
                 </TableBody>
               </Table>
             </CardContent>
-          </Card>
+          </ModernCard>
         </TabsContent>
         
         <TabsContent value="scheduled">
-          <Card>
+          <ModernCard variant="glass">
             <CardHeader>
               <CardTitle>Scheduled Reports</CardTitle>
             </CardHeader>
@@ -208,9 +220,12 @@ export function ReportsManager() {
                 <Button className="mt-4">Schedule a Report</Button>
               </div>
             </CardContent>
-          </Card>
+          </ModernCard>
         </TabsContent>
       </Tabs>
+        </AnimatedWrapper>
+      </div>
     </div>
+    </ErrorBoundary>
   );
 }

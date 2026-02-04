@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedBackground, AnimatedWrapper, ModernCard } from "@/components/common";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -233,77 +234,81 @@ export function WalletManager() {
   const expenseCategories = categories.filter(c => c.type === "EXPENSE");
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Finance & Ledger</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
-      </div>
-
-      <Tabs defaultValue="dashboard" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          <TabsTrigger value="income">Income</TabsTrigger>
-          <TabsTrigger value="expenses">Expenses</TabsTrigger>
-          <TabsTrigger value="petty-cash">Petty Cash</TabsTrigger>
-          <TabsTrigger value="store-income">Store Income</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
-        </TabsList>
-
-        {/* Dashboard Tab */}
-        <TabsContent value="dashboard" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Cash on Hand</CardTitle>
-                <Wallet className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">₹{cashOnHand.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">Total available</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">MTD Income</CardTitle>
-                <TrendingUp className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">₹{totalIncome.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">This month</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">MTD Expenses</CardTitle>
-                <TrendingDown className="h-4 w-4 text-red-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">₹{totalExpense.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">This month</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Net Income</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className={cn("text-2xl font-bold", netIncome >= 0 ? "text-green-600" : "text-red-600")}>
-                  ₹{netIncome.toLocaleString()}
-                </div>
-                <p className="text-xs text-muted-foreground">This month</p>
-              </CardContent>
-            </Card>
+    <div className="container mx-auto p-6 space-y-6 relative">
+      <AnimatedBackground variant="mesh" className="fixed inset-0 -z-10 opacity-30" />
+      <AnimatedWrapper variant="fadeInUp">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Finance & Ledger</h1>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
           </div>
+        </div>
+      </AnimatedWrapper>
+
+      <AnimatedWrapper variant="fadeInUp" delay={0.1}>
+        <Tabs defaultValue="dashboard" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="transactions">Transactions</TabsTrigger>
+            <TabsTrigger value="income">Income</TabsTrigger>
+            <TabsTrigger value="expenses">Expenses</TabsTrigger>
+            <TabsTrigger value="petty-cash">Petty Cash</TabsTrigger>
+            <TabsTrigger value="store-income">Store Income</TabsTrigger>
+            <TabsTrigger value="reports">Reports</TabsTrigger>
+          </TabsList>
+
+          {/* Dashboard Tab */}
+          <TabsContent value="dashboard" className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <ModernCard variant="glass">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Cash on Hand</CardTitle>
+                  <Wallet className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">₹{cashOnHand.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">Total available</p>
+                </CardContent>
+              </ModernCard>
+
+              <ModernCard variant="glass">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">MTD Income</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">₹{totalIncome.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">This month</p>
+                </CardContent>
+              </ModernCard>
+
+              <ModernCard variant="glass">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">MTD Expenses</CardTitle>
+                  <TrendingDown className="h-4 w-4 text-red-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">₹{totalExpense.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">This month</p>
+                </CardContent>
+              </ModernCard>
+
+              <ModernCard variant="glass">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Net Income</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className={cn("text-2xl font-bold", netIncome >= 0 ? "text-green-600" : "text-red-600")}>
+                    ₹{netIncome.toLocaleString()}
+                  </div>
+                  <p className="text-xs text-muted-foreground">This month</p>
+                </CardContent>
+              </ModernCard>
+            </div>
 
           <Card>
             <CardHeader>
@@ -938,6 +943,7 @@ export function WalletManager() {
           </Card>
         </TabsContent>
       </Tabs>
+      </AnimatedWrapper>
     </div>
   );
 }

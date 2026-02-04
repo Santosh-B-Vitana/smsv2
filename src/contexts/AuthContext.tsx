@@ -1,6 +1,11 @@
-
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { 
+  generateSessionId, 
+  clearRateLimit, 
+  recordFailedAttempt, 
+  checkRateLimit,
+  maskEmail 
+} from '@/utils/authValidation';
 
 export type UserRole = 'super_admin' | 'admin' | 'staff' | 'parent';
 
@@ -10,16 +15,22 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string;
-  schoolId?: string; // For tracking which school the user belongs to
-  // Role-specific data
+  schoolId?: string;
   staffData?: {
     employeeId: string;
     department: string;
     designation: string;
   };
   parentData?: {
-    children: string[]; // student IDs
+    children: string[];
   };
+}
+
+interface AuthSession {
+  user: User;
+  sessionId: string;
+  expiresAt: number;
+  createdAt: number;
 }
 
 interface AuthContextType {
@@ -28,9 +39,114 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  sessionExpiresAt: number | null;
+  refreshSession: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Session configuration
+const SESSION_CONFIG = {
+  duration: 8 * 60 * 60 * 1000, // 8 hours
+  warningThreshold: 15 * 60 * 1000, // 15 minutes before expiry
+  storageKey: 'auth_session',
+};
+
+// Mock users for demonstration (in production, this would be server-side)
+const mockUsers: Array<User & { passwordHash: string }> = [
+  {
+    id: 'super_admin1',
+    name: 'Super Admin Access',
+    email: 'superadmin@schoolsystem.com',
+    role: 'super_admin',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=center',
+    passwordHash: 'demo_hash_password', // In production, use bcrypt hash
+  },
+  {
+    id: 'admin1',
+    name: 'Dr. Rajesh Sharma',
+    email: 'admin@vitanaschools.edu',
+    role: 'admin',
+    schoolId: 'school1',
+    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=center',
+    passwordHash: 'demo_hash_password',
+  },
+  {
+    id: 'staff1',
+    name: 'Anil Kumar',
+    email: 'anil.kumar@vitanaschools.edu',
+    role: 'staff',
+    schoolId: 'school1',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=center',
+    staffData: {
+      employeeId: 'STAFF002',
+      department: 'Mathematics',
+      designation: 'Mathematics Teacher',
+    },
+    passwordHash: 'demo_hash_password',
+  },
+  {
+    id: 'parent1',
+    name: 'Suresh Gupta',
+    email: 'suresh.gupta@email.com',
+    role: 'parent',
+    schoolId: 'school1',
+    avatar: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=100&h=100&fit=crop&crop=center',
+    parentData: {
+      children: ['STU001'],
+    },
+    passwordHash: 'demo_hash_password',
+  },
+];
+
+// Secure password verification (in production, use bcrypt.compare)
+function verifyPassword(inputPassword: string, storedHash: string): boolean {
+  // Demo implementation - in production, use: await bcrypt.compare(inputPassword, storedHash)
+  return inputPassword === 'password' && storedHash === 'demo_hash_password';
+}
+
+// Get session from storage with validation
+function getStoredSession(): AuthSession | null {
+  try {
+    const stored = sessionStorage.getItem(SESSION_CONFIG.storageKey);
+    if (!stored) return null;
+
+    const session: AuthSession = JSON.parse(stored);
+    
+    // Validate session structure
+    if (!session.user || !session.sessionId || !session.expiresAt) {
+      sessionStorage.removeItem(SESSION_CONFIG.storageKey);
+      return null;
+    }
+
+    // Check if session has expired
+    if (Date.now() > session.expiresAt) {
+      sessionStorage.removeItem(SESSION_CONFIG.storageKey);
+      return null;
+    }
+
+    return session;
+  } catch {
+    sessionStorage.removeItem(SESSION_CONFIG.storageKey);
+    return null;
+  }
+}
+
+// Store session securely
+function storeSession(session: AuthSession): void {
+  try {
+    sessionStorage.setItem(SESSION_CONFIG.storageKey, JSON.stringify(session));
+  } catch (error) {
+    console.error('Failed to store session');
+  }
+}
+
+// Clear session
+function clearSession(): void {
+  sessionStorage.removeItem(SESSION_CONFIG.storageKey);
+  // Also clear any related data
+  localStorage.removeItem('currentUser'); // Legacy cleanup
+}
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -40,49 +156,6 @@ export const useAuth = () => {
   return context;
 };
 
-// Mock users for demonstration
-const mockUsers: User[] = [
-  {
-    id: 'super_admin1',
-  name: 'Super Admin Access',
-    email: 'superadmin@schoolsystem.com',
-    role: 'super_admin',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=center'
-  },
-  {
-    id: 'admin1',
-  name: 'Dr. Rajesh Sharma',
-  email: 'admin@vitanaSchools.edu',
-    role: 'admin',
-    schoolId: 'school1',
-    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=center'
-  },
-  {
-    id: 'staff1',
-    name: 'Anil Kumar',
-  email: 'anil.kumar@vitanaSchools.edu',
-    role: 'staff',
-    schoolId: 'school1',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=center',
-    staffData: {
-      employeeId: 'STAFF002',
-      department: 'Mathematics',
-      designation: 'Mathematics Teacher'
-    }
-  },
-  {
-    id: 'parent1',
-  name: 'Suresh Gupta',
-  email: 'suresh.gupta@email.com',
-    role: 'parent',
-    schoolId: 'school1',
-  avatar: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=100&h=100&fit=crop&crop=center',
-  parentData: {
-      children: ['STU001']
-    }
-  }
-];
-
 interface AuthProviderProps {
   children: React.ReactNode;
 }
@@ -90,94 +163,150 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionExpiresAt, setSessionExpiresAt] = useState<number | null>(null);
 
+  // Initialize auth state from stored session
   useEffect(() => {
-    // Check for stored user session
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error('AuthProvider: Error parsing stored user:', error);
-        localStorage.removeItem('currentUser');
-      }
+    const session = getStoredSession();
+    if (session) {
+      setUser(session.user);
+      setSessionExpiresAt(session.expiresAt);
     }
-    
     setLoading(false);
-    
   }, []);
 
-  const login = async (email: string, password: string): Promise<void> => {
-    setLoading(true);
-    
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+  // Session expiry warning
+  useEffect(() => {
+    if (!sessionExpiresAt) return;
+
+    const checkExpiry = () => {
+      const timeUntilExpiry = sessionExpiresAt - Date.now();
       
+      if (timeUntilExpiry <= 0) {
+        // Session expired
+        logout();
+        window.location.href = '/login?expired=true';
+      } else if (timeUntilExpiry <= SESSION_CONFIG.warningThreshold) {
+        // Could show a warning toast here
+        console.warn('Session expiring soon');
+      }
+    };
+
+    const interval = setInterval(checkExpiry, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, [sessionExpiresAt]);
+
+  const login = useCallback(async (email: string, password: string): Promise<void> => {
+    setLoading(true);
+    const normalizedEmail = email.toLowerCase().trim();
+
+    try {
+      // Check rate limiting
+      const rateLimitCheck = checkRateLimit(normalizedEmail);
+      if (!rateLimitCheck.allowed) {
+        throw new Error(rateLimitCheck.message || 'Too many login attempts. Please try again later.');
+      }
+
+      // Simulate API delay (in production, this would be a real API call)
+      await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 400));
+
       // Validate input
       if (!email || !password) {
         throw new Error('Email and password are required');
       }
 
-      // Find user
-      const foundUser = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-      
-      
+      // Find user (case-insensitive email match)
+      const foundUser = mockUsers.find(
+        (u) => u.email.toLowerCase() === normalizedEmail
+      );
+
       if (!foundUser) {
-        throw new Error('No account found with this email address');
+        recordFailedAttempt(normalizedEmail);
+        // Generic error message to prevent user enumeration
+        throw new Error('Invalid email or password');
       }
 
-      // Check password (simple check for demo)
-      if (password !== 'password') {
-        throw new Error('Invalid password');
+      // Verify password
+      if (!verifyPassword(password, foundUser.passwordHash)) {
+        recordFailedAttempt(normalizedEmail);
+        throw new Error('Invalid email or password');
       }
 
-      // Success
-      setUser(foundUser);
-      localStorage.setItem('currentUser', JSON.stringify(foundUser));
-      
-      // Navigate to correct dashboard after successful login
-      if (foundUser.role === 'admin') {
-        window.location.href = '/admin-dashboard';
-      } else if (foundUser.role === 'staff') {
-        window.location.href = '/staff-dashboard';
-      } else if (foundUser.role === 'parent') {
-        window.location.href = '/parent-dashboard';
-      } else if (foundUser.role === 'super_admin') {
-        window.location.href = '/super-admin-dashboard';
-      } else {
-        window.location.href = '/dashboard';
-      }
-      
+      // Clear rate limit on success
+      clearRateLimit(normalizedEmail);
+
+      // Create user object without sensitive data
+      const userWithoutPassword: User = {
+        id: foundUser.id,
+        name: foundUser.name,
+        email: foundUser.email,
+        role: foundUser.role,
+        avatar: foundUser.avatar,
+        schoolId: foundUser.schoolId,
+        staffData: foundUser.staffData,
+        parentData: foundUser.parentData,
+      };
+
+      // Create session
+      const session: AuthSession = {
+        user: userWithoutPassword,
+        sessionId: generateSessionId(),
+        expiresAt: Date.now() + SESSION_CONFIG.duration,
+        createdAt: Date.now(),
+      };
+
+      // Store session and update state
+      storeSession(session);
+      setUser(userWithoutPassword);
+      setSessionExpiresAt(session.expiresAt);
+
+      // Log successful login (masked for security)
+      console.info(`Login successful for ${maskEmail(normalizedEmail)}`);
+
+      // Navigate to appropriate dashboard
+      const dashboardRoutes: Record<UserRole, string> = {
+        super_admin: '/super-admin-dashboard',
+        admin: '/admin-dashboard',
+        staff: '/staff-dashboard',
+        parent: '/parent-dashboard',
+      };
+
+      window.location.href = dashboardRoutes[userWithoutPassword.role] || '/dashboard';
     } catch (error) {
-      console.error('AuthProvider: Login failed:', error);
       throw error;
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const logout = () => {
-    
+  const logout = useCallback(() => {
+    clearSession();
     setUser(null);
-    localStorage.removeItem('currentUser');
+    setSessionExpiresAt(null);
     window.location.href = '/login';
-  };
+  }, []);
+
+  const refreshSession = useCallback(() => {
+    const session = getStoredSession();
+    if (session && user) {
+      const newSession: AuthSession = {
+        ...session,
+        expiresAt: Date.now() + SESSION_CONFIG.duration,
+      };
+      storeSession(newSession);
+      setSessionExpiresAt(newSession.expiresAt);
+    }
+  }, [user]);
 
   const value: AuthContextType = {
     user,
     loading,
     login,
     logout,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    sessionExpiresAt,
+    refreshSession,
   };
 
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

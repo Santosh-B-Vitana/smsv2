@@ -238,7 +238,7 @@ export function LibraryManager() {
     return (
       <div className="animate-pulse space-y-6">
         <div className="h-8 bg-muted rounded w-48"></div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="h-32 bg-muted rounded-lg"></div>
           ))}
@@ -261,7 +261,7 @@ export function LibraryManager() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -317,10 +317,10 @@ export function LibraryManager() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="books" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="books">Books</TabsTrigger>
-              <TabsTrigger value="issues">Current Issues</TabsTrigger>
-              <TabsTrigger value="history">Issue History</TabsTrigger>
+            <TabsList className="w-full h-auto flex flex-wrap sm:flex-nowrap gap-1 p-1">
+              <TabsTrigger value="books" className="flex-1 min-w-[80px] text-xs sm:text-sm">Books</TabsTrigger>
+              <TabsTrigger value="issues" className="flex-1 min-w-[90px] text-xs sm:text-sm">Current Issues</TabsTrigger>
+              <TabsTrigger value="history" className="flex-1 min-w-[90px] text-xs sm:text-sm">Issue History</TabsTrigger>
             </TabsList>
 
             <TabsContent value="books" className="space-y-4">

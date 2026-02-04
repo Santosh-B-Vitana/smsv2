@@ -292,7 +292,7 @@ export function AdvancedFeesManager() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="structure">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="w-full flex">
           <TabsTrigger value="structure">Fee Structure</TabsTrigger>
           <TabsTrigger value="receipts">Receipts</TabsTrigger>
         </TabsList>

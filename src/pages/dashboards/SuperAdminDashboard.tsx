@@ -1,19 +1,10 @@
 
 import { useState } from "react";
-import { Shield, School, Users, Settings, BarChart3 } from "lucide-react";
+import { Shield, Settings, BarChart3, Building2, Users } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-
-import { Badge } from "@/components/ui/badge";
 
 import { PermissionsManager } from "@/components/permissions/PermissionsManager";
-import { RoleManagement } from "@/components/superadmin/RoleManagement";
-import { DataImportManager } from "@/components/superadmin/DataImportManager";
-import { PayrollManager } from "@/components/payroll/PayrollManager";
-
-import SchoolManagement from "../superadmin/SchoolManagement";
-import UserManagement from "../superadmin/UserManagement";
 
 export default function SuperAdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -46,19 +37,11 @@ export default function SuperAdminDashboard() {
           <TabsList className="flex flex-wrap gap-1 h-auto p-1">
             <TabsTrigger value="overview" className="flex items-center gap-2 py-2 px-3 text-xs sm:text-sm">
               <BarChart3 className="w-4 h-4" />
-              <span>Overview</span>
-            </TabsTrigger>
-            <TabsTrigger value="schools" className="flex items-center gap-2 py-2 px-3 text-xs sm:text-sm">
-              <School className="w-4 h-4" />
-              <span>Schools</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2 py-2 px-3 text-xs sm:text-sm">
-              <Users className="w-4 h-4" />
-              <span>Users</span>
+              <span>Dashboard</span>
             </TabsTrigger>
             <TabsTrigger value="permissions" className="flex items-center gap-2 py-2 px-3 text-xs sm:text-sm">
-              <Settings className="w-4 h-4" />
-              <span>Permissions</span>
+              <Shield className="w-4 h-4" />
+              <span>Features & Permissions</span>
             </TabsTrigger>
           </TabsList>
         </div>
@@ -69,7 +52,7 @@ export default function SuperAdminDashboard() {
             <Card className="border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
                 <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Total Schools</CardTitle>
-                <School className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+                <Building2 className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="p-3 sm:p-6 pt-0">
                 <div className="text-lg sm:text-2xl font-bold text-foreground">{systemStats.totalSchools}</div>
@@ -149,14 +132,6 @@ export default function SuperAdminDashboard() {
 
         <TabsContent value="permissions" className="space-y-4 sm:space-y-6">
           <PermissionsManager />
-        </TabsContent>
-
-        <TabsContent value="schools" className="space-y-4 sm:space-y-6">
-          <SchoolManagement />
-        </TabsContent>
-
-        <TabsContent value="users" className="space-y-4 sm:space-y-6">
-          <UserManagement />
         </TabsContent>
 
       </Tabs>

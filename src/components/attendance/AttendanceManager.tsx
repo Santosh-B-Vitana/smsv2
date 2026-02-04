@@ -8,9 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Users, UserCheck, UserX, Clock, Fingerprint, Download } from "lucide-react";
+import { Calendar as CalendarIcon, Users, UserCheck, UserX, Clock, Fingerprint, Download, FileText, CalendarDays } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BiometricAttendanceManager } from "./BiometricAttendanceManager";
+import { ExportButton, DateRangePicker, EmptyState, ErrorBoundary } from "@/components/common";
+import { useDateRange } from "@/components/common/DateRangePicker";
+import { AttendanceReportGenerator } from "./AttendanceReportGenerator";
+import { LeaveManagementDialog } from "./LeaveManagementDialog";
+import { AnimatedBackground } from "@/components/common/AnimatedBackground";
+import { AnimatedWrapper } from "@/components/common/AnimatedWrapper";
+import { ModernCard } from "@/components/common/ModernCard";
 
 interface AttendanceRecord {
   studentId: string;
@@ -35,6 +42,7 @@ interface ClassAttendance {
 export function AttendanceManager() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedClass, setSelectedClass] = useState<string>("10-A");
+  const dateRange = useDateRange();
   
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([
     {
@@ -165,25 +173,45 @@ export function AttendanceManager() {
   const totalStats = getTotalStats();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Attendance Management</h2>
-        <div className="flex gap-2">
-          <Button onClick={syncBiometricData} variant="outline">
-            <Fingerprint className="h-4 w-4 mr-2" />
-            Sync Biometric
-          </Button>
-          <Button onClick={generateReport}>
-            <Download className="h-4 w-4 mr-2" />
-            Generate Report
-          </Button>
+    <ErrorBoundary>
+    <div className="relative min-h-screen">
+      <AnimatedBackground variant="gradient" className="fixed inset-0 -z-10 opacity-30" />
+      
+      <div className="space-y-6 relative z-10">
+        <AnimatedWrapper variant="fadeInUp" delay={0.1}>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-display gradient-text">Attendance Management</h2>
+            <p className="text-muted-foreground mt-2">Track and manage student attendance across all classes</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <ExportButton
+              data={attendanceRecords}
+              filename="attendance"
+              columns={[
+                { key: 'studentName', label: 'Student Name' },
+                { key: 'class', label: 'Class' },
+                { key: 'status', label: 'Status' },
+                { key: 'timestamp', label: 'Time' },
+                { key: 'method', label: 'Method' },
+              ]}
+            />
+            <Button onClick={syncBiometricData} variant="outline">
+              <Fingerprint className="h-4 w-4 mr-2" />
+              Sync Biometric
+            </Button>
+            <Button onClick={generateReport}>
+              <Download className="h-4 w-4 mr-2" />
+              Generate Report
+            </Button>
+          </div>
         </div>
-      </div>
-
+        </AnimatedWrapper>
 
       {/* Summary Cards */}
+      <AnimatedWrapper variant="fadeInUp" delay={0.2}>
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card>
+        <ModernCard variant="glass">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Students</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -191,9 +219,9 @@ export function AttendanceManager() {
           <CardContent>
             <div className="text-2xl font-bold">{totalStats.totalStudents}</div>
           </CardContent>
-        </Card>
+        </ModernCard>
         
-        <Card>
+        <ModernCard variant="glass">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Present</CardTitle>
             <UserCheck className="h-4 w-4 text-green-600" />
@@ -201,9 +229,9 @@ export function AttendanceManager() {
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{totalStats.presentCount}</div>
           </CardContent>
-        </Card>
+        </ModernCard>
         
-        <Card>
+        <ModernCard variant="glass">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Absent</CardTitle>
             <UserX className="h-4 w-4 text-red-600" />
@@ -211,9 +239,9 @@ export function AttendanceManager() {
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{totalStats.absentCount}</div>
           </CardContent>
-        </Card>
+        </ModernCard>
         
-        <Card>
+        <ModernCard variant="glass">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Late</CardTitle>
             <Clock className="h-4 w-4 text-yellow-600" />
@@ -221,9 +249,9 @@ export function AttendanceManager() {
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">{totalStats.lateCount}</div>
           </CardContent>
-        </Card>
+        </ModernCard>
         
-        <Card>
+        <ModernCard variant="glass">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Attendance %</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -231,19 +259,28 @@ export function AttendanceManager() {
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">{totalStats.attendancePercentage.toFixed(1)}%</div>
           </CardContent>
-        </Card>
+        </ModernCard>
       </div>
+      </AnimatedWrapper>
 
+      <AnimatedWrapper variant="fadeInUp" delay={0.3}>
       <Tabs defaultValue="daily">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="w-full flex">
           <TabsTrigger value="daily">Daily Attendance</TabsTrigger>
           <TabsTrigger value="overview">Class Overview</TabsTrigger>
           <TabsTrigger value="biometric">Biometric System</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="reports">
+            <FileText className="h-4 w-4 mr-2" />
+            Reports
+          </TabsTrigger>
+          <TabsTrigger value="leave">
+            <CalendarDays className="h-4 w-4 mr-2" />
+            Leave Management
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="daily" className="space-y-4">
-          <Card>
+          <ModernCard variant="glass">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Daily Attendance - {selectedClass}</CardTitle>
@@ -361,11 +398,11 @@ export function AttendanceManager() {
                 </TableBody>
               </Table>
             </CardContent>
-          </Card>
+          </ModernCard>
         </TabsContent>
 
         <TabsContent value="overview" className="space-y-4">
-          <Card>
+          <ModernCard variant="glass">
             <CardHeader>
               <CardTitle>Class-wise Attendance Overview</CardTitle>
             </CardHeader>
@@ -409,7 +446,7 @@ export function AttendanceManager() {
                 </TableBody>
               </Table>
             </CardContent>
-          </Card>
+          </ModernCard>
         </TabsContent>
 
         <TabsContent value="biometric">
@@ -417,9 +454,11 @@ export function AttendanceManager() {
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">
-          <Card>
+          <AttendanceReportGenerator />
+          
+          <ModernCard variant="glass">
             <CardHeader>
-              <CardTitle>Attendance Reports</CardTitle>
+              <CardTitle>Quick Report Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -437,9 +476,39 @@ export function AttendanceManager() {
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </ModernCard>
+        </TabsContent>
+
+        <TabsContent value="leave">
+          <div className="flex justify-end mb-4">
+            <LeaveManagementDialog />
+          </div>
+          <ModernCard variant="glass">
+            <CardHeader>
+              <CardTitle>Leave Requests Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                  <p className="text-2xl font-bold text-yellow-600">5</p>
+                  <p className="text-sm text-muted-foreground">Pending</p>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <p className="text-2xl font-bold text-green-600">12</p>
+                  <p className="text-sm text-muted-foreground">Approved</p>
+                </div>
+                <div className="text-center p-4 bg-red-50 rounded-lg">
+                  <p className="text-2xl font-bold text-red-600">2</p>
+                  <p className="text-sm text-muted-foreground">Rejected</p>
+                </div>
+              </div>
+            </CardContent>
+          </ModernCard>
         </TabsContent>
       </Tabs>
+      </AnimatedWrapper>
+      </div>
     </div>
+    </ErrorBoundary>
   );
 }

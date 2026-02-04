@@ -121,7 +121,7 @@ export function TemplateCustomizer() {
 
             {currentTemplate && (
               <Tabs defaultValue="content">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="w-full flex">
                   <TabsTrigger value="content">Content</TabsTrigger>
                   <TabsTrigger value="styling">Styling</TabsTrigger>
                   <TabsTrigger value="layout">Layout</TabsTrigger>

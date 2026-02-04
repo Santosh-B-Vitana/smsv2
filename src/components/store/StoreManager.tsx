@@ -14,6 +14,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { PdfPreviewModal } from "@/components/common/PdfPreviewModal";
 import { generateStoreReceipt } from "@/utils/storeReceiptGenerator";
 import { useSchool } from "@/contexts/SchoolContext";
+import { ErrorBoundary, LoadingState, EmptyState } from "@/components/common";
 
 interface Item {
   id: string;
@@ -298,6 +299,7 @@ export function StoreManager() {
   };
 
   return (
+    <ErrorBoundary>
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 pb-12">
       <div className="container mx-auto p-4 sm:p-6 space-y-6">
         {/* Header */}
@@ -413,10 +415,10 @@ export function StoreManager() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 h-12 bg-muted/50">
-            <TabsTrigger value="pos" className="text-base">Point of Sale</TabsTrigger>
-            <TabsTrigger value="inventory" className="text-base">{t('store.inventory')}</TabsTrigger>
-            <TabsTrigger value="sales" className="text-base">{t('store.sales')}</TabsTrigger>
+          <TabsList className="w-full flex overflow-x-auto scrollbar-hide h-12 bg-muted/50">
+            <TabsTrigger value="pos" className="text-base flex-shrink-0 flex-1 min-w-fit">Point of Sale</TabsTrigger>
+            <TabsTrigger value="inventory" className="text-base flex-shrink-0 flex-1 min-w-fit">{t('store.inventory')}</TabsTrigger>
+            <TabsTrigger value="sales" className="text-base flex-shrink-0 flex-1 min-w-fit">{t('store.sales')}</TabsTrigger>
           </TabsList>
 
           {/* POS Tab */}
@@ -1283,9 +1285,10 @@ export function StoreManager() {
         open={pdfPreviewOpen}
         onClose={() => setPdfPreviewOpen(false)}
         pdfUrl={pdfUrl}
-        fileName={pdfFileName}
-      />
+          fileName={pdfFileName}
+        />
       </div>
     </div>
+    </ErrorBoundary>
   );
 }

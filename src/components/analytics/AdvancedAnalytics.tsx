@@ -207,7 +207,7 @@ export function AdvancedAnalytics() {
       </div>
 
       <Tabs defaultValue="performance">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="w-full flex">
           <TabsTrigger value="performance">Performance Analytics</TabsTrigger>
           <TabsTrigger value="attendance">Attendance Trends</TabsTrigger>
           <TabsTrigger value="financial">Financial Analytics</TabsTrigger>

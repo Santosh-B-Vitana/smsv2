@@ -18,9 +18,16 @@ export function LoadingState({
   if (variant === 'full-page') {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
-          {message && <p className="text-muted-foreground">{message}</p>}
+        <div className="text-center space-y-6 animate-fade-in">
+          <div className="relative">
+            <Loader2 className="h-16 w-16 animate-spin mx-auto text-primary pulse-glow" />
+            <div className="absolute inset-0 h-16 w-16 mx-auto rounded-full bg-primary/20 animate-ping" />
+          </div>
+          {message && (
+            <p className="text-muted-foreground text-lg font-medium animate-pulse">
+              {message}
+            </p>
+          )}
         </div>
       </div>
     );

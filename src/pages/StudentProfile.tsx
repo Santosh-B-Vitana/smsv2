@@ -19,7 +19,8 @@ import {
   User,
   GraduationCap,
   RotateCcw,
-  Award
+  Award,
+  ArrowUp
 } from "lucide-react";
 import { ParentFeePayment } from "@/components/fees/ParentFeePayment";
 import { SiblingFeeInfoPanel } from "@/components/students/SiblingFeeInfoPanel";
@@ -102,8 +103,8 @@ export default function StudentProfile() {
     { date: "2024-01-05", type: "Phone", message: "Discussed academic performance", status: "Completed" },
   ]);
   // Marks tab filter state
-  const [selectedExam, setSelectedExam] = useState("Midterm");
-  const [selectedYear, setSelectedYear] = useState("2024");
+  const [selectedExam, setSelectedExam] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
   const examOptions = ["Midterm", "Final", "Unit Test 1", "Unit Test 2"];
   const yearOptions = ["2024", "2023", "2022"];
 
@@ -131,6 +132,14 @@ export default function StudentProfile() {
   const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showAllDetailsExpanded, setShowAllDetailsExpanded] = useState(false);
+  const [showPromoteDialog, setShowPromoteDialog] = useState(false);
+  const [promoteData, setPromoteData] = useState({
+    newClass: student?.class || '',
+    newSection: student?.section || '',
+    resetRollNumber: false,
+    remarks: ''
+  });
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -204,6 +213,33 @@ export default function StudentProfile() {
       toast({
         title: t('studentProfilePage.errorTitle'),
         description: t('studentProfilePage.failedToUpdate'),
+        variant: "destructive"
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handlePromoteStudent = async () => {
+    if (!student || !promoteData.newClass) return;
+    setActionLoading(true);
+    try {
+      // Call API to promote student
+      const updatedStudent = await mockApi.updateStudent(student.id, {
+        class: promoteData.newClass,
+        section: promoteData.newSection || student.section,
+        rollNo: promoteData.resetRollNumber ? '' : student.rollNo,
+      });
+      setStudent(updatedStudent);
+      setShowPromoteDialog(false);
+      toast({
+        title: 'Success',
+        description: `${student.name} has been promoted to ${promoteData.newClass} ${promoteData.newSection}`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to promote student',
         variant: "destructive"
       });
     } finally {
@@ -291,13 +327,36 @@ export default function StudentProfile() {
         </div>
         
         <div className="flex flex-wrap gap-2">
+          {student.status === 'active' && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={actionLoading}
+              onClick={() => {
+                setPromoteData({
+                  newClass: '',
+                  newSection: student.section || '',
+                  resetRollNumber: false,
+                  remarks: ''
+                });
+                setShowPromoteDialog(true);
+              }}
+              className="whitespace-nowrap"
+              title="Promote student to next class/section"
+            >
+              <ArrowUp className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="truncate">Promote</span>
+            </Button>
+          )}
+
           <Button 
             onClick={() => navigate(`/students/${student.id}/edit`)}
             variant="default"
             size="sm"
+            className="whitespace-nowrap"
           >
-            <Edit className="h-4 w-4 mr-2" />
-            {t('studentProfilePage.editProfile')}
+            <Edit className="h-4 w-4 mr-2 flex-shrink-0" />
+            <span className="truncate">{t('studentProfilePage.editProfile')}</span>
           </Button>
           
           {student.status === 'active' ? (
@@ -306,6 +365,7 @@ export default function StudentProfile() {
               size="sm"
               disabled={actionLoading}
               onClick={() => handleStatusChange('inactive')}
+              className="whitespace-nowrap"
             >
               {t('studentProfilePage.deactivate')}
             </Button>
@@ -315,9 +375,10 @@ export default function StudentProfile() {
               size="sm"
               disabled={actionLoading}
               onClick={() => handleStatusChange('active')}
+              className="whitespace-nowrap"
             >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              {t('studentProfilePage.reactivate')}
+              <RotateCcw className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="truncate">{t('studentProfilePage.reactivate')}</span>
             </Button>
           )}
         </div>
@@ -427,6 +488,145 @@ export default function StudentProfile() {
             </div>
           </div>
         </CardContent>
+      </Card>
+
+      {/* View All Details Expandable Section - Only Additional Fields */}
+      <Card className="mb-6">
+        <CardHeader 
+          className="cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={() => setShowAllDetailsExpanded(!showAllDetailsExpanded)}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2">
+              <svg className={`h-5 w-5 flex-shrink-0 transition-transform ${showAllDetailsExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+              <span className="truncate">Additional Information</span>
+            </CardTitle>
+            <Badge variant="secondary" className="flex-shrink-0 text-xs">
+              {showAllDetailsExpanded ? 'Hide' : 'Show'}
+            </Badge>
+          </div>
+        </CardHeader>
+        {showAllDetailsExpanded && (
+          <CardContent className="p-6 border-t space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Medical Details - Only if has medical info */}
+              {(student.bloodGroup || student.allergies || student.chronicConditions || student.medications || student.doctorName) && (
+                <div className="space-y-3 p-4 bg-red-50 rounded-lg border border-red-100">
+                  <h3 className="font-semibold flex items-center gap-2 text-red-700">
+                    <svg className="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    Medical
+                  </h3>
+                  <div className="text-sm space-y-2">
+                    {student.bloodGroup && <div><span className="font-medium">Blood Group:</span> <span className="text-red-600 font-semibold">{student.bloodGroup}</span></div>}
+                    {student.allergies && <div><span className="font-medium">Allergies:</span> {student.allergies}</div>}
+                    {student.chronicConditions && <div><span className="font-medium">Conditions:</span> {student.chronicConditions}</div>}
+                    {student.medications && <div><span className="font-medium">Medications:</span> {student.medications}</div>}
+                    {student.doctorName && <div><span className="font-medium">Doctor:</span> {student.doctorName}{student.doctorPhone ? ` (${student.doctorPhone})` : ''}</div>}
+                  </div>
+                </div>
+              )}
+
+              {/* Identification Details - Only if has ID info */}
+              {(student.aadharNumber || student.panNumber || student.passportNumber || student.visaType) && (
+                <div className="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                  <h3 className="font-semibold flex items-center gap-2 text-blue-700">
+                    <svg className="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v10a2 2 0 002 2h5m4 0h5a2 2 0 002-2V8a2 2 0 00-2-2h-5m4 0V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v1" /></svg>
+                    Identification
+                  </h3>
+                  <div className="text-sm space-y-2">
+                    {student.aadharNumber && <div><span className="font-medium">Aadhar:</span> ****{student.aadharNumber.slice(-4)}</div>}
+                    {student.panNumber && <div><span className="font-medium">PAN:</span> {student.panNumber}</div>}
+                    {student.passportNumber && <div><span className="font-medium">Passport:</span> {student.passportNumber}</div>}
+                    {student.visaType && <div><span className="font-medium">Visa:</span> {student.visaType}{student.visaExpiry ? ` (Exp: ${student.visaExpiry})` : ''}</div>}
+                  </div>
+                </div>
+              )}
+
+              {/* Extended Contact - Only if has secondary phone, email, or permanent address */}
+              {(student.secondaryPhone || student.email || student.permanentAddress || student.primaryPhone) && (
+                <div className="space-y-3 p-4 bg-green-50 rounded-lg border border-green-100">
+                  <h3 className="font-semibold flex items-center gap-2 text-green-700">
+                    <svg className="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    Extended Contact
+                  </h3>
+                  <div className="text-sm space-y-2">
+                    {student.primaryPhone && <div><span className="font-medium">Mobile:</span> {student.primaryPhone}</div>}
+                    {student.secondaryPhone && <div><span className="font-medium">Alternate:</span> {student.secondaryPhone}</div>}
+                    {student.email && <div><span className="font-medium">Email:</span> <a href={`mailto:${student.email}`} className="text-blue-600 hover:underline truncate">{student.email}</a></div>}
+                    {student.permanentAddress && <div><span className="font-medium">Permanent:</span> {student.permanentAddress}</div>}
+                  </div>
+                </div>
+              )}
+
+              {/* Personal Details - Only if has additional info */}
+              {(student.placeOfBirth || student.nationality?.length || student.languageProficiency?.length || student.specialNeeds) && (
+                <div className="space-y-3 p-4 bg-purple-50 rounded-lg border border-purple-100">
+                  <h3 className="font-semibold flex items-center gap-2 text-purple-700">
+                    <svg className="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343" /></svg>
+                    Personal Details
+                  </h3>
+                  <div className="text-sm space-y-2">
+                    {student.placeOfBirth && <div><span className="font-medium">Place of Birth:</span> {student.placeOfBirth}</div>}
+                    {student.nationality?.length && <div><span className="font-medium">Nationality:</span> {student.nationality.join(', ')}</div>}
+                    {student.languageProficiency?.length && <div><span className="font-medium">Languages:</span> {student.languageProficiency.join(', ')}</div>}
+                    {student.specialNeeds && <div><span className="font-medium">Special Needs:</span> <span className="text-orange-600">{student.specialNeeds}</span></div>}
+                  </div>
+                </div>
+              )}
+
+              {/* Facilities & Consents - Only if any are true */}
+              {(student.transportRequired || student.hostelRequired || student.photoConsent || student.mediaConsent || student.medicalConsent) && (
+                <div className="space-y-3 p-4 bg-orange-50 rounded-lg border border-orange-100">
+                  <h3 className="font-semibold flex items-center gap-2 text-orange-700">
+                    <svg className="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Facilities
+                  </h3>
+                  <div className="text-sm space-y-2">
+                    {student.transportRequired && <div className="flex items-center gap-2"><span className="text-orange-600">✓</span> <span>Transport Arranged</span></div>}
+                    {student.hostelRequired && <div className="flex items-center gap-2"><span className="text-orange-600">✓</span> <span>Hostel Required</span></div>}
+                    {(student.photoConsent || student.mediaConsent || student.medicalConsent) && (
+                      <div className="pt-1 border-t border-orange-200">
+                        <div className="font-medium text-orange-700 mb-1 text-xs">Consents:</div>
+                        {student.photoConsent && <div className="text-xs flex items-center gap-2"><span className="text-green-600">✓</span> <span>Photo</span></div>}
+                        {student.mediaConsent && <div className="text-xs flex items-center gap-2"><span className="text-green-600">✓</span> <span>Media</span></div>}
+                        {student.medicalConsent && <div className="text-xs flex items-center gap-2"><span className="text-green-600">✓</span> <span>Medical</span></div>}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Emergency Contact - Only if provided */}
+              {(student.emergencyContact || student.emergencyPhone) && (
+                <div className="space-y-3 p-4 bg-pink-50 rounded-lg border border-pink-100">
+                  <h3 className="font-semibold flex items-center gap-2 text-pink-700">
+                    <svg className="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    Emergency
+                  </h3>
+                  <div className="text-sm space-y-2">
+                    {student.emergencyContact && <div><span className="font-medium">Contact:</span> {student.emergencyContact}</div>}
+                    {student.emergencyPhone && <div><span className="font-medium">Phone:</span> <span className="text-pink-600 font-semibold">{student.emergencyPhone}</span></div>}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Show message if no additional details */}
+            {!((student.bloodGroup || student.allergies || student.chronicConditions || student.medications || student.doctorName) ||
+                (student.aadharNumber || student.panNumber || student.passportNumber || student.visaType) ||
+                (student.secondaryPhone || student.email || student.permanentAddress || student.primaryPhone) ||
+                (student.placeOfBirth || student.nationality?.length || student.languageProficiency?.length || student.specialNeeds) ||
+                (student.transportRequired || student.hostelRequired || student.photoConsent || student.mediaConsent || student.medicalConsent) ||
+                (student.emergencyContact || student.emergencyPhone)) && (
+              <div className="text-center py-8 text-muted-foreground">
+                <svg className="h-8 w-8 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
+                <p>No additional information provided</p>
+              </div>
+            )}
+          </CardContent>
+        )}
       </Card>
 
       {/* Sibling Fee Info Panel (if any) */}
@@ -616,31 +816,41 @@ export default function StudentProfile() {
               <div className="flex flex-wrap gap-4 mb-4 justify-between items-center">
                 <div className="flex gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Exam</label>
-                    <select className="border rounded px-2 py-1" value={selectedExam} onChange={e => setSelectedExam(e.target.value)}>
-                      {examOptions.map(exam => (
-                        <option key={exam} value={exam}>{exam}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Year</label>
+                    <label className="block text-sm font-medium mb-1">Academic Year</label>
                     <select className="border rounded px-2 py-1" value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
+                      <option value="">Select year</option>
                       {yearOptions.map(year => (
                         <option key={year} value={year}>{year}</option>
                       ))}
                     </select>
                   </div>
+                  {selectedYear && (
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Exam</label>
+                      <select className="border rounded px-2 py-1" value={selectedExam} onChange={e => setSelectedExam(e.target.value)}>
+                        <option value="">Select exam</option>
+                        {examOptions.map(exam => (
+                          <option key={exam} value={exam}>{exam}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
                 <Button 
                   variant="outline" 
                   className="h-10 flex items-center gap-2"
                   onClick={() => {
                     if (!student) return;
-                    
+                    if (!selectedYear) {
+                      toast({ title: "Select Academic Year", description: "Please select an academic year first." , variant: "destructive" });
+                      return;
+                    }
+                    if (!selectedExam) {
+                      toast({ title: "Select Exam", description: "Please select an exam." , variant: "destructive" });
+                      return;
+                    }
                     // Get marks data for selected exam and year
                     const marksData = mockMarksApi({ exam: selectedExam, year: selectedYear });
-                    
                     if (marksData.length === 0) {
                       toast({
                         title: "No Data",
@@ -752,9 +962,6 @@ export default function StudentProfile() {
               <div className="flex gap-2 justify-end mb-4">
                 <Button variant="default" onClick={() => setShowCommDialog(true)}>
                   Reach Parent
-                </Button>
-                <Button variant="outline" onClick={() => setShowManualDialog(true)}>
-                  Manual Add
                 </Button>
               </div>
               {/* Manual Add Dialog */}
@@ -1169,6 +1376,106 @@ export default function StudentProfile() {
         </TabsContent>
 
       </Tabs>
+      
+      {/* Promote Student Dialog */}
+      <Dialog open={showPromoteDialog} onOpenChange={setShowPromoteDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowUp className="h-5 w-5 text-green-600" />
+              Promote Student
+            </DialogTitle>
+            <DialogDescription>
+              Promote {student?.name} from {student?.class}-{student?.section} to next class/section
+            </DialogDescription>
+          </DialogHeader>
+          
+          {/* Promotion Criteria Check */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+            <div className="text-sm font-medium text-blue-900 mb-2">Promotion Criteria:</div>
+            <div className="space-y-1 text-sm text-blue-800">
+              <div className="flex items-center gap-2">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                <span>Student must have 75% attendance</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                <span>No pending fee payments</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                <span>Academic performance meets minimum standards</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Current Class & Section</label>
+              <div className="px-3 py-2 bg-gray-100 rounded-md border text-sm">
+                {student?.class}-{student?.section} | Roll No: {student?.rollNo}
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">New Class *</label>
+              <Input 
+                placeholder="e.g., 6, 7, 8" 
+                value={promoteData.newClass}
+                onChange={(e) => setPromoteData({...promoteData, newClass: e.target.value})}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">New Section</label>
+              <select 
+                value={promoteData.newSection}
+                onChange={(e) => setPromoteData({...promoteData, newSection: e.target.value})}
+                className="w-full px-3 py-2 border rounded-md text-sm"
+              >
+                <option value="">Select Section</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+              </select>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="resetRollNumber"
+                checked={promoteData.resetRollNumber}
+                onChange={(e) => setPromoteData({...promoteData, resetRollNumber: e.target.checked})}
+                className="w-4 h-4"
+              />
+              <label htmlFor="resetRollNumber" className="text-sm font-medium">Reset Roll Number</label>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">Remarks (Optional)</label>
+              <Input 
+                placeholder="Add any remarks about the promotion"
+                value={promoteData.remarks}
+                onChange={(e) => setPromoteData({...promoteData, remarks: e.target.value})}
+              />
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-2 mt-6">
+            <Button variant="outline" onClick={() => setShowPromoteDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handlePromoteStudent} 
+              disabled={actionLoading || !promoteData.newClass}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {actionLoading ? 'Promoting...' : 'Confirm Promotion'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       
       {/* PDF Preview Modal for Report Card */}
       <PdfPreviewModal

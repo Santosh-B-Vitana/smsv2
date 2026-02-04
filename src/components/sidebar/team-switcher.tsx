@@ -1,6 +1,6 @@
 
 import * as React from "react"
-import { ChevronsUpDown, Plus } from "lucide-react"
+import { BookOpen, Pencil, Ruler, Calculator } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,52 +38,59 @@ export function TeamSwitcher() {
     <SidebarMenu>
       <SidebarMenuItem>
         <div 
-          className="group relative flex flex-col items-start justify-center px-4 py-5 cursor-pointer hover:bg-gradient-to-br hover:from-primary/5 hover:via-accent/5 hover:to-primary/5 rounded-2xl transition-all duration-300 overflow-hidden border border-transparent hover:border-primary/10" 
+          className="group relative px-2 py-2.5 cursor-pointer rounded-md hover:bg-sidebar-accent/50 transition-all duration-150 border-b border-sidebar-border/40" 
           onClick={handleLogoClick}
         >
-          {/* Subtle premium glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-primary/5 opacity-40 blur-2xl group-hover:opacity-60 transition-all duration-500" />
+          {/* Decorative education icons - subtle and premium, positioned closer */}
+          <BookOpen className="absolute top-1.5 right-3 w-4 h-4 text-primary/40 rotate-6 group-hover:text-primary/50 transition-colors duration-200" strokeWidth={1.5} />
+          <Pencil className="absolute top-4 right-2 w-3.5 h-3.5 text-primary/35 rotate-35 group-hover:text-primary/45 transition-colors duration-200" strokeWidth={1.5} />
+          <Ruler className="absolute bottom-2 right-4 w-3.5 h-3.5 text-primary/30 -rotate-15 group-hover:text-primary/40 transition-colors duration-200" strokeWidth={1.5} />
+          <Calculator className="absolute bottom-1.5 right-7 w-3 h-3 text-primary/35 -rotate-8 group-hover:text-primary/45 transition-colors duration-200" strokeWidth={1.5} />
+          <Pencil className="absolute top-2.5 right-6 w-2.5 h-2.5 text-primary/30 rotate-20 group-hover:text-primary/40 transition-colors duration-200" strokeWidth={1.5} />
           
-          {/* Brand Name with ultra-premium platinum styling */}
-          <div className="relative flex items-baseline gap-2 mb-2">
-            <span 
-              className="text-4xl font-black tracking-[0.15em] bg-gradient-to-r from-slate-100 via-white to-slate-100 bg-clip-text text-transparent drop-shadow-[0_2px_25px_rgba(255,255,255,0.95)] transition-all duration-300 group-hover:drop-shadow-[0_4px_30px_rgba(255,255,255,1)] font-brand" 
-              style={{
-                WebkitTextStroke: '0.8px rgba(203,213,225,0.6)',
-                filter: 'brightness(1.5) contrast(1.2)',
-                backgroundImage: 'linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 20%, #C0C0C0 40%, #A8A8A8 50%, #C0C0C0 60%, #E8E8E8 80%, #F5F5F5 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                textShadow: '0 2px 10px rgba(255,255,255,0.3), 0 0 20px rgba(192,192,192,0.4), 0 4px 30px rgba(168,168,168,0.2)',
-                letterSpacing: '0.02em',
-              }}
-            >
-              VEDA
-              <span className="align-super text-[11px] font-bold ml-1 text-slate-200">™</span>
-            </span>
-            <span 
-              className="inline-flex items-center px-2 py-0.5 text-[9px] font-bold tracking-wider rounded-full shadow-lg"
-              style={{
-                background: 'linear-gradient(135deg, #E8E8E8, #C0C0C0)',
-                color: 'hsl(var(--foreground))',
-              }}
-            >
-              BETA
-            </span>
-          </div>
-          
-          {/* Description with refined platinum styling */}
-          <span className="relative text-[11px] font-semibold tracking-[0.04em] text-slate-300/90 transition-all duration-200 group-hover:text-slate-200">
-            {appDesc}
-          </span>
-          
-          {/* Premium Pro Badge */}
-          {isPro && (
-            <div className="relative mt-3 inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400 text-amber-950 text-[10px] font-bold px-3 py-1 rounded-full shadow-lg border border-amber-200 hover:shadow-xl hover:scale-[1.03] transition-all duration-200">
-              <span className="text-amber-900 text-xs">✦</span>
-              <span className="tracking-wide">PRO</span>
+          {/* Content */}
+          <div className="relative flex items-center gap-2.5">
+            {/* Logo */}
+            <div className="relative flex-shrink-0">
+              {/* Subtle glow */}
+              <div className="absolute inset-0 rounded-lg bg-primary/5 opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-300"></div>
+              
+              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-sidebar-accent/70 to-sidebar-accent/50 group-hover:from-sidebar-accent group-hover:to-sidebar-accent/70 transition-all duration-200 flex items-center justify-center p-2 shadow-sm group-hover:shadow">
+                <img 
+                  src="/favicon.ico" 
+                  alt="VEDA" 
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200" 
+                />
+              </div>
             </div>
-          )}
+            
+            {/* Brand */}
+            <div className="flex-1 min-w-0 space-y-0.5">
+              {/* Brand name and badge */}
+              <div className="flex items-center gap-2">
+                <h1 className="text-[19px] font-bold text-sidebar-foreground leading-none" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', letterSpacing: '-0.01em' }}>
+                  <span className="bg-gradient-to-br from-sidebar-foreground to-sidebar-foreground/90 bg-clip-text text-transparent">
+                    VEDA
+                  </span>
+                </h1>
+                {isPro && (
+                  <span className="px-2 py-0.5 text-[8px] font-extrabold tracking-[0.1em] rounded bg-gradient-to-r from-slate-300 via-gray-100 to-slate-300 text-slate-800 shadow-sm group-hover:shadow-md transition-shadow duration-200 border border-slate-200/50">
+                    PRO
+                  </span>
+                )}
+              </div>
+              
+              {/* Tagline */}
+              <div className="space-y-0">
+                <p className="text-[10px] font-semibold text-muted-foreground/70 leading-tight" style={{ letterSpacing: '0.02em' }}>
+                  Education Platform
+                </p>
+                <p className="text-[9px] font-medium text-muted-foreground/55 leading-tight" style={{ letterSpacing: '0.03em' }}>
+                  by Vitana Inc.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </SidebarMenuItem>
     </SidebarMenu>

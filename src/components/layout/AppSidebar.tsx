@@ -1,5 +1,5 @@
 import * as React from "react"
-import { GraduationCap, Users, UserCheck, Calendar, BookOpen, Award, FileText, Clock, Bus, Heart, DollarSign, MessageSquare, Megaphone, FileImage, CreditCard, BarChart3, Settings, User, Building, Library, Wallet, School, ShoppingBag } from "lucide-react"
+import { GraduationCap, Users, UserCheck, Calendar, BookOpen, Award, FileText, Clock, Bus, Heart, DollarSign, MessageSquare, Megaphone, FileImage, CreditCard, BarChart3, Settings, User, Building, Library, Wallet, School, ShoppingBag, LayoutDashboard, Shield, UserCog, Home } from "lucide-react"
 import { NavMain } from "@/components/sidebar/nav-main"
 import { NavProjects } from "@/components/sidebar/nav-projects"
 import { NavUser } from "@/components/sidebar/nav-user"
@@ -21,113 +21,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { hasPermission } = usePermissions()
   const { t } = useLanguage()
 
-  // Define navigation items based on user role
+  // Define navigation items based on user role with grouped sections
   const getNavigationItems = () => {
     if (!user) return []
 
     const baseItems = []
-    // Add Permissions Manager for admin and super_admin (insert after Settings)
-    const permissionsManagerItem = {
-      title: t('nav.permissionsManager'),
-      url: '/configuration-settings',
-      icon: Settings,
-    };
 
-    // Super Admin has access to everything except Library and Health
-    if (user.role === 'super_admin') {
-  const items = [
+    // Super Admin and Admin have similar structured navigation
+    if (user.role === 'super_admin' || user.role === 'admin') {
+      const items = [
+        // OVERVIEW Section
         {
-          title: t('nav.academics'),
-          url: "/academics",
-          icon: BookOpen,
+          title: "OVERVIEW",
+          isLabel: true,
         },
         {
-          title: t('nav.students'),
-          url: "/students",
-          icon: Users,
-        },
-        {
-          title: t('nav.staff'),
-          url: "/staff", 
-          icon: UserCheck,
-        },
-        {
-          title: t('nav.examinations'),
-          url: "/examinations",
-          icon: FileText,
-        },
-        ...(shouldShowModule('library') ? [{
-          title: t('nav.library'),
-          url: "/library",
-          icon: Library,
-        }] : []),
-        {
-          title: t('nav.transport'),
-          url: "/transport",
-          icon: Bus,
-        },
-        {
-          title: t('common.store'),
-          url: "/store",
-          icon: ShoppingBag,
-        },
-        // Visitor Management as a top-level item
-        {
-          title: t('nav.visitorManagement'),
-          url: "/visitor-management",
-          icon: User,
+          title: t('nav.dashboard'),
+          url: user.role === 'super_admin' ? "/super-admin-dashboard" : "/admin-dashboard",
+          icon: LayoutDashboard,
         },
 
+        // PEOPLE & ENROLLMENT Section
         {
-          title: t('nav.fees'),
-          url: "/fees",
-          icon: DollarSign,
-        },
-        {
-          title: t('nav.wallet'),
-          url: "/wallet",
-          icon: Wallet,
-        },
-        {
-          title: t('nav.schoolConnect'),
-          url: "/school-connect",
-          icon: School,
-        },
-        {
-          title: t('nav.communication'),
-          url: "/communication",
-          icon: MessageSquare,
-        },
-        // REMOVE Documents and ID Cards for super_admin
-        // {
-        //   title: "Documents",
-        //   url: "/documents",
-        //   icon: FileText,
-        // },
-        // {
-        //   title: "ID Cards",
-        //   url: "/id-cards",
-        //   icon: CreditCard,
-        // },
-        {
-          title: t('nav.alumni'),
-          url: "/alumni",
-          icon: GraduationCap,
-        },
-        // Settings removed from sidebar as it is now in dashboard tab
-        // Add Permissions Manager as a top-level item at the end
-        permissionsManagerItem,
-      ];
-      return items;
-    }
-
-    // Admin has access to most features except Library and Health
-    if (user.role === 'admin') {
-  const items = [
-        {
-          title: t('nav.academics'),
-          url: "/academics",
-          icon: BookOpen,
+          title: "PEOPLE & ENROLLMENT",
+          isLabel: true,
         },
         {
           title: t('nav.students'),
@@ -139,32 +56,110 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: "/staff",
           icon: UserCheck,
         },
+
+        // ACADEMICS & ASSESSMENT Section
+        {
+          title: "ACADEMICS & ASSESSMENT",
+          isLabel: true,
+        },
+        {
+          title: t('nav.academicSetup'),
+          url: "/academics",
+          icon: BookOpen,
+        },
+        {
+          title: t('nav.examinations'),
+          url: "/examinations",
+          icon: Award,
+        },
+        {
+          title: t('nav.timetable'),
+          url: "/timetable",
+          icon: Clock,
+        },
+
+        // FINANCE & ADMINISTRATION Section
+        {
+          title: "FINANCE & ADMINISTRATION",
+          isLabel: true,
+        },
+        {
+          title: t('nav.fees'),
+          url: "/fees",
+          icon: DollarSign,
+        },
         ...(shouldShowModule('library') ? [{
           title: t('nav.library'),
           url: "/library",
           icon: Library,
         }] : []),
         {
+          title: t('nav.roleManagement'),
+          url: "/configuration-settings",
+          icon: Shield,
+        },
+
+        // STUDENT SUPPORT SERVICES Section
+        {
+          title: "STUDENT SUPPORT SERVICES",
+          isLabel: true,
+        },
+        {
           title: t('nav.transport'),
           url: "/transport",
           icon: Bus,
         },
         {
-          title: t('common.store'),
-          url: "/store",
-          icon: ShoppingBag,
+          title: t('nav.hostel'),
+          url: "/hostel",
+          icon: Home,
         },
-        // Visitor Management as a top-level item
+        {
+          title: t('nav.health'),
+          url: "/health",
+          icon: Heart,
+        },
         {
           title: t('nav.visitorManagement'),
           url: "/visitor-management",
-          icon: User,
+          icon: UserCog,
         },
 
+        // COMMUNICATIONS Section
         {
-          title: t('nav.fees'),
-          url: "/fees",
-          icon: DollarSign,
+          title: "COMMUNICATIONS",
+          isLabel: true,
+        },
+        {
+          title: t('nav.communication'),
+          url: "/communication",
+          icon: MessageSquare,
+        },
+        {
+          title: t('nav.announcements'),
+          url: "/announcements",
+          icon: Megaphone,
+        },
+
+        // SUPER ADMIN ONLY Section
+        ...(user.role === 'super_admin' ? [{
+          title: "SYSTEM ADMINISTRATION",
+          isLabel: true,
+        }, {
+          title: t('nav.schools'),
+          url: "/superadmin/schools",
+          icon: Building,
+        }] : []),
+
+        // ADDITIONAL FEATURES Section
+        {
+          title: "ADDITIONAL FEATURES",
+          isLabel: true,
+        },
+        {
+          title: t('nav.alumni'),
+          url: "/alumni",
+          icon: GraduationCap,
         },
         {
           title: t('nav.wallet'),
@@ -172,34 +167,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           icon: Wallet,
         },
         {
+          title: t('common.store'),
+          url: "/store",
+          icon: ShoppingBag,
+        },
+        {
           title: t('nav.schoolConnect'),
           url: "/school-connect",
           icon: School,
         },
+        
+        // SETTINGS - Fixed at bottom
         {
-          title: t('nav.communication'),
-          url: "/communication",
-          icon: MessageSquare,
+          title: "SETTINGS",
+          isLabel: true,
         },
-        // REMOVE Documents and ID Cards for admin
-        // {
-        //   title: "Documents",
-        //   url: "/documents",
-        //   icon: FileText,
-        // },
-        // {
-        //   title: "ID Cards",
-        //   url: "/id-cards",
-        //   icon: CreditCard,
-        // },
         {
-          title: t('nav.alumni'),
-          url: "/alumni",
-          icon: GraduationCap,
+          title: t('nav.settings'),
+          url: "/settings",
+          icon: Settings,
         },
-        // Settings removed from sidebar as it is now in dashboard tab
-        // Add Permissions Manager as a top-level item at the end
-        permissionsManagerItem,
       ];
       return items;
     }
@@ -264,11 +251,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* Always show premium VEDA branding for all roles */}
         <TeamSwitcher />
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="py-2 px-1">
         <NavMain items={navigationItems} />
         {/* NavProjects removed as requested */}
       </SidebarContent>
-      {/* SidebarFooter removed, NavUser will be moved to Header */}
       <SidebarRail />
     </Sidebar>
   )

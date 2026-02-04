@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DollarSign, Plus, RefreshCw, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FeeComponent {
   id: string;
@@ -28,6 +29,7 @@ interface FeeStructure {
 }
 
 export function ImprovedFeesManager() {
+  const { t } = useLanguage();
   const [feeStructures, setFeeStructures] = useState<FeeStructure[]>([
     {
       id: "FS001",
@@ -58,26 +60,26 @@ export function ImprovedFeesManager() {
 
   const { toast } = useToast();
 
-  const feeTypes = [
-    "Tuition Fee",
-    "Admission Fee", 
-    "Exam Fee",
-    "Library Fee",
-    "Lab Fee",
-    "Sports Fee",
-    "Transport Fee",
-    "Hostel Fee",
-    "Annual Function Fee",
-    "Computer Fee",
-    "Activity Fee",
-    "Others"
+  const getFeeTypes = () => [
+    t('fees.tuitionFee'),
+    t('fees.admissionFee'), 
+    t('fees.examFee'),
+    t('fees.libraryFee'),
+    t('fees.labFee'),
+    t('fees.sportsFee'),
+    t('fees.transportFee'),
+    t('fees.hostelFee'),
+    t('fees.annualFunctionFee'),
+    t('fees.computerFee'),
+    t('fees.activityFee'),
+    t('fees.others')
   ];
 
   const addFeeComponent = () => {
     if (!currentFeeType || !currentAmount || !currentDueDate) {
       toast({
-        title: "Error",
-        description: "Please fill all fee component fields",
+        title: t('common.error'),
+        description: t('fees.errorFillAllFields'),
         variant: "destructive"
       });
       return;
@@ -110,8 +112,8 @@ export function ImprovedFeesManager() {
   const handleAddStructure = () => {
     if (!newStructure.name || !newStructure.class || !newStructure.academicYear || newStructure.components.length === 0) {
       toast({
-        title: "Error",
-        description: "Please fill all required fields and add at least one fee component",
+        title: t('common.error'),
+        description: t('fees.errorAddAtLeastOne'),
         variant: "destructive"
       });
       return;
@@ -139,54 +141,54 @@ export function ImprovedFeesManager() {
     setShowAddDialog(false);
 
     toast({
-      title: "Success",
-      description: "Fee structure added successfully"
+      title: t('common.success'),
+      description: t('fees.feeStructureAdded')
     });
   };
 
   const refreshData = () => {
     // Simulate data refresh
     toast({
-      title: "Refreshed",
-      description: "Fee structure data has been refreshed"
+      title: t('common.refresh'),
+      description: t('fees.dataRefreshed')
     });
   };
 
   return (
     <div className="space-y-6">
       <Tabs defaultValue="structure">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="structure">Fee Structure</TabsTrigger>
-          <TabsTrigger value="receipts">Receipts</TabsTrigger>
+        <TabsList className="w-full flex">
+          <TabsTrigger value="structure">{t('fees.feeStructure')}</TabsTrigger>
+          <TabsTrigger value="receipts">{t('fees.receipts')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="structure" className="space-y-4">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Fee Structure Management</CardTitle>
+                <CardTitle>{t('fees.feeStructureManagement')}</CardTitle>
                 <div className="flex gap-2">
                   <Button onClick={refreshData} variant="outline">
                     <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
+                    {t('common.refresh')}
                   </Button>
                   <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
                     <DialogTrigger asChild>
                       <Button>
                         <Plus className="h-4 w-4 mr-2" />
-                        Add Fee Structure
+                        {t('fees.addFeeStructure')}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl">
                       <DialogHeader>
-                        <DialogTitle>Add New Fee Structure</DialogTitle>
+                        <DialogTitle>{t('fees.addNewFeeStructure')}</DialogTitle>
                       </DialogHeader>
                       
                       <div className="grid grid-cols-2 gap-6">
                         {/* Basic Info */}
                         <div className="space-y-4">
                           <div>
-                            <Label>Structure Name</Label>
+                            <Label>{t('fees.structureName')}</Label>
                             <Input
                               value={newStructure.name}
                               onChange={(e) => setNewStructure(prev => ({ ...prev, name: e.target.value }))}
@@ -194,7 +196,7 @@ export function ImprovedFeesManager() {
                             />
                           </div>
                           <div>
-                            <Label>Class</Label>
+                            <Label>{t('fees.class')}</Label>
                             <Input
                               value={newStructure.class}
                               onChange={(e) => setNewStructure(prev => ({ ...prev, class: e.target.value }))}
@@ -202,7 +204,7 @@ export function ImprovedFeesManager() {
                             />
                           </div>
                           <div>
-                            <Label>Academic Year</Label>
+                            <Label>{t('fees.academicYear')}</Label>
                             <Input
                               value={newStructure.academicYear}
                               onChange={(e) => setNewStructure(prev => ({ ...prev, academicYear: e.target.value }))}
@@ -212,16 +214,16 @@ export function ImprovedFeesManager() {
 
                           {/* Add Fee Component Section */}
                           <div className="space-y-3 border-t pt-4">
-                            <Label className="text-lg font-semibold">Add Fee Components</Label>
+                            <Label className="text-lg font-semibold">{t('fees.addFeeComponents')}</Label>
                             
                             <div>
-                              <Label>Fee Type</Label>
+                              <Label>{t('fees.feeType')}</Label>
                               <Select value={currentFeeType} onValueChange={setCurrentFeeType}>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select fee type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {feeTypes.map(type => (
+                                  {getFeeTypes().map(type => (
                                     <SelectItem key={type} value={type}>{type}</SelectItem>
                                   ))}
                                 </SelectContent>
@@ -229,7 +231,7 @@ export function ImprovedFeesManager() {
                             </div>
 
                             <div>
-                              <Label>Amount (₹)</Label>
+                              <Label>{t('fees.amount')} (₹)</Label>
                               <Input
                                 type="number"
                                 value={currentAmount}
@@ -239,7 +241,7 @@ export function ImprovedFeesManager() {
                             </div>
 
                             <div>
-                              <Label>Due Date</Label>
+                              <Label>{t('fees.dueDate')}</Label>
                               <Input
                                 type="date"
                                 value={currentDueDate}
@@ -249,20 +251,20 @@ export function ImprovedFeesManager() {
 
                             <Button onClick={addFeeComponent} className="w-full">
                               <Plus className="h-4 w-4 mr-2" />
-                              Add Component
+                              {t('fees.addComponent')}
                             </Button>
                           </div>
                         </div>
 
                         {/* Fee Components List */}
                         <div className="space-y-4">
-                          <Label className="text-lg font-semibold">Fee Components Added</Label>
+                          <Label className="text-lg font-semibold">{t('fees.feeComponentsAdded')}</Label>
                           
                           {newStructure.components.length === 0 ? (
                             <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
                               <DollarSign className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                              <p>No fee components added yet</p>
-                              <p className="text-sm">Add components using the form on the left</p>
+                              <p>{t('fees.noComponentsAdded')}</p>
+                              <p className="text-sm">{t('fees.addComponentsLeft')}</p>
                             </div>
                           ) : (
                             <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -286,7 +288,7 @@ export function ImprovedFeesManager() {
                               
                               <div className="border-t pt-2 mt-4">
                                 <div className="flex justify-between font-semibold">
-                                  <span>Total Amount:</span>
+                                  <span>{t('fees.totalAmount')}:</span>
                                   <span>₹{newStructure.components.reduce((sum, comp) => sum + comp.amount, 0).toLocaleString()}</span>
                                 </div>
                               </div>
@@ -297,10 +299,10 @@ export function ImprovedFeesManager() {
 
                       <div className="flex gap-2 justify-end mt-6">
                         <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-                          Cancel
+                          {t('common.cancel')}
                         </Button>
                         <Button onClick={handleAddStructure}>
-                          Save Fee Structure
+                          {t('fees.saveFeeStructure')}
                         </Button>
                       </div>
                     </DialogContent>
@@ -312,12 +314,12 @@ export function ImprovedFeesManager() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Structure Name</TableHead>
-                    <TableHead>Class</TableHead>
-                    <TableHead>Academic Year</TableHead>
-                    <TableHead>Components</TableHead>
-                    <TableHead>Total Amount</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t('fees.structureName')}</TableHead>
+                    <TableHead>{t('fees.class')}</TableHead>
+                    <TableHead>{t('fees.academicYear')}</TableHead>
+                    <TableHead>{t('fees.components')}</TableHead>
+                    <TableHead>{t('fees.totalAmount')}</TableHead>
+                    <TableHead>{t('fees.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -330,8 +332,8 @@ export function ImprovedFeesManager() {
                       <TableCell>₹{structure.totalAmount.toLocaleString()}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm">Edit</Button>
-                          <Button variant="outline" size="sm">View</Button>
+                          <Button variant="outline" size="sm">{t('common.edit')}</Button>
+                          <Button variant="outline" size="sm">{t('common.view')}</Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -345,11 +347,11 @@ export function ImprovedFeesManager() {
         <TabsContent value="receipts" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Fee Receipts</CardTitle>
+              <CardTitle>{t('fees.receipts')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center py-8 text-muted-foreground">
-                <p>No receipts generated yet</p>
+                <p>{t('fees.noReceiptsGenerated')}</p>
               </div>
             </CardContent>
           </Card>

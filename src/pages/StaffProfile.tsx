@@ -1,4 +1,4 @@
-import { UserCheck, Clock } from "lucide-react";
+import { UserCheck, Clock, ChevronDown, ChevronUp } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { StaffIdCardTemplate } from "@/components/id-cards/StaffIdCardTemplate";
 import { useEffect, useState } from "react";
@@ -61,6 +61,7 @@ export default function StaffProfile() {
   const [staff, setStaff] = useState<Staff | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -101,6 +102,9 @@ export default function StaffProfile() {
   const [showIdCardDialog, setShowIdCardDialog] = useState(false);
   const [showExperienceCertDialog, setShowExperienceCertDialog] = useState(false);
   const [showSalaryCertDialog, setShowSalaryCertDialog] = useState(false);
+  // Class details dialog
+  const [classDialogOpen, setClassDialogOpen] = useState(false);
+  const [selectedClassInfo, setSelectedClassInfo] = useState<{ class: string; subject: string; students: number } | null>(null);
 
   const handleDocumentGeneration = (type: string) => {
     if (type === "ID Card") {
@@ -335,16 +339,368 @@ export default function StaffProfile() {
         </CardContent>
       </Card>
 
+      {/* Additional Information Section */}
+      <Card className="mb-6">
+        <CardHeader 
+          className="cursor-pointer hover:bg-muted/50 transition-colors"
+          onClick={() => setShowAdditionalInfo(!showAdditionalInfo)}
+        >
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              {showAdditionalInfo ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+              Additional Information
+            </CardTitle>
+          </div>
+        </CardHeader>
+        
+        {showAdditionalInfo && (
+          <CardContent className="space-y-6 border-t pt-6">
+            {/* Medical Information */}
+            {(staff?.bloodGroup || staff?.allergies || staff?.chronicConditions || staff?.emergencyContact || staff?.emergencyContactPhone || staff?.doctorName || staff?.doctorPhone) && (
+              <div>
+                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Medical Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-6">
+                  {staff.bloodGroup && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Blood Group</div>
+                      <div className="text-sm font-semibold">{staff.bloodGroup}</div>
+                    </div>
+                  )}
+                  {staff.allergies && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Allergies</div>
+                      <div className="text-sm">{staff.allergies}</div>
+                    </div>
+                  )}
+                  {staff.chronicConditions && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Chronic Conditions</div>
+                      <div className="text-sm">{staff.chronicConditions}</div>
+                    </div>
+                  )}
+                  {staff.emergencyContact && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Emergency Contact</div>
+                      <div className="text-sm">{staff.emergencyContact}</div>
+                    </div>
+                  )}
+                  {staff.emergencyContactPhone && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Emergency Contact Phone</div>
+                      <div className="text-sm">{staff.emergencyContactPhone}</div>
+                    </div>
+                  )}
+                  {staff.doctorName && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Doctor Name</div>
+                      <div className="text-sm">{staff.doctorName}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Identification Information */}
+            {(staff.aadharNumber || staff.panNumber || staff.passportNumber || staff.licenseNumber) && (
+              <div>
+                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Identification Details
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-6">
+                  {staff.aadharNumber && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Aadhar Number</div>
+                      <div className="text-sm">{staff.aadharNumber}</div>
+                    </div>
+                  )}
+                  {staff.panNumber && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">PAN Number</div>
+                      <div className="text-sm">{staff.panNumber}</div>
+                    </div>
+                  )}
+                  {staff.passportNumber && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Passport Number</div>
+                      <div className="text-sm">{staff.passportNumber}</div>
+                    </div>
+                  )}
+                  {staff.licenseNumber && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">License Number</div>
+                      <div className="text-sm">{staff.licenseNumber}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Personal Information */}
+            {(staff.dob || staff.gender || staff.nationality || staff.religion || staff.maritalStatus) && (
+              <div>
+                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Personal Details
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-6">
+                  {staff.dob && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Date of Birth</div>
+                      <div className="text-sm">{new Date(staff.dob).toLocaleDateString()}</div>
+                    </div>
+                  )}
+                  {staff.gender && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Gender</div>
+                      <div className="text-sm">{staff.gender}</div>
+                    </div>
+                  )}
+                  {staff.nationality && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Nationality</div>
+                      <div className="text-sm">{staff.nationality}</div>
+                    </div>
+                  )}
+                  {staff.religion && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Religion</div>
+                      <div className="text-sm">{staff.religion}</div>
+                    </div>
+                  )}
+                  {staff.maritalStatus && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Marital Status</div>
+                      <div className="text-sm">{staff.maritalStatus}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Contact Information */}
+            {(staff.primaryPhone || staff.secondaryPhone || staff.personalEmail || staff.permanentAddress) && (
+              <div>
+                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  Contact Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-6">
+                  {staff.primaryPhone && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Primary Phone</div>
+                      <div className="text-sm">{staff.primaryPhone}</div>
+                    </div>
+                  )}
+                  {staff.secondaryPhone && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Secondary Phone</div>
+                      <div className="text-sm">{staff.secondaryPhone}</div>
+                    </div>
+                  )}
+                  {staff.personalEmail && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Personal Email</div>
+                      <div className="text-sm">{staff.personalEmail}</div>
+                    </div>
+                  )}
+                  {staff.permanentAddress && (
+                    <div className="md:col-span-2">
+                      <div className="text-sm font-medium text-muted-foreground">Permanent Address</div>
+                      <div className="text-sm">{staff.permanentAddress}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Professional Information */}
+            {(staff.bankAccountNumber || staff.bankName || staff.ifscCode || staff.accountHolderName) && (
+              <div>
+                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                  <Briefcase className="h-4 w-4" />
+                  Professional Details
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-6">
+                  {staff.bankAccountNumber && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Bank Account Number</div>
+                      <div className="text-sm">****{staff.bankAccountNumber.slice(-4)}</div>
+                    </div>
+                  )}
+                  {staff.bankName && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Bank Name</div>
+                      <div className="text-sm">{staff.bankName}</div>
+                    </div>
+                  )}
+                  {staff.ifscCode && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">IFSC Code</div>
+                      <div className="text-sm">{staff.ifscCode}</div>
+                    </div>
+                  )}
+                  {staff.accountHolderName && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Account Holder Name</div>
+                      <div className="text-sm">{staff.accountHolderName}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Qualification Information */}
+            {(staff.highestQualification || staff.university || staff.passingYear || staff.additionalCertifications) && (
+              <div>
+                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4" />
+                  Qualification Details
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-6">
+                  {staff.highestQualification && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Highest Qualification</div>
+                      <div className="text-sm">{staff.highestQualification}</div>
+                    </div>
+                  )}
+                  {staff.university && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">University</div>
+                      <div className="text-sm">{staff.university}</div>
+                    </div>
+                  )}
+                  {staff.passingYear && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Passing Year</div>
+                      <div className="text-sm">{staff.passingYear}</div>
+                    </div>
+                  )}
+                  {staff.additionalCertifications && staff.additionalCertifications.length > 0 && (
+                    <div className="md:col-span-2">
+                      <div className="text-sm font-medium text-muted-foreground">Additional Certifications</div>
+                      <div className="text-sm">
+                        {staff.additionalCertifications.map((cert, idx) => (
+                          <div key={idx} className="flex items-center gap-2 mt-1">
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{cert}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Employment Information */}
+            {(staff.employmentType || staff.confirmationDate || staff.workingDays || staff.leaveEntitlement) && (
+              <div>
+                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                  <Briefcase className="h-4 w-4" />
+                  Employment Details
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-6">
+                  {staff.employmentType && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Employment Type</div>
+                      <div className="text-sm">{staff.employmentType}</div>
+                    </div>
+                  )}
+                  {staff.confirmationDate && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Confirmation Date</div>
+                      <div className="text-sm">{new Date(staff.confirmationDate).toLocaleDateString()}</div>
+                    </div>
+                  )}
+                  {staff.workingDays && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Working Days</div>
+                      <div className="text-sm">{staff.workingDays}</div>
+                    </div>
+                  )}
+                  {staff.leaveEntitlement && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Leave Entitlement</div>
+                      <div className="text-sm">{staff.leaveEntitlement} days/year</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Compliance Information */}
+            {(staff.backgroundVerified || staff.policeClearance || staff.medicalCheckup || staff.documentConsent) && (
+              <div>
+                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                  <UserCheck className="h-4 w-4" />
+                  Compliance & Documentation
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-6">
+                  {staff.backgroundVerified !== undefined && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Background Verified</div>
+                      <Badge variant={staff.backgroundVerified ? 'default' : 'secondary'}>
+                        {staff.backgroundVerified ? 'Yes' : 'No'}
+                      </Badge>
+                    </div>
+                  )}
+                  {staff.policeClearance !== undefined && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Police Clearance</div>
+                      <Badge variant={staff.policeClearance ? 'default' : 'secondary'}>
+                        {staff.policeClearance ? 'Obtained' : 'Pending'}
+                      </Badge>
+                    </div>
+                  )}
+                  {staff.medicalCheckup !== undefined && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Medical Checkup</div>
+                      <Badge variant={staff.medicalCheckup ? 'default' : 'secondary'}>
+                        {staff.medicalCheckup ? 'Completed' : 'Pending'}
+                      </Badge>
+                    </div>
+                  )}
+                  {staff.documentConsent !== undefined && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Document Consent</div>
+                      <Badge variant={staff.documentConsent ? 'default' : 'secondary'}>
+                        {staff.documentConsent ? 'Consented' : 'Not Consented'}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Empty state - no additional info */}
+            {!(staff?.bloodGroup || staff?.allergies || staff?.chronicConditions || staff?.emergencyContact || staff?.emergencyContactPhone || staff?.doctorName || staff?.doctorPhone || staff.aadharNumber || staff.panNumber || staff.passportNumber || staff.licenseNumber || staff.dob || staff.gender || staff.nationality || staff.religion || staff.maritalStatus || staff.highestQualification || staff.university || staff.passingYear || staff.additionalCertifications || staff.employmentType || staff.confirmationDate || staff.workingDays || staff.leaveEntitlement || staff.backgroundVerified || staff.policeClearance || staff.medicalCheckup || staff.documentConsent) && (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">No additional details added yet</p>
+                <Button 
+                  onClick={() => navigate(`/staff/${staff?.id}/edit`)}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <span>➕</span> Add More Details
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        )}
+      </Card>
+
       {/* Tabs for detailed information */}
       <Tabs defaultValue="classes" className="space-y-4">
         <div className="tabs-list-container overflow-x-auto">
-          <TabsList className="tabs-list grid w-full grid-cols-3 lg:grid-cols-6 min-w-[600px] md:min-w-[720px]">
+            <TabsList className="tabs-list grid w-full grid-cols-3 lg:grid-cols-6 min-w-[600px] md:min-w-[720px]">
             <TabsTrigger value="classes" className="tabs-trigger">{t('staffProfilePage.classes')}</TabsTrigger>
             <TabsTrigger value="attendance" className="tabs-trigger">{t('staffProfilePage.attendance')}</TabsTrigger>
             <TabsTrigger value="payroll" className="tabs-trigger">{t('staffProfilePage.payroll')}</TabsTrigger>
             <TabsTrigger value="documents" className="tabs-trigger">{t('staffProfilePage.documents')}</TabsTrigger>
             <TabsTrigger value="certificates" className="tabs-trigger">{t('staffProfilePage.certificates')}</TabsTrigger>
-            <TabsTrigger value="performance" className="tabs-trigger">{t('staffProfilePage.performance')}</TabsTrigger>
           </TabsList>
         </div>
 
@@ -373,9 +729,18 @@ export default function StaffProfile() {
                         <TableCell className="font-medium">{classInfo.class}</TableCell>
                         <TableCell>{classInfo.subject}</TableCell>
                         <TableCell>{classInfo.students}</TableCell>
-                        <TableCell>
-                          <Button size="sm" variant="outline">View Details</Button>
-                        </TableCell>
+                            <TableCell>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedClassInfo(classInfo as any);
+                                  setClassDialogOpen(true);
+                                }}
+                              >
+                                View Details
+                              </Button>
+                            </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -607,23 +972,7 @@ export default function StaffProfile() {
           <PayrollManager staffId={staff?.id} />
         </TabsContent>
 
-        <TabsContent value="performance">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5" />
-                Performance Reviews
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <GraduationCap className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No performance reviews available</p>
-                <p className="text-sm">Performance evaluations and feedback will appear here</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        
       </Tabs>
 
       {/* Edit Attendance Dialog */}
@@ -680,6 +1029,33 @@ export default function StaffProfile() {
                   Save Changes
                 </Button>
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+      {/* Class Details Dialog */}
+      {classDialogOpen && selectedClassInfo && (
+        <Dialog open={classDialogOpen} onOpenChange={setClassDialogOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Class Details</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <div className="text-sm font-medium text-muted-foreground">Class</div>
+                <div className="text-lg font-semibold">{selectedClassInfo.class}</div>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-muted-foreground">Subject</div>
+                <div className="text-lg">{selectedClassInfo.subject}</div>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-muted-foreground">Students</div>
+                <div className="text-lg">{selectedClassInfo.students}</div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => setClassDialogOpen(false)}>Close</Button>
             </div>
           </DialogContent>
         </Dialog>

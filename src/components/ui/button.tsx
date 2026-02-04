@@ -5,11 +5,11 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-95",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-95",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg hover:-translate-y-0.5",
+        default: "bg-primary text-primary-foreground hover:bg-primary-hover shadow-md hover:shadow-lg hover:-translate-y-0.5",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md hover:shadow-lg hover:-translate-y-0.5",
         outline:
@@ -19,6 +19,12 @@ const buttonVariants = cva(
         ghost: "text-foreground hover:bg-accent hover:text-accent-foreground hover:shadow-sm",
         link: "text-primary underline-offset-4 hover:underline hover:text-primary/80",
         premium: "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl hover:-translate-y-1",
+        // 🎨 NEW: Modern Premium Variants
+        gradient: "gradient-primary text-white shadow-lg hover:shadow-xl hover:-translate-y-1 font-semibold",
+        gradientAccent: "gradient-accent text-white shadow-lg hover:shadow-xl hover:-translate-y-1 font-semibold",
+        glass: "glass text-foreground shadow-lg hover:shadow-xl hover:-translate-y-0.5 backdrop-blur-md border border-white/20",
+        success: "bg-success text-success-foreground hover:bg-success/90 shadow-md hover:shadow-lg hover:-translate-y-0.5",
+        warning: "bg-warning text-warning-foreground hover:bg-warning/90 shadow-md hover:shadow-lg hover:-translate-y-0.5",
       },
       size: {
         default: "h-9 px-4 py-2 sm:h-10 sm:px-5 sm:py-2.5",

@@ -6,8 +6,6 @@ import { Calendar, BookOpen, Users, Clock, Award, GraduationCap } from "lucide-r
 import AcademicYearManager from "./AcademicYearManager";
 import ClassManager from "./ClassManager";
 import SubjectManager from "./SubjectManager";
-import TimetableManager from "./TimetableManager";
-import ExaminationManager from "./ExaminationManager";
 
 export default function Academics() {
   const [activeTab, setActiveTab] = useState("academic-years");
@@ -16,9 +14,9 @@ export default function Academics() {
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-display">Academics Management</h1>
+        <h1 className="text-display">Academic Setup</h1>
         <p className="text-muted-foreground mt-2">
-          Comprehensive academic management system for classes, subjects, timetables, and examinations.
+          Configure academic years, classes, and subjects for your institution.
         </p>
       </div>
 
@@ -71,26 +69,19 @@ export default function Academics() {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-  <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="w-full flex">
           <TabsTrigger value="academic-years" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Academic Years
+            <Calendar className="h-4 w-4 hidden sm:block" />
+            <span className="hidden sm:inline">Academic Years</span>
+            <span className="sm:hidden">Years</span>
           </TabsTrigger>
           <TabsTrigger value="classes" className="flex items-center gap-2">
-            <GraduationCap className="h-4 w-4" />
+            <GraduationCap className="h-4 w-4 hidden sm:block" />
             Classes
           </TabsTrigger>
           <TabsTrigger value="subjects" className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4" />
+            <BookOpen className="h-4 w-4 hidden sm:block" />
             Subjects
-          </TabsTrigger>
-          <TabsTrigger value="timetable" className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Timetable
-          </TabsTrigger>
-          <TabsTrigger value="examinations" className="flex items-center gap-2">
-            <Award className="h-4 w-4" />
-            Examinations
           </TabsTrigger>
         </TabsList>
 
@@ -104,14 +95,6 @@ export default function Academics() {
 
         <TabsContent value="subjects" className="space-y-6">
           <SubjectManager />
-        </TabsContent>
-
-
-        <TabsContent value="timetable" className="space-y-6">
-          <TimetableManager />
-        </TabsContent>
-        <TabsContent value="examinations" className="space-y-6">
-          <ExaminationManager />
         </TabsContent>
       </Tabs>
     </div>

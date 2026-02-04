@@ -215,7 +215,7 @@ export default function StaffCommunicationManager() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="parent-communication" className="w-full">
-            <TabsList className="grid w-full grid-cols-1">
+            <TabsList className="w-full flex">
               <TabsTrigger value="parent-communication">Parent Communication</TabsTrigger>
             </TabsList>
 

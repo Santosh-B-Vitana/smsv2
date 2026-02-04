@@ -1,16 +1,58 @@
 import { useEffect, useState } from "react";
-import { Users, UserCheck, Calendar, Award, TrendingUp, TrendingDown, BadgeIndianRupee, ArrowUpRight, Clock, CheckCircle2, XCircle, AlertCircle, Settings, Target, Zap } from "lucide-react";
+import { Users, UserCheck, Calendar, Award, TrendingUp, TrendingDown, BadgeIndianRupee, ArrowUpRight, Clock, CheckCircle2, XCircle, AlertCircle, Settings, Target, Zap, BarChart3 } from "lucide-react";
 import { StatsCard } from "../../components/dashboard/StatsCard";
 import { QuickActions } from "../../components/dashboard/QuickActions";
 import { RecentActivity } from "../../components/dashboard/RecentActivity";
+import { CalendarWidget } from "../../components/dashboard/CalendarWidget";
 import { mockApi, DashboardStats } from "../../services/mockApi";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import SettingsPage from "../Settings";
+
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { AnimatedBackground } from "@/components/common/AnimatedBackground";
+import { AnimatedWrapper } from "@/components/common/AnimatedWrapper";
+import { ModernCard } from "@/components/common/ModernCard";
+
+// Mock data for charts
+const enrollmentData = [
+  { month: 'Sep', students: 450 },
+  { month: 'Oct', students: 465 },
+  { month: 'Nov', students: 478 },
+  { month: 'Dec', students: 472 },
+  { month: 'Jan', students: 485 },
+  { month: 'Feb', students: 492 },
+  { month: 'Mar', students: 498 }
+];
+
+const feeCollectionData = [
+  { month: 'Sep', collected: 4200000, pending: 800000 },
+  { month: 'Oct', collected: 4500000, pending: 600000 },
+  { month: 'Nov', collected: 4350000, pending: 750000 },
+  { month: 'Dec', collected: 4800000, pending: 400000 },
+  { month: 'Jan', collected: 4600000, pending: 550000 },
+  { month: 'Feb', collected: 4900000, pending: 300000 },
+  { month: 'Mar', collected: 5100000, pending: 200000 }
+];
+
+const attendanceData = [
+  { day: 'Mon', percentage: 94 },
+  { day: 'Tue', percentage: 96 },
+  { day: 'Wed', percentage: 95 },
+  { day: 'Thu', percentage: 93 },
+  { day: 'Fri', percentage: 97 },
+  { day: 'Sat', percentage: 91 }
+];
+
+const departmentDistribution = [
+  { name: 'Primary (1-5)', value: 180, color: 'hsl(var(--chart-1))' },
+  { name: 'Middle (6-8)', value: 145, color: 'hsl(var(--chart-2))' },
+  { name: 'Secondary (9-10)', value: 120, color: 'hsl(var(--chart-3))' },
+  { name: 'Senior (11-12)', value: 53, color: 'hsl(var(--chart-4))' }
+];
 
 export default function AdminDashboard() {
   const { t } = useLanguage();
@@ -62,14 +104,13 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
+    <div className="relative min-h-screen">
+      <AnimatedBackground variant="gradient" className="fixed inset-0 -z-10 opacity-20" />
+      
+      <div className="relative space-y-6 animate-fade-in">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="hidden">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="settings">
-            <Settings className="w-4 h-4 mr-2" />
-            Settings
-          </TabsTrigger>
         </TabsList>
 
   <TabsContent value="dashboard">
@@ -87,8 +128,9 @@ export default function AdminDashboard() {
           </div>
 
           {/* Key Metrics Row */}
+          <AnimatedWrapper variant="fadeInUp" delay={0.2}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary">
+            <ModernCard variant="glass" className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
                   Total Students
@@ -105,9 +147,9 @@ export default function AdminDashboard() {
                   View all students <ArrowUpRight className="h-3 w-3" />
                 </button>
               </CardContent>
-            </Card>
+            </ModernCard>
 
-            <Card className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
+            <ModernCard variant="glass" className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
                   Total Staff
@@ -124,9 +166,9 @@ export default function AdminDashboard() {
                   View all staff <ArrowUpRight className="h-3 w-3" />
                 </button>
               </CardContent>
-            </Card>
+            </ModernCard>
 
-            <Card className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-green-500">
+            <ModernCard variant="glass" className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-green-500">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
                   Today's Attendance
@@ -143,9 +185,9 @@ export default function AdminDashboard() {
                   Mark attendance <ArrowUpRight className="h-3 w-3" />
                 </button>
               </CardContent>
-            </Card>
+            </ModernCard>
 
-            <Card className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-amber-500">
+            <ModernCard variant="glass" className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-amber-500">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
                   Pending Fees
@@ -162,16 +204,18 @@ export default function AdminDashboard() {
                   Manage fees <ArrowUpRight className="h-3 w-3" />
                 </button>
               </CardContent>
-            </Card>
+            </ModernCard>
           </div>
+          </AnimatedWrapper>
 
           {/* Two Column Layout - Quick Actions & Events/Announcements */}
+          <AnimatedWrapper variant="fadeInUp" delay={0.3}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div className="lg:col-span-1 space-y-6">
               <QuickActions />
               
               {/* Quick Stats Summary */}
-              <Card>
+              <ModernCard variant="glass">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Zap className="h-5 w-5 text-primary" />
@@ -227,11 +271,11 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </ModernCard>
             </div>
             <div className="lg:col-span-2 space-y-6">
               {/* Upcoming Events */}
-              <Card>
+              <ModernCard variant="glass">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Calendar className="h-5 w-5 text-primary" />
@@ -267,10 +311,10 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </ModernCard>
 
               {/* Latest Announcements */}
-              <Card>
+              <ModernCard variant="glass">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <AlertCircle className="h-5 w-5 text-primary" />
@@ -300,9 +344,153 @@ export default function AdminDashboard() {
                     <p className="text-xs text-muted-foreground">Updated uniform guidelines for summer season. Please refer to the handbook for complete details.</p>
                   </div>
                 </CardContent>
-              </Card>
+              </ModernCard>
             </div>
           </div>
+          </AnimatedWrapper>
+
+          {/* Analytics Charts Section */}
+          <AnimatedWrapper variant="fadeInUp" delay={0.4}>
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Analytics & Trends
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Enrollment Trend */}
+              <ModernCard variant="glass">
+                <CardHeader>
+                  <CardTitle className="text-base">Enrollment Trend</CardTitle>
+                  <CardDescription>Student growth over the academic year</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <AreaChart data={enrollmentData}>
+                      <defs>
+                        <linearGradient id="colorStudents" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--background))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px'
+                        }} 
+                      />
+                    <Area type="monotone" dataKey="students" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorStudents)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </ModernCard>
+
+            {/* Fee Collection Analysis */}
+            <ModernCard variant="glass">
+                <CardHeader>
+                  <CardTitle className="text-base">Fee Collection Status</CardTitle>
+                  <CardDescription>Monthly collected vs pending fees</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={feeCollectionData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--background))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px'
+                        }}
+                        formatter={(value: number) => `₹${(value / 100000).toFixed(1)}L`}
+                      />
+                      <Legend />
+                    <Bar dataKey="collected" fill="hsl(var(--chart-2))" name="Collected" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="pending" fill="hsl(var(--chart-5))" name="Pending" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </ModernCard>
+
+            {/* Weekly Attendance Pattern */}
+            <ModernCard variant="glass">
+                <CardHeader>
+                  <CardTitle className="text-base">Weekly Attendance Pattern</CardTitle>
+                  <CardDescription>Average attendance by day</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={attendanceData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} domain={[85, 100]} />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--background))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px'
+                        }}
+                        formatter={(value: number) => `${value}%`}
+                      />
+                    <Line type="monotone" dataKey="percentage" stroke="hsl(var(--chart-3))" strokeWidth={3} dot={{ fill: 'hsl(var(--chart-3))', r: 5 }} />
+                  </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </ModernCard>
+
+              {/* Student Distribution */}
+              <ModernCard variant="glass">
+                <CardHeader>
+                  <CardTitle className="text-base">Student Distribution</CardTitle>
+                  <CardDescription>Students by grade level</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={departmentDistribution}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {departmentDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--background))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px'
+                        }} 
+                      />
+                  </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </ModernCard>
+            </div>
+          </div>
+          </AnimatedWrapper>
+
+          {/* Calendar Widget and Recent Activity */}
+          <AnimatedWrapper variant="fadeInUp" delay={0.5}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div className="lg:col-span-2">
+              <CalendarWidget />
+            </div>
+            <div className="lg:col-span-1">
+              <RecentActivity />
+            </div>
+          </div>
+          </AnimatedWrapper>
 
           {/* Action Center */}
           <div className="mb-8">
@@ -416,11 +604,8 @@ export default function AdminDashboard() {
             </div>
           </div>
         </TabsContent>
-
-        <TabsContent value="settings" className="space-y-4">
-          <SettingsPage />
-        </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }

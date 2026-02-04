@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, GraduationCap, CalendarDays } from "lucide-react";
+import { FileText, GraduationCap, CalendarDays, Upload } from "lucide-react";
 import ResultsManager from "@/pages/academics/ResultsManager";
 import ExamTimetableCreator from "@/components/examinations/ExamTimetableCreator";
 import StudentResultPortal from "@/pages/StudentResultPortal";
+import { BulkMarksImportDialog } from "@/components/examinations/BulkMarksImportDialog";
 
 export default function ExaminationManager() {
   return (
@@ -17,7 +18,7 @@ export default function ExaminationManager() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="timetable" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="timetable">
                 <CalendarDays className="h-4 w-4 mr-2" />
                 Exam Schedule
@@ -25,6 +26,10 @@ export default function ExaminationManager() {
               <TabsTrigger value="results">
                 <FileText className="h-4 w-4 mr-2" />
                 Results & Marks
+              </TabsTrigger>
+              <TabsTrigger value="bulkimport">
+                <Upload className="h-4 w-4 mr-2" />
+                Bulk Import
               </TabsTrigger>
               <TabsTrigger value="portal">
                 <GraduationCap className="h-4 w-4 mr-2" />
@@ -36,6 +41,20 @@ export default function ExaminationManager() {
             </TabsContent>
             <TabsContent value="results">
               <ResultsManager />
+            </TabsContent>
+            <TabsContent value="bulkimport">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Bulk Marks Import</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <BulkMarksImportDialog
+                    examId="EXAM001"
+                    examName="Mid-Term Exam 2024"
+                    onImport={(marks) => console.log('Imported marks:', marks)}
+                  />
+                </CardContent>
+              </Card>
             </TabsContent>
             <TabsContent value="portal">
               <StudentResultPortal />
